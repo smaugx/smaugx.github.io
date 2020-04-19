@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言FIX协议是什么？我为什么会接触到FIX协议？由于工作上的关系，自己负责的一个模块需要实现fix报文与xml报文之间的转换。故需要了解fix是个什么东西才能实现这个转换功能。总体看来，FIX协议还是有些许的复杂，些许的不好理解。闲话少叙，开干！ 什么是FIXFinancial Information eXchange(FIX)金融信息交换协议的制定是由多个致力于提升其相互间交易流程效率的金融机">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FIX协议介绍">
+<meta property="og:url" content="http://www.rebootcat.com/2017/02/09/FIX-protocol-introduce/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="前言FIX协议是什么？我为什么会接触到FIX协议？由于工作上的关系，自己负责的一个模块需要实现fix报文与xml报文之间的转换。故需要了解fix是个什么东西才能实现这个转换功能。总体看来，FIX协议还是有些许的复杂，些许的不好理解。闲话少叙，开干！ 什么是FIXFinancial Information eXchange(FIX)金融信息交换协议的制定是由多个致力于提升其相互间交易流程效率的金融机">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/fixxml.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/listoffixengine.png">
+<meta property="article:published_time" content="2017-02-09T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.951Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="fix">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://o8fj2jbwb.bkt.clouddn.com/fixxml.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2017/02/09/FIX-protocol-introduce/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>FIX协议介绍 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/02/09/FIX-protocol-introduce/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          FIX协议介绍
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-02-09 11:23:58" itemprop="dateCreated datePublished" datetime="2017-02-09T11:23:58+08:00">2017-02-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/fix/" itemprop="url" rel="index"><span itemprop="name">fix</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>FIX协议是什么？我为什么会接触到FIX协议？由于工作上的关系，自己负责的一个模块需要实现fix报文与xml报文之间的转换。故需要了解fix是个什么东西才能实现这个转换功能。总体看来，FIX协议还是有些许的复杂，些许的不好理解。闲话少叙，开干！</p>
+<h1 id="什么是FIX"><a href="#什么是FIX" class="headerlink" title="什么是FIX"></a>什么是FIX</h1><p>Financial Information eXchange(FIX)金融信息交换协议的制定是由多个致力于提升其相互间交易流程效率的金融机构和经纪商于1992年共同发起。这些企业把他们及他们的行业视为一个整体，认为能够从对交易指示，交易指令及交易执行的高效电子数据交换的驱动中获利。FIX由此诞生，一个不受单一实体控制的开放消息标准，一个能够被调整组建适用于任何一个企业的商务需求的协议。</p>
+<p>FIX协议包含2个层次：会话层和应用层。会话层与数据的通信相关；而应用层定义了商务相关数据内容。<br>2006年10月，FPL发布了FIX5.0。FIX5.0引入TI（the transport independence ）传输无关框架。TI将FIX会话层从应用层协议中分离出来。在TI框架下，应用层协议消息可以通过任意合适的传输技术进行传送，在这里，FIX会话层协议是FIX应用层消息的可选传输传输协议之一。两个协议层的版本标注将会有所不同，FIX X.Y为FIX应用层协议版本；FIXT X.Y 为FIX会话层协议版本编号。如下图：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/fixxml.png" alt=""></p>
+<p>关于FIX协议会话层的细节和内容这篇博文不会展开介绍，会话层更多关于通信细节，此文重点介绍应用层的内容，这也是我用来进行报文转换的基础。</p>
+<h1 id="FIX协议格式"><a href="#FIX协议格式" class="headerlink" title="FIX协议格式"></a>FIX协议格式</h1><a id="more"></a>
+<blockquote>
+<p><strong><em>这是这篇博文的重点</em></strong></p>
+</blockquote>
+<p>目前，FIX协议存在2种语法格式。</p>
+<ol>
+<li><p>“tag=value”语法格式</p>
+</li>
+<li><p>“FIXML语法” 语法格式</p>
+</li>
+</ol>
+<p>同一个商业信息流适用于任何一种语法。</p>
+<h2 id="普通FIX语法规则"><a href="#普通FIX语法规则" class="headerlink" title="普通FIX语法规则"></a>普通FIX语法规则</h2><p>普通FIX语法规则，是对“标记=值”和“FIXML”2种语法都适用的一般规则。</p>
+<h3 id="Data-Type"><a href="#Data-Type" class="headerlink" title="Data Type"></a>Data Type</h3><ul>
+<li><p>int:整型 没有小数点，逗号，可以包含正负号的数字序列。注，int的值前面可以包含0。(如 “00023” = “23”)</p>
+<pre><code>Examples：723 in field 21 would be mapped int as |21=723|
+         -723 in field 12 would be mapped int as |12=-723|</code></pre></li>
+<li><p>float: 浮点数。可包含小数点和正负号的数字序。累计总长度为15个数字。前面可以有0，小数末尾可加零，或截尾</p>
+</li>
+<li><p>String: 字符串。是大小写敏感的。</p>
+</li>
+<li><p>char: 字符。除分界符号SOH外的字符。大小写敏感。</p>
+</li>
+<li><p>data: 原始数据。 没有格式和内容限制。之前紧接有一个长度域。长度域应制定data数据域包含的字节数（不好含分界符所占字节）。数据中可能包含分界符字节，所以需要用data类型数据长度来辅助区别。</p>
+</li>
+</ul>
+<h3 id="Required-Fields-必选数据域"><a href="#Required-Fields-必选数据域" class="headerlink" title="Required Fields 必选数据域"></a>Required Fields 必选数据域</h3><p>协议每个消息由必选、可选和条件必选（根据其他域的不同）数据域构成。系统应当设计成可支持只提供必选和条件必选数据域的相关操作。</p>
+<h3 id="FIX-“Tag-Value”语法"><a href="#FIX-“Tag-Value”语法" class="headerlink" title="FIX “Tag=Value”语法"></a>FIX “Tag=Value”语法</h3><ol>
+<li><strong>Message Format消息格式</strong></li>
+</ol>
+<p>FIX消息的一般格式为：一个标准头+消息体+一个标准的尾部<br>每个消息由一个包含多个 ，由分界符隔开的，“标记=值”数据域的流构成。标记为TagNum数据类型。所有的标记都有一个特定的值。可选域可以不出现。无值消息将会产生一个Reject消息。</p>
+<ul>
+<li>FIX消息的一般格式为：一个标准头+消息体+一个标准的尾部</li>
+<li>消息头的前三个域为<br>BeginString(tag #8)+BodyLenth(tag#9)+MsgType(tag#35)</li>
+<li>标准消息尾的最后一个域为CheckSum(tag#10)</li>
+<li>在重复数据组内的数据域必须按照FIX规范文档中规定的顺序明确定义。Noxxx域，xxx表示循环组的计数，必须放置在循环组数据内容的的前面。</li>
+<li>一个特定的tag 数应当是唯一的。如果重复，将被认为是一个违反规范文档的错误。错误应当向FIX Global Technical Committee报告<br>此外，某些数据类型为Multiple CharValue的数据域，可以包含多个由空格隔开，由一个SOH技术的多个部分。<br>在同一个消息里，包含明文部分和密文部分的数据的数据域也是可能的。通常用于验证和认证。</li>
+</ul>
+<p>2 . <strong>Field Delimiter: 域分界符</strong></p>
+<p>数据域分界符，在FIX一个消息内的所有数据域由一个分界字符标记结尾。用ASCII码的“SOH”（#001，hex：0x01）进行间隔。所有消息由“8=FIX.x.y<SOH>”标记开始，最后由“10=nnn<SOH>“标记结束。</p>
+<p>3 .<strong>Repeating Groups:循环组</strong></p>
+<p>允许在一个循环组里出现重复的数据域。372=x<SOH>为循环组的第一个域。</p>
+<ul>
+<li>如果使用循环组，循环组的第一个域是必选项，作为新循环组的一个分界。该第一域紧跟在NoXXX后面，然后，当NoXXX值大于0时，变成当条件必选。</li>
+<li>NoXXX域（比如，NoTradingSessions，NoAllocs）定义了循环组实例的数量，对一个循环组只出现一次，且必须在循环组内容之前。</li>
+<li>如果在一个循环组中的一个域是必选的，则NoXXX是必选的。如果所有循环组中的成员是可选的，则NoXXX域也应该是可选的。</li>
+<li>如果一个循环组域被列为必选，则它必须出现在该循环组的每一个实例中。</li>
+<li>循环组在消息中被设计成通过缩排，和à符号进行定义。一些循环组可以在其他循环组中级联出现。可大于一层的级联。</li>
+</ul>
+<p>4 .<strong>User Defined Fields: 用户自定义域</strong></p>
+<p>为给用户提供最大的灵活性，FIX协议允许用户自定义域。 这些域在认同的参与者之间实现、应用，并且应注意避免冲突。</p>
+<p>Tag数在5000 到9999保留用于用户自定义域。这些tag值用于企业联盟的信息交换。可以通过FIX网站进行注册。</p>
+<p>10000以上保留用于单一企业内部使用。不用注册。</p>
+<p>5 .<strong>Example</strong></p>
+<pre><code>char* fix = &quot;8=FIX.4.2\0019=272\00135=E\00134=126\00166666=1095350459\00150=00303\00149=BUYSIDE\00152&quot;
+            &quot;=20040916-16:19:18.328\00168=2\00156=SELLSIDE\00173=2\00111&quot;
+            &quot;=1095350459\00155=fred\00140=1\00167=1\0011=00303\00178=3\00179=string\00179=string\00179=string\00154=1\001  59=3\001&quot;
+            &quot;11=1095350460\00167=2\00140=1\00159=3\0011=00303\00178=3\00179=string\00179=string\00179=string\00155=feed\0  0154=5\001394=3\00110=120\001&quot;;</code></pre><h3 id="FIXML语法格式"><a href="#FIXML语法格式" class="headerlink" title="FIXML语法格式"></a>FIXML语法格式</h3><p>目前采用的都是tag=value来完成数据交换,FIXML格式用的不多。 其中FIXML可读性更强， 但占用更多的带宽资源。</p>
+<p>Example:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">FIXML</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">FIXMLMessage</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Header</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">PossDupFlag</span> <span class="attr">Value</span>=<span class="string">"N"</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">PossResend</span> <span class="attr">Value</span>=<span class="string">"N"</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">SendingTime</span>&gt;</span>20020103-12  00  01<span class="tag">&lt;/<span class="name">SendingTime</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">Sender</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">CompID</span>&gt;</span>AFUNDMGR<span class="tag">&lt;/<span class="name">CompID</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">Sender</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">Target</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">CompID</span>&gt;</span>ABROKER<span class="tag">&lt;/<span class="name">CompID</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">Target</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Header</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ApplicationMessage</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">Order</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">ClOrdID</span>&gt;</span>1968<span class="tag">&lt;/<span class="name">ClOrdID</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Account</span>&gt;</span>4130287<span class="tag">&lt;/<span class="name">Account</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">HandlInst</span> <span class="attr">Value</span>=<span class="string">"1"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">ExDestination</span> <span class="attr">Value</span>=<span class="string">"L"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Instrument</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">Symbol</span>&gt;</span>IBM<span class="tag">&lt;/<span class="name">Symbol</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">SecurityID</span>&gt;</span>459200101<span class="tag">&lt;/<span class="name">SecurityID</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">SecurityIDSource</span> <span class="attr">Value</span>=<span class="string">"1"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Instrument</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Side</span> <span class="attr">Value</span>=<span class="string">"2"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">TransactTime</span>&gt;</span>20021120-12  13  12<span class="tag">&lt;/<span class="name">TransactTime</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">OrderQtyData</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">OrderQty</span>&gt;</span>1000<span class="tag">&lt;/<span class="name">OrderQty</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">OrderQtyData</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">OrdType</span> <span class="attr">Value</span>=<span class="string">"2"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Price</span>&gt;</span>93.25<span class="tag">&lt;/<span class="name">Price</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Currency</span> <span class="attr">Value</span>=<span class="string">"USD"</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">Order</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ApplicationMessage</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">FIXMLMessage</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">FIXML</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="数据字典"><a href="#数据字典" class="headerlink" title="数据字典"></a>数据字典</h2><blockquote>
+<p><strong><em>什么是数据字典？为何又需要数据字典？</em></strong></p>
+</blockquote>
+<p>回答这两个问题前，需要了解清楚上面关于fix协议格式的内容。fix协议第一种语法采用”tag=value”的方式，其中tag就是预定义的东西，为了节省传输过程中的字节数，fix把一些能够用到的字段名进行了预定义，写到了一个文件中，并命名为诸如FIX42.xml,FIX44.xml等。</p>
+<p>实际应用中，FIX引擎在对fix报文的组包，解包过程中需要解析这些文件，比如解析到tag为<strong>8</strong>，则代表字段<strong>BeginString</strong>。FIXXX.xml文件中还定义了不同的结构，”messages”,”fields”,”header”,”group”等。详细如下所示：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">fix</span> <span class="attr">major</span>=<span class="string">'4'</span> <span class="attr">type</span>=<span class="string">'FIX'</span> <span class="attr">servicepack</span>=<span class="string">'0'</span> <span class="attr">minor</span>=<span class="string">'4'</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">header</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'BeginString'</span> <span class="attr">required</span>=<span class="string">'Y'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'BodyLength'</span> <span class="attr">required</span>=<span class="string">'Y'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'MsgType'</span> <span class="attr">required</span>=<span class="string">'Y'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'SenderCompID'</span> <span class="attr">required</span>=<span class="string">'Y'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'TargetCompID'</span> <span class="attr">required</span>=<span class="string">'Y'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'OnBehalfOfCompID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'DeliverToCompID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'SecureDataLen'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'SecureData'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'MsgSeqNum'</span> <span class="attr">required</span>=<span class="string">'Y'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'SenderSubID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'SenderLocationID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'TargetSubID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'TargetLocationID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'OnBehalfOfSubID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'OnBehalfOfLocationID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'DeliverToSubID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'DeliverToLocationID'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'PossDupFlag'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'PossResend'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'SendingTime'</span> <span class="attr">required</span>=<span class="string">'Y'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'OrigSendingTime'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'XmlDataLen'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'XmlData'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'MessageEncoding'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">'LastMsgSeqNumProcessed'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">component</span> <span class="attr">name</span>=<span class="string">'Hop'</span> <span class="attr">required</span>=<span class="string">'N'</span> /&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">header</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">messages</span>&gt;</span></span><br><span class="line"></span><br><span class="line">......</span><br><span class="line"><span class="tag">&lt;<span class="name">fields</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'1'</span> <span class="attr">name</span>=<span class="string">'Account'</span> <span class="attr">type</span>=<span class="string">'STRING'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'2'</span> <span class="attr">name</span>=<span class="string">'AdvId'</span> <span class="attr">type</span>=<span class="string">'STRING'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'3'</span> <span class="attr">name</span>=<span class="string">'AdvRefID'</span> <span class="attr">type</span>=<span class="string">'STRING'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'4'</span> <span class="attr">name</span>=<span class="string">'AdvSide'</span> <span class="attr">type</span>=<span class="string">'CHAR'</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'B'</span> <span class="attr">description</span>=<span class="string">'BUY'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'S'</span> <span class="attr">description</span>=<span class="string">'SELL'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'X'</span> <span class="attr">description</span>=<span class="string">'CROSS'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'T'</span> <span class="attr">description</span>=<span class="string">'TRADE'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'5'</span> <span class="attr">name</span>=<span class="string">'AdvTransType'</span> <span class="attr">type</span>=<span class="string">'STRING'</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'N'</span> <span class="attr">description</span>=<span class="string">'NEW'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'C'</span> <span class="attr">description</span>=<span class="string">'CANCEL'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'R'</span> <span class="attr">description</span>=<span class="string">'REPLACE'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'6'</span> <span class="attr">name</span>=<span class="string">'AvgPx'</span> <span class="attr">type</span>=<span class="string">'PRICE'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'7'</span> <span class="attr">name</span>=<span class="string">'BeginSeqNo'</span> <span class="attr">type</span>=<span class="string">'SEQNUM'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'8'</span> <span class="attr">name</span>=<span class="string">'BeginString'</span> <span class="attr">type</span>=<span class="string">'STRING'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'9'</span> <span class="attr">name</span>=<span class="string">'BodyLength'</span> <span class="attr">type</span>=<span class="string">'LENGTH'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'10'</span> <span class="attr">name</span>=<span class="string">'CheckSum'</span> <span class="attr">type</span>=<span class="string">'STRING'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'11'</span> <span class="attr">name</span>=<span class="string">'ClOrdID'</span> <span class="attr">type</span>=<span class="string">'STRING'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'12'</span> <span class="attr">name</span>=<span class="string">'Commission'</span> <span class="attr">type</span>=<span class="string">'AMT'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'13'</span> <span class="attr">name</span>=<span class="string">'CommType'</span> <span class="attr">type</span>=<span class="string">'CHAR'</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'1'</span> <span class="attr">description</span>=<span class="string">'PER_UNIT'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'2'</span> <span class="attr">description</span>=<span class="string">'PERCENTAGE'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'3'</span> <span class="attr">description</span>=<span class="string">'ABSOLUTE'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'4'</span> <span class="attr">description</span>=<span class="string">'4'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'5'</span> <span class="attr">description</span>=<span class="string">'5'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'6'</span> <span class="attr">description</span>=<span class="string">'POINTS_PER_BOND_OR_CONTRACT_SUPPLY_CONTRACTMULTIPLIER'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'14'</span> <span class="attr">name</span>=<span class="string">'CumQty'</span> <span class="attr">type</span>=<span class="string">'QTY'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'15'</span> <span class="attr">name</span>=<span class="string">'Currency'</span> <span class="attr">type</span>=<span class="string">'CURRENCY'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'16'</span> <span class="attr">name</span>=<span class="string">'EndSeqNo'</span> <span class="attr">type</span>=<span class="string">'SEQNUM'</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">......</span><br><span class="line"> <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'946'</span> <span class="attr">name</span>=<span class="string">'CollInquiryResult'</span> <span class="attr">type</span>=<span class="string">'INT'</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'0'</span> <span class="attr">description</span>=<span class="string">'SUCCESSFUL'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'1'</span> <span class="attr">description</span>=<span class="string">'INVALID_OR_UNKNOWN_INSTRUMENT'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'2'</span> <span class="attr">description</span>=<span class="string">'INVALID_OR_UNKNOWN_COLLATERAL_TYPE'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'3'</span> <span class="attr">description</span>=<span class="string">'INVALID_PARTIES'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'4'</span> <span class="attr">description</span>=<span class="string">'INVALID_TRANSPORT_TYPE_REQUESTED'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'5'</span> <span class="attr">description</span>=<span class="string">'INVALID_DESTINATION_REQUESTED'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'6'</span> <span class="attr">description</span>=<span class="string">'NO_COLLATERAL_FOUND_FOR_THE_TRADE_SPECIFIED'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'7'</span> <span class="attr">description</span>=<span class="string">'NO_COLLATERAL_FOUND_FOR_THE_ORDER_SPECIFIED'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'8'</span> <span class="attr">description</span>=<span class="string">'COLLATERAL_INQUIRY_TYPE_NOT_SUPPORTED'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'9'</span> <span class="attr">description</span>=<span class="string">'UNAUTHORIZED_FOR_COLLATERAL_INQUIRY'</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">value</span> <span class="attr">enum</span>=<span class="string">'99'</span> <span class="attr">description</span>=<span class="string">'OTHER'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'947'</span> <span class="attr">name</span>=<span class="string">'StrikeCurrency'</span> <span class="attr">type</span>=<span class="string">'CURRENCY'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'948'</span> <span class="attr">name</span>=<span class="string">'NoNested3PartyIDs'</span> <span class="attr">type</span>=<span class="string">'NUMINGROUP'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'949'</span> <span class="attr">name</span>=<span class="string">'Nested3PartyID'</span> <span class="attr">type</span>=<span class="string">'STRING'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'950'</span> <span class="attr">name</span>=<span class="string">'Nested3PartyIDSource'</span> <span class="attr">type</span>=<span class="string">'CHAR'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'951'</span> <span class="attr">name</span>=<span class="string">'Nested3PartyRole'</span> <span class="attr">type</span>=<span class="string">'INT'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'952'</span> <span class="attr">name</span>=<span class="string">'NoNested3PartySubIDs'</span> <span class="attr">type</span>=<span class="string">'NUMINGROUP'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'953'</span> <span class="attr">name</span>=<span class="string">'Nested3PartySubID'</span> <span class="attr">type</span>=<span class="string">'STRING'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'954'</span> <span class="attr">name</span>=<span class="string">'Nested3PartySubIDType'</span> <span class="attr">type</span>=<span class="string">'INT'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'955'</span> <span class="attr">name</span>=<span class="string">'LegContractSettlMonth'</span> <span class="attr">type</span>=<span class="string">'MONTHYEAR'</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">field</span> <span class="attr">number</span>=<span class="string">'956'</span> <span class="attr">name</span>=<span class="string">'LegInterestAccrualDate'</span> <span class="attr">type</span>=<span class="string">'LOCALMKTDATE'</span> /&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">fields</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">fix</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="FIX引擎"><a href="#FIX引擎" class="headerlink" title="FIX引擎"></a>FIX引擎</h1><p>实现fix协议的开源闭源代码库有很多很多，选择的时候可以根据实际情况从性能，大小，易用性，二次开发等方面考虑。这里给出一个<a href="http://www.fixtradingcommunity.org/pg/structure/products-and-services/type?ProductType=FIX%20Engines" target="_blank" rel="noopener">fix引擎的列表</a>，如下：<img src="http://o8fj2jbwb.bkt.clouddn.com/listoffixengine.png" alt=""></p>
+<p>我自己使用的是<a href="http://www.quickfixengine.org/" target="_blank" rel="noopener">Quickfix</a>!</p>
+<h1 id="完事"><a href="#完事" class="headerlink" title="完事"></a>完事</h1><p>关于FIX协议的基本知识基本介绍完毕，由于我自己使用的时候不涉及到会话层的东西，故在研究开源库Quickfix的源代码的时候，刨去了关于通信层面的代码，着重研究了Quickfix中关于数据字典的解析，fix报文的处理等的代码。后面有时间打算回忆记录下Quickfix的源代码。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
+</li>
+<li><p>email: <a href="mailto:&#x6c;&#x69;&#110;&#x75;&#120;&#x63;&#111;&#100;&#101;&#x32;&#x6e;&#105;&#x6b;&#x69;&#64;&#103;&#109;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;">&#x6c;&#x69;&#110;&#x75;&#120;&#x63;&#111;&#100;&#101;&#x32;&#x6e;&#105;&#x6b;&#x69;&#64;&#103;&#109;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
+</li>
+</ul>
+<p>2017-02-09 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/02/10/sourcecode-of-quickfix/" rel="bookmark">Quickfix源代码分析</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2017/02/09/FIX-protocol-introduce/" title="FIX协议介绍">http://www.rebootcat.com/2017/02/09/FIX-protocol-introduce/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/fix/" rel="tag"># fix</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/12/21/use-daocloud-buildhexo/" rel="prev" title="使用daocloud持续化构建hexo博客">
+      <i class="fa fa-chevron-left"></i> 使用daocloud持续化构建hexo博客
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/02/10/sourcecode-of-quickfix/" rel="next" title="Quickfix源代码分析">
+      Quickfix源代码分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是FIX"><span class="nav-number">2.</span> <span class="nav-text">什么是FIX</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FIX协议格式"><span class="nav-number">3.</span> <span class="nav-text">FIX协议格式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#普通FIX语法规则"><span class="nav-number">3.1.</span> <span class="nav-text">普通FIX语法规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Data-Type"><span class="nav-number">3.1.1.</span> <span class="nav-text">Data Type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Required-Fields-必选数据域"><span class="nav-number">3.1.2.</span> <span class="nav-text">Required Fields 必选数据域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FIX-“Tag-Value”语法"><span class="nav-number">3.1.3.</span> <span class="nav-text">FIX “Tag&#x3D;Value”语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FIXML语法格式"><span class="nav-number">3.1.4.</span> <span class="nav-text">FIXML语法格式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据字典"><span class="nav-number">3.2.</span> <span class="nav-text">数据字典</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FIX引擎"><span class="nav-number">4.</span> <span class="nav-text">FIX引擎</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#完事"><span class="nav-number">5.</span> <span class="nav-text">完事</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

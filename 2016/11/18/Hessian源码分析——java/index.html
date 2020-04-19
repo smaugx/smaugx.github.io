@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="先扯一扯前一篇博文Hessian通信案例(java)简单实现了Java版的Hessian客户端和服务端的通信，总体看来，实现起来比较简单，整个基于Hessian的远程调用过程也显得很方便。但是知其然还要知其所以然，Hessian的底层是怎么实现远程调用的？是怎么序列化的？又是怎么反序列化的？又是如何通信的？ 还记得吗下面这段代码你还记得吗？ 1234String url &#x3D; &quot;http:&#x2F;&#x2F;loc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hessian源码分析(java)">
+<meta property="og:url" content="http://www.rebootcat.com/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="先扯一扯前一篇博文Hessian通信案例(java)简单实现了Java版的Hessian客户端和服务端的通信，总体看来，实现起来比较简单，整个基于Hessian的远程调用过程也显得很方便。但是知其然还要知其所以然，Hessian的底层是怎么实现远程调用的？是怎么序列化的？又是怎么反序列化的？又是如何通信的？ 还记得吗下面这段代码你还记得吗？ 1234String url &#x3D; &quot;http:&#x2F;&#x2F;loc">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118102326.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118104308.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118104016.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118104809.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/cmhelloz.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/cmhello16.png">
+<meta property="article:published_time" content="2016-11-18T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.955Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="hessian">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="源码">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118102326.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Hessian源码分析(java) | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hessian源码分析(java)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-18 11:23:58" itemprop="dateCreated datePublished" datetime="2016-11-18T11:23:58+08:00">2016-11-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/hessian/" itemprop="url" rel="index"><span itemprop="name">hessian</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="先扯一扯"><a href="#先扯一扯" class="headerlink" title="先扯一扯"></a>先扯一扯</h1><p>前一篇博文<a href="http://rebootcat.com/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/" target="_blank" rel="noopener">Hessian通信案例(java)</a>简单实现了Java版的Hessian客户端和服务端的通信，总体看来，实现起来比较简单，整个基于Hessian的远程调用过程也显得很方便。但是知其然还要知其所以然，Hessian的底层是怎么实现远程调用的？是怎么序列化的？又是怎么反序列化的？又是如何通信的？</p>
+<h1 id="还记得吗"><a href="#还记得吗" class="headerlink" title="还记得吗"></a>还记得吗</h1><p>下面这段代码你还记得吗？</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">String</span> url = <span class="string">"http://localhost:8080/hessian_server/ServerMachineTest"</span>;   </span><br><span class="line">HessianProxyFactory <span class="keyword">factory</span> = <span class="keyword">new</span> HessianProxyFactory();   </span><br><span class="line">IBasic basic = (IBasic) <span class="keyword">factory</span>.create(IBasic<span class="class">.<span class="keyword">class</span>, <span class="title">url</span>); </span></span><br><span class="line"><span class="class"><span class="title">String</span> <span class="title">helloreturn</span> = <span class="title">basic</span>.<span class="title">hello</span>();</span></span><br></pre></td></tr></table></figure>
+
+<p>上面这段代码就是前一篇博文中实现的客户端的代码，实现远程过程调用就短短的四行代码，如此简单。但是new HessianProxyFactory()是做什么的？factory.create()又是怎么实现的？</p>
+<h1 id="一层层的剥去外衣"><a href="#一层层的剥去外衣" class="headerlink" title="一层层的剥去外衣"></a>一层层的剥去外衣</h1><h2 id="项目姿势微调"><a href="#项目姿势微调" class="headerlink" title="项目姿势微调"></a>项目姿势微调</h2><p>为了探究new HessianProyFactory()具体实现了什么，需要对之前博文中实现的案例进行一点调整。案例中是直接导入了hessian-4.0.7.jar作为lib库的方式，为了在Eclipse中进行单步调试，需要用源码(<a href="http://hessian.caucho.com/#Java" target="_blank" rel="noopener">hessian-4.0.7-src.jar</a>)来替代这个jar包。这里需要注意的是版本，可能会出现兼容性的问题，具体情况可以试错。</p>
+<p>导入源码包替换了jar包之后的效果：<img src="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118102326.png" alt=""></p>
+<p><img src="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118104308.png" alt=""></p>
+<p><strong>client包主要是client端使用的功能，里面就是动态代理和http连接等操作，io包则是处理序列化。</strong><br>这里需要注意的是，可能会出现一些错误，可能需要添加commons-io-2.4.jar这个包以及Tomcat的runtime环境。具体的话自行解决。</p>
+<p>调整成这样后，启动Tomcat，启动Hessian服务端就可以对客户端进行单步调试了！O(∩_∩)O哈哈~</p>
+<h2 id="启动Hessian服务端"><a href="#启动Hessian服务端" class="headerlink" title="启动Hessian服务端"></a>启动Hessian服务端</h2><a id="more"></a>
+<p>启动Hessian服务端后先进行下测试，运行刚刚调整过的Hessian客户端，看看有没有出错？正常情况会出现下面的结果：<img src="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118104016.png" alt=""></p>
+<p>接下来就可以对客户端进行单步调试了。</p>
+<h2 id="单步调试"><a href="#单步调试" class="headerlink" title="单步调试"></a>单步调试</h2><p>在Eclipse中进行代码调试很方便，要在哪一行设置断点，只需要在行首进行双击，就可以看到一个圆点。F11(Debug),F5(step into),F6(step over)。</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HessianProxyFactory factory = <span class="keyword">new</span> <span class="constructor">HessianProxyFactory()</span>;   </span><br><span class="line">IBasic basic = (IBasic) factory.create(<span class="module-access"><span class="module"><span class="identifier">IBasic</span>.</span></span><span class="keyword">class</span>, url); </span><br><span class="line">String helloreturn = basic.hello<span class="literal">()</span>;</span><br></pre></td></tr></table></figure>
+
+<p>前两句没什么特殊的，new了一个动态代理工厂，这个工厂负责调用底层的序列化方法进行序列化；creat()函数根据定义好的接口函数以及设置好的服务端的地址进行一些处理。真正实现远程调用的是第三句代码，如下图，我在String helloreturn = basic.hello()这句代码设置断点。<img src="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118104809.png" alt="">),启动调试，可以看到进入到了一个函数invoke()。</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">public</span> <span class="keyword">Object</span> invoke(<span class="keyword">Object</span> proxy, <span class="keyword">Method</span> <span class="keyword">method</span>, <span class="keyword">Object</span> []args)</span><br><span class="line">  throws Throwable</span><br><span class="line">	&#123;</span><br><span class="line">  String mangleName;</span><br><span class="line"></span><br><span class="line">  synchronized (_mangleMap) &#123;</span><br><span class="line">    mangleName = _mangleMap.<span class="keyword">get</span>(<span class="keyword">method</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (mangleName == <span class="keyword">null</span>) &#123;</span><br><span class="line">    String methodName = <span class="keyword">method</span>.getName();</span><br><span class="line">    <span class="keyword">Class</span>&lt;?&gt; []params = <span class="keyword">method</span>.getParameterTypes();</span><br><span class="line"></span><br><span class="line">    // equals <span class="keyword">and</span> hashCode are special cased</span><br><span class="line">    <span class="keyword">if</span> (methodName.equals("equals")</span><br><span class="line">  &amp;&amp; params.length == <span class="number">1</span> &amp;&amp; params[<span class="number">0</span>].equals(<span class="keyword">Object</span>.<span class="keyword">class</span>)) &#123;</span><br><span class="line"><span class="keyword">Object</span> <span class="keyword">value</span> = args[<span class="number">0</span>];</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">value</span> == <span class="keyword">null</span> || ! Proxy.isProxyClass(<span class="keyword">value</span>.getClass()))</span><br><span class="line">  <span class="keyword">return</span> <span class="type">Boolean</span>.<span class="keyword">FALSE</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">Object</span> proxyHandler = Proxy.getInvocationHandler(<span class="keyword">value</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (! (proxyHandler instanceof HessianProxy))</span><br><span class="line">  <span class="keyword">return</span> <span class="type">Boolean</span>.<span class="keyword">FALSE</span>;</span><br><span class="line"></span><br><span class="line">HessianProxy <span class="keyword">handler</span> = (HessianProxy) proxyHandler;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="built_in">new</span> <span class="type">Boolean</span>(_url.equals(<span class="keyword">handler</span>.getURL()));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (methodName.equals("hashCode") &amp;&amp; params.length == <span class="number">0</span>)</span><br><span class="line"><span class="keyword">return</span> <span class="built_in">new</span> <span class="type">Integer</span>(_url.hashCode());</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (methodName.equals("getHessianType"))</span><br><span class="line"><span class="keyword">return</span> proxy.getClass().getInterfaces()[<span class="number">0</span>].getName();</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (methodName.equals("getHessianURL"))</span><br><span class="line"><span class="keyword">return</span> _url.toString();</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (methodName.equals("toString") &amp;&amp; params.length == <span class="number">0</span>)</span><br><span class="line"><span class="keyword">return</span> "HessianProxy[" + _url + "]";</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (! _factory.isOverloadEnabled())</span><br><span class="line">mangleName = <span class="keyword">method</span>.getName();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      mangleName = mangleName(<span class="keyword">method</span>);</span><br><span class="line"></span><br><span class="line">    synchronized (_mangleMap) &#123;</span><br><span class="line">_mangleMap.put(<span class="keyword">method</span>, mangleName);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  InputStream <span class="keyword">is</span> = <span class="keyword">null</span>;</span><br><span class="line">  HessianConnection conn = <span class="keyword">null</span>;</span><br><span class="line">  </span><br><span class="line">  try &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">log</span>.isLoggable(<span class="keyword">Level</span>.FINER))</span><br><span class="line"><span class="keyword">log</span>.finer("Hessian[" + _url + "] calling " + mangleName);</span><br><span class="line">    </span><br><span class="line">    conn = sendRequest(mangleName, args);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">is</span> = conn.getInputStream();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">log</span>.isLoggable(<span class="keyword">Level</span>.FINEST)) &#123;</span><br><span class="line">PrintWriter dbg = <span class="built_in">new</span> PrintWriter(<span class="built_in">new</span> LogWriter(<span class="keyword">log</span>));</span><br><span class="line">HessianDebugInputStream dIs</span><br><span class="line">  = <span class="built_in">new</span> HessianDebugInputStream(<span class="keyword">is</span>, dbg);</span><br><span class="line"></span><br><span class="line">dIs.startTop2();</span><br><span class="line"></span><br><span class="line"><span class="keyword">is</span> = dIs;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    AbstractHessianInput <span class="keyword">in</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> code = <span class="keyword">is</span>.<span class="keyword">read</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (code == <span class="string">'H'</span>) &#123;</span><br><span class="line"><span class="type">int</span> major = <span class="keyword">is</span>.<span class="keyword">read</span>();</span><br><span class="line"><span class="type">int</span> minor = <span class="keyword">is</span>.<span class="keyword">read</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">in</span> = _factory.getHessian2Input(<span class="keyword">is</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">Object</span> <span class="keyword">value</span> = <span class="keyword">in</span>.readReply(<span class="keyword">method</span>.getReturnType());</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="keyword">value</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (code == <span class="string">'r'</span>) &#123;</span><br><span class="line"><span class="type">int</span> major = <span class="keyword">is</span>.<span class="keyword">read</span>();</span><br><span class="line"><span class="type">int</span> minor = <span class="keyword">is</span>.<span class="keyword">read</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">in</span> = _factory.getHessianInput(<span class="keyword">is</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">in</span>.startReplyBody();</span><br><span class="line"></span><br><span class="line"><span class="keyword">Object</span> <span class="keyword">value</span> = <span class="keyword">in</span>.readObject(<span class="keyword">method</span>.getReturnType());</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">value</span> instanceof InputStream) &#123;</span><br><span class="line">  <span class="keyword">value</span> = <span class="built_in">new</span> ResultInputStream(conn, <span class="keyword">is</span>, <span class="keyword">in</span>, (InputStream) <span class="keyword">value</span>);</span><br><span class="line">  <span class="keyword">is</span> = <span class="keyword">null</span>;</span><br><span class="line">  conn = <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="keyword">in</span>.completeReply();</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="keyword">value</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">throw <span class="built_in">new</span> HessianProtocolException("'" + (<span class="type">char</span>) code + "' is an unknown code");</span><br><span class="line">  &#125; catch (HessianProtocolException e) &#123;</span><br><span class="line">    throw <span class="built_in">new</span> HessianRuntimeException(e);</span><br><span class="line">  &#125; finally &#123;</span><br><span class="line">    try &#123;</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">is</span> != <span class="keyword">null</span>)</span><br><span class="line">  <span class="keyword">is</span>.<span class="keyword">close</span>();</span><br><span class="line">    &#125; catch (<span class="keyword">Exception</span> e) &#123;</span><br><span class="line"><span class="keyword">log</span>.log(<span class="keyword">Level</span>.FINE, e.toString(), e);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    try &#123;</span><br><span class="line"><span class="keyword">if</span> (conn != <span class="keyword">null</span>)</span><br><span class="line">  conn.destroy();</span><br><span class="line">    &#125; catch (<span class="keyword">Exception</span> e) &#123;</span><br><span class="line"><span class="keyword">log</span>.log(<span class="keyword">Level</span>.FINE, e.toString(), e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>客户端任何远程调用函数都会经由invoke函数实现，其中关键的几句代码如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">log.finer(<span class="string">"Hessian["</span> + _url + <span class="string">"] calling "</span> + mangleName);</span><br><span class="line">      </span><br><span class="line">conn = send<span class="constructor">Request(<span class="params">mangleName</span>, <span class="params">args</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>mangleName可能就是定义好的接口，比如我的hello函数名，args就是接口函数的参数，最后通过sendRequest函数和服务端通信。下面着重看下这个函数的实现：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">protected HessianConnection send<span class="constructor">Request(String <span class="params">methodName</span>, Object []<span class="params">args</span>)</span></span><br><span class="line">  throws IOException</span><br><span class="line"> &#123;</span><br><span class="line">  HessianConnection conn = null;</span><br><span class="line">  </span><br><span class="line">  conn = <span class="module-access"><span class="module"><span class="identifier">_factory</span>.</span></span>get<span class="constructor">ConnectionFactory()</span>.<span class="keyword">open</span>(_url);</span><br><span class="line">  boolean isValid = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    add<span class="constructor">RequestHeaders(<span class="params">conn</span>)</span>;</span><br><span class="line"></span><br><span class="line">    OutputStream os = null;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">os = conn.get<span class="constructor">OutputStream()</span>;</span><br><span class="line">    &#125; catch (Exception e) &#123;</span><br><span class="line">throw <span class="keyword">new</span> <span class="constructor">HessianRuntimeException(<span class="params">e</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (log.is<span class="constructor">Loggable(Level.FINEST)</span>) &#123;</span><br><span class="line">PrintWriter dbg = <span class="keyword">new</span> <span class="constructor">PrintWriter(<span class="params">new</span> LogWriter(<span class="params">log</span>)</span>);</span><br><span class="line">HessianDebugOutputStream dOs = <span class="keyword">new</span> <span class="constructor">HessianDebugOutputStream(<span class="params">os</span>, <span class="params">dbg</span>)</span>;</span><br><span class="line">dOs.start<span class="constructor">Top2()</span>;</span><br><span class="line">os = dOs;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    AbstractHessianOutput out = <span class="module-access"><span class="module"><span class="identifier">_factory</span>.</span></span>get<span class="constructor">HessianOutput(<span class="params">os</span>)</span>;</span><br><span class="line"></span><br><span class="line">    out.call(methodName, args);</span><br><span class="line">    out.flush<span class="literal">()</span>;</span><br><span class="line"></span><br><span class="line">    conn.send<span class="constructor">Request()</span>;</span><br><span class="line"></span><br><span class="line">    isValid = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    return conn;</span><br><span class="line">  &#125; finally &#123;</span><br><span class="line">    <span class="keyword">if</span> (! isValid<span class="operator"> &amp;&amp; </span>conn != null)</span><br><span class="line">conn.destroy<span class="literal">()</span>;</span><br><span class="line">  &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到这个函数的实现方法是，<strong>构造http的协议头，通过call()函数后再通过sendRequest()函数发送出去。</strong>调试到conn.sendRequest()函数的时候阻塞了(如果你没有启动服务端的话)，可见最后走http协议发送的任务就是由conn.sendRequest()完成的。那么out.call(methodName,args)又做了什么呢？可以告诉你，<strong>这个函数真正实现了报文内容的序列化</strong>：</p>
+<figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> void call(String <span class="function"><span class="keyword">method</span>, <span class="title">Object</span> []<span class="title">args</span>)</span></span><br><span class="line"><span class="function">  <span class="title">throws</span> <span class="title">IOException</span></span></span><br><span class="line"><span class="function"><span class="comment">&#123;</span></span></span><br><span class="line"><span class="function"><span class="comment">  int length = args != null ? args.length : 0;</span></span></span><br><span class="line"><span class="function"><span class="comment">  </span></span></span><br><span class="line"><span class="function"><span class="comment">  startCall(method, length);</span></span></span><br><span class="line"><span class="function"><span class="comment">  </span></span></span><br><span class="line"><span class="function"><span class="comment">  for (int i = 0; i &lt; length; i++)</span></span></span><br><span class="line"><span class="function"><span class="comment">    writeObject(args[i]);</span></span></span><br><span class="line"><span class="function"><span class="comment">  </span></span></span><br><span class="line"><span class="function"><span class="comment">  completeCall();</span></span></span><br><span class="line"><span class="function"><span class="comment"> &#125;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>代码很明了，可以猜测startCall(method,length)实现对方法名(也即接口函数名)的序列化；然后对接口函数的每一个参数调用writeObject()进行序列化，这是重头戏。最后completeCall()进行了序列化的收尾工作。</p>
+<p>具体序列化的过程我就不跟进去了。call()函数完成了hessian的序列化，下面是对hello()这个函数序列化后的hessian报文：</p>
+<p><img src="http://o8fj2jbwb.bkt.clouddn.com/cmhelloz.png" alt=""></p>
+<p><img src="http://o8fj2jbwb.bkt.clouddn.com/cmhello16.png" alt=""></p>
+<p>可以看到序列化后包含了一些不可见的字符，下面这个是用十六进制查看的。由于我是回过头来写这篇博文的，所以对于hessian的序列化机制是知道的。<strong>上面序列的方式是字符’c’后面追加hessian的版本,然后字符’m’代表method,然后是接口函数名hello，然后是函数的参数(此处由于hello函数参数为空，故没有)，最后追加序列化结束的标志,字符’z’。</strong></p>
+<p>这是比较简单的函数，简单的参数，如果碰到比较复杂的函数和参数，序列化的过程会更复杂。具体请看hessian协议2.0序列化规则。</p>
+<p><strong><em>——————————————–我是分割线—————————————————————-</em></strong><br><strong><em>——————————————–后来追加的—————————————————————-</em></strong><br>初写这篇博文的时候没打算跟进writeObject(args[i])函数，后来打算加进去这部分的分析过程，比较重头戏就是序列化和反序列化。由于上面的案例用到的接口函数string hello()比较简单，没有参数，故此处重新换一个函数String hello_2(int arg1,String arg2)进行调试分析。同样，调试过程进入到call()函数，由于参数有两个，故writeObject()函数将执行两次。代码如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public void write<span class="constructor">Object(Object <span class="params">object</span>)</span></span><br><span class="line">throws IOException</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">if</span> (object<span class="operator"> == </span>null) &#123;</span><br><span class="line">  write<span class="constructor">Null()</span>;</span><br><span class="line">  return;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Serializer serializer;</span><br><span class="line"></span><br><span class="line">serializer = <span class="module-access"><span class="module"><span class="identifier">_serializerFactory</span>.</span></span>get<span class="constructor">Serializer(<span class="params">object</span>.<span class="params">getClass</span>()</span>);</span><br><span class="line"></span><br><span class="line">serializer.write<span class="constructor">Object(<span class="params">object</span>, <span class="params">this</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中关键代码:</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">serializer = <span class="module-access"><span class="module"><span class="identifier">_serializerFactory</span>.</span></span>get<span class="constructor">Serializer(<span class="params">object</span>.<span class="params">getClass</span>()</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这句代码就是根据参数对象的类型寻找相匹配的序列化器，进行序列化。正如getSerializer的代码注释一样：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="markdown">/**</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet"> * </span>Returns </span>the<span class="markdown"> serializer for </span>a<span class="markdown"> class.</span></span></span><br><span class="line"><span class="comment"><span class="markdown"> *</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet"> * </span>@param cl </span>the<span class="markdown"> class of </span>the<span class="markdown"> object that needs to be serialized.</span></span></span><br><span class="line"><span class="comment"><span class="markdown"> *</span></span></span><br><span class="line"><span class="comment"><span class="markdown"><span class="bullet">* </span>@return </span>a<span class="markdown"> serializer object for </span>the<span class="markdown"> serialization.</span></span></span><br><span class="line"><span class="comment"><span class="markdown">*/</span></span></span><br></pre></td></tr></table></figure>
+<p>找到序列化器之后真正根据hessian协议执行序列化的是serializer.writeObject(object,this)函数：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> void writeObject(Object obj, AbstractHessianOutput <span class="keyword">out</span>)</span><br><span class="line">throws IOException</span><br><span class="line">&#123;</span><br><span class="line">switch (_code) &#123;</span><br><span class="line">case BOOLEAN:</span><br><span class="line">  <span class="keyword">out</span>.writeBoolean(((<span class="built_in">Boolean</span>) obj).booleanValue());</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">  </span><br><span class="line">case BYTE:</span><br><span class="line">case SHORT:</span><br><span class="line">case INTEGER:</span><br><span class="line">  <span class="keyword">out</span>.writeInt(((Number) obj).intValue());</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">case LONG:</span><br><span class="line">  <span class="keyword">out</span>.writeLong(((Number) obj).longValue());</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">case FLOAT:</span><br><span class="line">case DOUBLE:</span><br><span class="line">  <span class="keyword">out</span>.writeDouble(((Number) obj).doubleValue());</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">  </span><br><span class="line">case CHARACTER:</span><br><span class="line">case CHARACTER_OBJECT:</span><br><span class="line">  <span class="keyword">out</span>.writeString(String.valueOf(obj));</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">  </span><br><span class="line">case STRING:</span><br><span class="line">  <span class="keyword">out</span>.writeString((String) obj);</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">  </span><br><span class="line">case DATE:</span><br><span class="line">  <span class="keyword">out</span>.writeUTCDate(((Date) obj).getTime());</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">  </span><br><span class="line">case BOOLEAN_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">out</span>.addRef(obj))</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  boolean []<span class="keyword">data</span> = (boolean []) obj;</span><br><span class="line">  boolean hasEnd = <span class="keyword">out</span>.writeListBegin(<span class="keyword">data</span>.length, <span class="string">"[boolean"</span>);</span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; <span class="keyword">data</span>.length; i++)</span><br><span class="line">    <span class="keyword">out</span>.writeBoolean(<span class="keyword">data</span>[i]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (hasEnd)</span><br><span class="line"><span class="keyword">out</span>.writeListEnd();</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case BYTE_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  byte []<span class="keyword">data</span> = (byte []) obj;</span><br><span class="line">  <span class="keyword">out</span>.writeBytes(<span class="keyword">data</span>, <span class="number">0</span>, <span class="keyword">data</span>.length);</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case SHORT_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">out</span>.addRef(obj))</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  short []<span class="keyword">data</span> = (short []) obj;</span><br><span class="line">  boolean hasEnd = <span class="keyword">out</span>.writeListBegin(<span class="keyword">data</span>.length, <span class="string">"[short"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; <span class="keyword">data</span>.length; i++)</span><br><span class="line">    <span class="keyword">out</span>.writeInt(<span class="keyword">data</span>[i]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (hasEnd)</span><br><span class="line"><span class="keyword">out</span>.writeListEnd();</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case INTEGER_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">out</span>.addRef(obj))</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  int []<span class="keyword">data</span> = (int []) obj;</span><br><span class="line">  </span><br><span class="line">  boolean hasEnd = <span class="keyword">out</span>.writeListBegin(<span class="keyword">data</span>.length, <span class="string">"[int"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; <span class="keyword">data</span>.length; i++)</span><br><span class="line">    <span class="keyword">out</span>.writeInt(<span class="keyword">data</span>[i]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (hasEnd)</span><br><span class="line"><span class="keyword">out</span>.writeListEnd();</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case LONG_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">out</span>.addRef(obj))</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  long []<span class="keyword">data</span> = (long []) obj;</span><br><span class="line">  </span><br><span class="line">  boolean hasEnd = <span class="keyword">out</span>.writeListBegin(<span class="keyword">data</span>.length, <span class="string">"[long"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; <span class="keyword">data</span>.length; i++)</span><br><span class="line">    <span class="keyword">out</span>.writeLong(<span class="keyword">data</span>[i]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (hasEnd)</span><br><span class="line"><span class="keyword">out</span>.writeListEnd();</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case FLOAT_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">out</span>.addRef(obj))</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  float []<span class="keyword">data</span> = (float []) obj;</span><br><span class="line">  </span><br><span class="line">  boolean hasEnd = <span class="keyword">out</span>.writeListBegin(<span class="keyword">data</span>.length, <span class="string">"[float"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; <span class="keyword">data</span>.length; i++)</span><br><span class="line">    <span class="keyword">out</span>.writeDouble(<span class="keyword">data</span>[i]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (hasEnd)</span><br><span class="line"><span class="keyword">out</span>.writeListEnd();</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case DOUBLE_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">out</span>.addRef(obj))</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  double []<span class="keyword">data</span> = (double []) obj;</span><br><span class="line">  boolean hasEnd = <span class="keyword">out</span>.writeListBegin(<span class="keyword">data</span>.length, <span class="string">"[double"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; <span class="keyword">data</span>.length; i++)</span><br><span class="line">    <span class="keyword">out</span>.writeDouble(<span class="keyword">data</span>[i]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (hasEnd)</span><br><span class="line"><span class="keyword">out</span>.writeListEnd();</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case STRING_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">out</span>.addRef(obj))</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  String []<span class="keyword">data</span> = (String []) obj;</span><br><span class="line">  </span><br><span class="line">  boolean hasEnd = <span class="keyword">out</span>.writeListBegin(<span class="keyword">data</span>.length, <span class="string">"[string"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; <span class="keyword">data</span>.length; i++) &#123;</span><br><span class="line">    <span class="keyword">out</span>.writeString(<span class="keyword">data</span>[i]);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (hasEnd)</span><br><span class="line"><span class="keyword">out</span>.writeListEnd();</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case CHARACTER_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  char []<span class="keyword">data</span> = (char []) obj;</span><br><span class="line">  <span class="keyword">out</span>.writeString(<span class="keyword">data</span>, <span class="number">0</span>, <span class="keyword">data</span>.length);</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case OBJECT_ARRAY:</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">out</span>.addRef(obj))</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  Object []<span class="keyword">data</span> = (Object []) obj;</span><br><span class="line">  </span><br><span class="line">  boolean hasEnd = <span class="keyword">out</span>.writeListBegin(<span class="keyword">data</span>.length, <span class="string">"[object"</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; <span class="keyword">data</span>.length; i++) &#123;</span><br><span class="line">    <span class="keyword">out</span>.writeObject(<span class="keyword">data</span>[i]);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (hasEnd)</span><br><span class="line"><span class="keyword">out</span>.writeListEnd();</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case NULL:</span><br><span class="line">  <span class="keyword">out</span>.writeNull();</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">case OBJECT:</span><br><span class="line">  ObjectHandleSerializer.SER.writeObject(obj, <span class="keyword">out</span>);</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">case BYTE_HANDLE:</span><br><span class="line">  <span class="keyword">out</span>.writeObject(new ByteHandle((<span class="built_in">Byte</span>) obj));</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">case SHORT_HANDLE:</span><br><span class="line">  <span class="keyword">out</span>.writeObject(new ShortHandle((<span class="built_in">Short</span>) obj));</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">case FLOAT_HANDLE:</span><br><span class="line">  <span class="keyword">out</span>.writeObject(new FloatHandle((<span class="built_in">Float</span>) obj));</span><br><span class="line">  <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">default</span>:</span><br><span class="line">  <span class="keyword">throw</span> new RuntimeException(_code + <span class="string">" unknown code for "</span> + obj.getClass());</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到根据不同的参数类型,调用相关的基础序列化函数执行。</p>
+<p>到此，就很好理解了。hessian的序列化支持基本的类型,int,double,long,date,string等。序列化的方式是把接口函数名和参数根据一定的规则进行序列化，然后走http信道发送到服务端。</p>
+<p><strong><em>——————————————我是分割线END———————————————————–</em></strong></p>
+<p>回到sendRequest函数发送完hessian报文后，回到invoke函数，接下来就是对服务端返回的内容进行反序列化：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (code == <span class="string">'H'</span>) &#123;</span><br><span class="line"><span class="type">int</span> major = <span class="keyword">is</span>.<span class="keyword">read</span>();</span><br><span class="line"><span class="type">int</span> minor = <span class="keyword">is</span>.<span class="keyword">read</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">in</span> = _factory.getHessian2Input(<span class="keyword">is</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">Object</span> <span class="keyword">value</span> = <span class="keyword">in</span>.readReply(<span class="keyword">method</span>.getReturnType());</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="keyword">value</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (code == <span class="string">'r'</span>) &#123;</span><br><span class="line"><span class="type">int</span> major = <span class="keyword">is</span>.<span class="keyword">read</span>();</span><br><span class="line"><span class="type">int</span> minor = <span class="keyword">is</span>.<span class="keyword">read</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">in</span> = _factory.getHessianInput(<span class="keyword">is</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">in</span>.startReplyBody();</span><br><span class="line"></span><br><span class="line"><span class="keyword">Object</span> <span class="keyword">value</span> = <span class="keyword">in</span>.readObject(<span class="keyword">method</span>.getReturnType());</span><br></pre></td></tr></table></figure>
+<p>两个if判断只是为了确定服务端的序列化版本，’H’代表服务端是用2.0，’r’代表服务端是采用1.0的序列化方法。真正进行反序列的函数分别是readReply()和readObject()函数。</p>
+<p>具体实现细节此处就不赘述了。反序列化对应序列化，是一个相反的过程。最终反序列化得到服务端返回的hessian报文。</p>
+<h2 id="调试完了"><a href="#调试完了" class="headerlink" title="调试完了"></a>调试完了</h2><p><strong>至此，客户端的底层实现细节就披露完了,简单讲，调用接口函数后进入invoke函数，invoke函数构造http头，调用call函数进行序列化，调用sendRequest函数进行发送，然后调用readReply或者readObject函数进行反序列化,得到服务端返回的应答。</strong></p>
+<h1 id="服务端呢？"><a href="#服务端呢？" class="headerlink" title="服务端呢？"></a>服务端呢？</h1><p>服务端的序列化和反序列化方式和客户端大同小异，差别只是一些头部和尾部的构造等。此处就略去不分析了。</p>
+<p>关于服务端的调试也是一样的方式，设置断点，然后Debug。</p>
+<h1 id="复杂的类型呢？"><a href="#复杂的类型呢？" class="headerlink" title="复杂的类型呢？"></a>复杂的类型呢？</h1><p>上面讲的都是比较简单的函数，序列化过程比较简单，如果碰到比较复杂的函数呢？例如下面的函数：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">CTrade <span class="title">hello</span><span class="params">(<span class="built_in">string</span> arg1,<span class="keyword">int</span>  arg2,<span class="built_in">list</span>&lt;<span class="keyword">int</span>&gt;  arg3,<span class="built_in">map</span>&lt;<span class="built_in">string</span>,<span class="built_in">string</span>&gt; arg4...)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>这里就自己去探索了，研究的方式也是一样，单步调试加日志记录。当时我的项目里做的是hessian与xml之间的转换，hessain报文比较复杂，层次结构比较多,涉及到的类型也很多，后来对这些做了一些研究，参照Java版的hessian采用c++实现了GXP(公司里的一个c++平台)上的一些组包解包。当然这也涉及到c++版的hessian的使用等。情况比较复杂，如果有时间，后面的博文会简要记录下关于这部分的内容。</p>
+<h1 id="完事了"><a href="#完事了" class="headerlink" title="完事了"></a>完事了</h1><p>可能由于我现在是回过头来记录这些内容，关于hessian的序列化和反序列，我的感觉是比较简单。但当时由于刚刚接触到hessian，而且能找到的资料里基本都是java版的，对于一个从事c++开发的人来说，当然也不是什么难事，所以花时间研究了java版的hessian的案例实现，源码实现等。当然，其实还是有点复杂的。我现在属于站着说话不腰疼，好了伤疤忘了疼。哈哈！</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#x75;&#x78;&#99;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#x6b;&#105;&#64;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#x63;&#x6f;&#109;">&#108;&#105;&#110;&#x75;&#x78;&#99;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#x6b;&#105;&#64;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#x63;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2016-11-18 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/17/Hessian案例——java/" rel="bookmark">Hessian通信案例(java)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/22/hessiancpp编译和使用——C++版/" rel="bookmark">hessiancpp编译和使用(C++版)</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/" title="Hessian源码分析(java)">http://www.rebootcat.com/2016/11/18/Hessian源码分析——java/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hessian/" rel="tag"># hessian</a>
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/" rel="prev" title="Hessian通信案例(java)">
+      <i class="fa fa-chevron-left"></i> Hessian通信案例(java)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/" rel="next" title="hessiancpp编译和使用(C++版)">
+      hessiancpp编译和使用(C++版) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#先扯一扯"><span class="nav-number">1.</span> <span class="nav-text">先扯一扯</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#还记得吗"><span class="nav-number">2.</span> <span class="nav-text">还记得吗</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一层层的剥去外衣"><span class="nav-number">3.</span> <span class="nav-text">一层层的剥去外衣</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#项目姿势微调"><span class="nav-number">3.1.</span> <span class="nav-text">项目姿势微调</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动Hessian服务端"><span class="nav-number">3.2.</span> <span class="nav-text">启动Hessian服务端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#单步调试"><span class="nav-number">3.3.</span> <span class="nav-text">单步调试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调试完了"><span class="nav-number">3.4.</span> <span class="nav-text">调试完了</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#服务端呢？"><span class="nav-number">4.</span> <span class="nav-text">服务端呢？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#复杂的类型呢？"><span class="nav-number">5.</span> <span class="nav-text">复杂的类型呢？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#完事了"><span class="nav-number">6.</span> <span class="nav-text">完事了</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

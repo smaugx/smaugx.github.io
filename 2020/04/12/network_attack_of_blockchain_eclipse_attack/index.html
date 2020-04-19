@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="写在前面的话自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。 本文就谈一下目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈几种区块链网络攻击以及防御方案之日蚀攻击">
+<meta property="og:url" content="http://www.rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="写在前面的话自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。 本文就谈一下目">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/2.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/1.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/4.png">
+<meta property="article:published_time" content="2020-04-12T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.953Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="blockchain">
+<meta property="article:tag" content="attack">
+<meta property="article:tag" content="bitcoin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/2.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>浅谈几种区块链网络攻击以及防御方案之日蚀攻击 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          浅谈几种区块链网络攻击以及防御方案之日蚀攻击
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-12 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-12T11:23:58+08:00">2020-04-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+</ul>
+<h1 id="日蚀攻击（Eclipse-Attack"><a href="#日蚀攻击（Eclipse-Attack" class="headerlink" title="日蚀攻击（Eclipse Attack)"></a>日蚀攻击（Eclipse Attack)</h1><h2 id="P2P-网络"><a href="#P2P-网络" class="headerlink" title="P2P 网络"></a>P2P 网络</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>在介绍什么是日蚀攻击之前，有必要先对区块链系统的底层 P2P 网络做一个简单的介绍，因为日蚀攻击就是利用了 P2P 网络的特性来进行的攻击。</p>
+<p>P2P 即 Peer to Peer，中文意思是对等网络，它是分布式系统和计算机网络相结合的产物。对等的意思就是网络中的节点角色、地位是平等的，任何节点具有极强的自由，可以任意加入、离开网络。这跟传统的 C/S 模型的结构有很大区别，任何节点既是 client ，也是 server，或者说网络中没有 server 节点，任何节点 down 掉不会对整个网络产生致命的影响，具有极强的伸缩性。</p>
+<p>P2P 网络从诞生到现在经过了几个阶段，分别是混合式 P2P，无结构化 P2P以及结构化 P2P。</p>
+<ul>
+<li>混合式：顾名思义，P2P 网络混合了传统的 C/S 模型，网络中有角色充当 server 角色</li>
+<li>无结构化：也就是网状结构模型，纯分布式网络，典型代表就是比特币网络，节点之间以一种随机的，松散的方式组织在一起</li>
+<li>结构化：节点按照一定规则组织在一起，路由算法比较精准，比如 DHT 算法</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/2.png" alt=""></p>
+<center>混合式</center>
+
+<a id="more"></a>
+
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/1.png" alt=""></p>
+<center>无结构化</center>
+![](https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/3.png)
+<center>结构化(kademlia算法)</center>
+
+<h3 id="路由表（邻居表）"><a href="#路由表（邻居表）" class="headerlink" title="路由表（邻居表）"></a>路由表（邻居表）</h3><p>P2P 网络里一个比较重要的概念就是路由表，或者说邻居表。路由表里面保存了网络里面的一些节点，具体数量从几个到几十个不等。路由表中的这些节点可以看做是这个节点与这个 P2P 网络建立关联的重要依据，或者说表示节点到这个 P2P 网络的一些入口。这个节点想要发送任何信息需要先转发给路由表中的节点，再由它们负责转发消息。这就是路由表的作用。</p>
+<p>那么无论是哪一种结构的 P2P 网络，每个节点都有一个类似于路由表的概念，本质上就是跟这个网络中的多个节点建立了一些联系，然后后续的所有收发包都交由这些邻居代为收发。</p>
+<p>所以对于 P2P 网络里的一个节点来说，它看不到网络的全貌，只能看到网络的局部信息。并且由于路由表的存在，哪怕路由表中只保存了一个入口节点，这个节点也能服务于整个 P2P 网络，其他节点也能通过一定的方式找到这个节点。</p>
+<h3 id="NAT-穿透"><a href="#NAT-穿透" class="headerlink" title="NAT 穿透"></a>NAT 穿透</h3><p>NAT 穿透不是 P2P 网络的一个必要特性，如果 P2P 网络中都是公网节点（具有公网IP）,其实是不需要 NAT 穿透的。那么如果有一些私网节点（局域网节点）也加入到了这个 P2P 网络中，由于不能互通，导致其他节点无法发现这些私网节点，最后带来的结果就是这个私网节点能够成功发送信息到这个 P2P 网络中，但是可能却无法收到来自 P2P 网络里的消息。注意这里的用词是可能，因为存在一些场景是有可能收到的。</p>
+<p>关于 NAT 穿透我有另外的博客介绍 NAT 穿透方面的东西，这里就不做展开讲了。</p>
+<h2 id="什么是日蚀攻击"><a href="#什么是日蚀攻击" class="headerlink" title="什么是日蚀攻击"></a>什么是日蚀攻击</h2><p>上面介绍了关于 P2P 网络的一些知识和概念，下面开始正式介绍日蚀攻击。</p>
+<p><strong>日蚀，同日食，是指月球运动到地球和太阳的中间，如果三者正好在一条直线上，月球就会挡住太阳射向地球的光，月球身后的黑影正好落到地球上，这时发生日食现象</strong>。月球就切断了地球和太阳之间的（太阳光）联系。<br><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/4.png" alt=""></p>
+<p>再来看什么是日蚀攻击，<strong>日蚀攻击针对特定的某个节点，通过一些方法，填满被攻击节点的路由表，以便切断它们与其他对等点的所有入站/出站通信（这会有效地窒息受害者）</strong>。上面提到路由表的概念，路由表里的节点是这个 P2P 网络的入口节点，任何收发消息都要经过路由表中的节点。攻击者通过某种方式填满了被攻击的节点，理论上就是控制了这个节点进出网络的信息，造成被攻击节点被 “伪隔离”的现象。</p>
+<p>我觉得用日蚀来形象化的比喻这种攻击还是很合适的，本质上就是隔离了这个节点或者说用恶意节点包围了受害节点。</p>
+<p>那么会造成什么后果呢？</p>
+<ul>
+<li><strong>阻止受害节点查看真实的区块链信息</strong></li>
+<li><strong>隔离网络中多个节点，以达到分裂网络的可能</strong></li>
+<li><strong>用少于 51% 的算力发起 51% 攻击</strong></li>
+</ul>
+<p>上面的几点其实比较好理解的，受害节点被恶意节点包围之后，恶意节点可以选择性的给受害节点发包或者篡改真实的数据包，本质上就是让这个节点误以为自己还在这个网络中挖矿，然而真实情况是它已经从网络中隔离开来了。</p>
+<p>如果受害节点很多的情况，从整个网络全局来看就是被隔离成多个部分，网络实际上已经被分裂了。那么就可以实施分裂网络的 51%攻击，只需要用比原来 51%攻击更少的算力就行。</p>
+<p>关于 51%攻击可以查看这篇博文 <a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a>。</p>
+<h2 id="如何发起日蚀攻击"><a href="#如何发起日蚀攻击" class="headerlink" title="如何发起日蚀攻击"></a>如何发起日蚀攻击</h2><p>由于每种区块链底层的 P2P 网络模型可能不一样，所以就以以太坊为例来做说明。</p>
+<h3 id="以太坊-kademlia网络原理"><a href="#以太坊-kademlia网络原理" class="headerlink" title="以太坊 kademlia网络原理"></a>以太坊 kademlia网络原理</h3><p>以太坊底层的 P2P 网络采用的是 kademlia 算法，kademlia 网络是一种结构化的 P2P 网络，网络中的节点按照一定的规则组织在一起。</p>
+<p><strong>kademlia 算法中的核心特点是用异或来定义两个节点的距离，这种距离与实际的物理距离没有任何关系</strong>。</p>
+<p>每个节点的路由表会保存不同距离的节点，这个距离的最小值当然是 0，也就是它自己，这个距离的最大值跟节点 ID 的长度有关系（NodeID）。NodeID 是一段具有特定长度的字符串，每个节点具有唯一的 NodeID，用 NodeID 来作为这个节点在 P2P 网络中的身份信息。比如：</p>
+<figure class="highlight avrasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">NodeID:</span>   DEA25B0AF6CC5EA9DA4961DBC5FFEB97</span><br></pre></td></tr></table></figure>
+
+<p>假设 NodeID 长度为 N bit(对于上面的 NodeID 来说 N 为 32 * 8 = 256），那么这个距离的最大值就是 N -1，即距离范围在 [0, N)。</p>
+<p>kademlia 网络中的节点的路由表中会保存每一个距离的节点，数量在 1 个以上，这个值称为为 α 值。也就是说与自己的 NodeID 距离为 1 的会保存 α 个，距离为 2 的会保存 α 个，以此类推，直到距离为 N-1 的节点会保存 α 个。<strong>实际情况是距离越大，能找到符合要求的节点的概率也就越大</strong>，想一想为什么？</p>
+<p>这里每一个距离称为一个 Bucket，每一个 Bucket 里保存着 [0, α] 个距离匹配的节点。</p>
+<p>通过上述对 kademlia 算法的简要描述可以得出一个结论，<strong>知道一个节点的 NodeID，就能够计算出这个节点的路由表中的每一个 Bucket 中应该填入什么样的 NodeID</strong>。而这就是日蚀攻击的核心依据。</p>
+<h3 id="发起日蚀攻击"><a href="#发起日蚀攻击" class="headerlink" title="发起日蚀攻击"></a>发起日蚀攻击</h3><p>当我们知道目标节点的 NodeID 之后，就可以通过一定的方式去伪造生成满足不同 Bucket 的 NodeID，当这个目标节点重启之后，马上以这些 NodeID 启动节点去连接目标节点，由于 kademlia 的特性，这些特意伪造的 NodeID 肯定会被填入目标节点的路由表中，从而把路由表占满，以达到日蚀攻击的目的。</p>
+<p>至于让目标节点重启，可以等待目标节点自动重启或者采用 DOS 攻击迫使目标节点重启，当重启之后马上进行上面的操作就可以完成日蚀攻击。</p>
+<p>当成功发起日蚀攻击之后，随后就能隔离节点，篡改目标节点的收发数据包了。</p>
+<h2 id="如何防御日蚀攻击"><a href="#如何防御日蚀攻击" class="headerlink" title="如何防御日蚀攻击"></a>如何防御日蚀攻击</h2><p>根据上述的讨论知道，想要避免日蚀攻击由很多种办法：（可能只适用于 kademlia 网络）</p>
+<ul>
+<li>提高节点进入网络的准入门槛</li>
+</ul>
+<p>节点进入 P2P 网络需要一定的门槛，不论是以时间为代价还是以 Stake 或是工作证明为代价，这样就能有效防止大批量伪造节点进入网络，从而从源头上避免日蚀攻击</p>
+<ul>
+<li>针对同一个 IP 段的节点做连接限制</li>
+</ul>
+<p>攻击者很可能利用有限的 IP （1 ~ 2 个）伪造大量节点，发起日蚀攻击，那么对于目标节点来说，看到的节点都是来自于这个 IP，多半可以说明这是恶意节点。那么只需要对来自同一个 IP 段的节点做一定数量的限制，比如 最多 2 个，那么也能显著提高攻击者的攻击成本</p>
+<ul>
+<li>对节点主动建立连接和被动建立连接的数量做一定的均衡</li>
+</ul>
+<p>发起日蚀攻击，需要主动占满目标节点的路由表，也就是主动与目标节点建立连接，即便不是这样，也有方法让目标节点主动建立连接到恶意节点。所以对于进出的连接数，做一定的均衡能有效避免日蚀攻击的发生</p>
+<ul>
+<li>NodeID 重启之后变化</li>
+</ul>
+<p>进行日蚀攻击的前提是需要知道目标节点的 NodeID，并且迫使目标节点重启，然后以事先根据目标节点 NodeID 计算好的伪造节点发起连接，达成日蚀攻击。所以如果节点重启之后 NodeID 变为与原来不再一致，那么攻击者事先计算伪造的节点就变得毫无可用之地了。</p>
+<ul>
+<li>其他辅助措施</li>
+</ul>
+<p>比如节点实时检测，发现恶意节点进行广播，并采取一定的惩罚措施等。</p>
+<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>最后我们再来简单对比一下比特币和以太坊对日蚀攻击的反应。</p>
+<p>由于以太坊采用的是结构化的 P2P 网络，并且采用了 kademlia 算法，那么知道了 NodeID，基本上就大致能知道这个路由表中应该填入一些什么类型的节点；</p>
+<p>而对于比特币来说，由于比特币的 P2P 网络采用的是无结构的模型，节点之间以随机，松散的方式进行组织。想要通过类似以太坊日蚀攻击的方法去攻击比特币网络，不太行得通，因为比特币节点不关心你的 NodeID。但是还是有办法迫使比特币节点只与恶意节点建立连接的。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#120;&#99;&#111;&#x64;&#101;&#50;&#x6e;&#x69;&#107;&#105;&#x40;&#103;&#x6d;&#97;&#105;&#108;&#46;&#x63;&#111;&#109;">&#x6c;&#105;&#x6e;&#x75;&#120;&#99;&#111;&#x64;&#101;&#50;&#x6e;&#x69;&#107;&#105;&#x40;&#103;&#x6d;&#97;&#105;&#108;&#46;&#x63;&#111;&#109;</a></p>
+</li>
+</ul>
+<p>2020-04-12 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/11/network_attack_of_blockchain_51_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之51&#37攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/14/network_attack_of_blockchain_ddos_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/16/network_attack_of_blockchain_other_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/13/network_attack_of_blockchain_sybil_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" title="浅谈几种区块链网络攻击以及防御方案之日蚀攻击">http://www.rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/blockchain/" rel="tag"># blockchain</a>
+              <a href="/tags/attack/" rel="tag"># attack</a>
+              <a href="/tags/bitcoin/" rel="tag"># bitcoin</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/11/network_attack_of_blockchain_51_attack/" rel="prev" title="浅谈几种区块链网络攻击以及防御方案之51&#37攻击">
+      <i class="fa fa-chevron-left"></i> 浅谈几种区块链网络攻击以及防御方案之51&#37攻击
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/13/network_attack_of_blockchain_sybil_attack/" rel="next" title="浅谈几种区块链网络攻击以及防御方案之女巫攻击">
+      浅谈几种区块链网络攻击以及防御方案之女巫攻击 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#写在前面的话"><span class="nav-number">1.</span> <span class="nav-text">写在前面的话</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#日蚀攻击（Eclipse-Attack"><span class="nav-number">2.</span> <span class="nav-text">日蚀攻击（Eclipse Attack)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#P2P-网络"><span class="nav-number">2.1.</span> <span class="nav-text">P2P 网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概念"><span class="nav-number">2.1.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#路由表（邻居表）"><span class="nav-number">2.1.2.</span> <span class="nav-text">路由表（邻居表）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NAT-穿透"><span class="nav-number">2.1.3.</span> <span class="nav-text">NAT 穿透</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是日蚀攻击"><span class="nav-number">2.2.</span> <span class="nav-text">什么是日蚀攻击</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何发起日蚀攻击"><span class="nav-number">2.3.</span> <span class="nav-text">如何发起日蚀攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#以太坊-kademlia网络原理"><span class="nav-number">2.3.1.</span> <span class="nav-text">以太坊 kademlia网络原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发起日蚀攻击"><span class="nav-number">2.3.2.</span> <span class="nav-text">发起日蚀攻击</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何防御日蚀攻击"><span class="nav-number">2.4.</span> <span class="nav-text">如何防御日蚀攻击</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#写在最后"><span class="nav-number">3.</span> <span class="nav-text">写在最后</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

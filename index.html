@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="人至贱则无敌">
+<meta property="og:type" content="website">
+<meta property="og:title" content="林夕水共">
+<meta property="og:url" content="http://www.rebootcat.com/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="人至贱则无敌">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://www.rebootcat.com/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/16/network_attack_of_blockchain_other_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-16 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-16T11:23:58+08:00">2020-04-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 20:51:50" itemprop="dateModified" datetime="2020-04-18T20:51:50+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a> </li>
+</ul>
+<h1 id="异形攻击"><a href="#异形攻击" class="headerlink" title="异形攻击"></a>异形攻击</h1><p>异形攻击又称地址污染攻击，是指诱使同类链的节点之间互相发现、互联、侵入的一种攻击手法。同类链的意思是底层 P2P 网络使用了相同或者相似的 P2P 通信协议。这尤其针对比特币和以太坊系列的公链。</p>
+<p>众所周知，最近几年区块链行业蓬勃发展，又过于浮躁。其中很多劣质公链大量 COPY 以太坊、比特币的源码，甚至不做修改，仅仅修改下名字成为一条新的公链，这就导致大量的公链的底层是相同的或者兼容的。</p>
+<p>那么如果攻击者执行了异形攻击，就有可能导致同类链的节点之间互相缠绕在一起，影响公链节点内部的通信和路由，进而影响到交易、共识和安全。从而让攻击者有机会施行其他的攻击，比如 DDoS 攻击，网络分裂攻击。</p>
+<p>本质上还是由于伸手党的存在，并且不加以修饰和对节点的检测造成了异形攻击。应对办法也很简单，首先是拒绝做伸手党，即便伸手党，起码也要研究下别人的代码，做点创新和原创的东西；其次加强对本公链的节点类型的检测，比如节点地址不符合的一切拒绝，通信协议不一致的一切拒绝，通信报文头特殊字段不一致的一切拒绝等等。</p>
+<img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_other_attack/1.png" style="zoom:100%;margin:auto;"/>
+
+<center>配图与本文无关</center>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/16/network_attack_of_blockchain_other_attack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/14/network_attack_of_blockchain_ddos_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-14 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-14T11:23:58+08:00">2020-04-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 20:52:49" itemprop="dateModified" datetime="2020-04-18T20:52:49+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></li>
+</ul>
+<h1 id="拒绝服务攻击（Denial-of-Service-Attack"><a href="#拒绝服务攻击（Denial-of-Service-Attack" class="headerlink" title="拒绝服务攻击（Denial of Service Attack)"></a>拒绝服务攻击（Denial of Service Attack)</h1><h1 id="分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack"><a href="#分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack" class="headerlink" title="分布式拒绝服务攻击（Distributed Denial of Service Attack)"></a>分布式拒绝服务攻击（Distributed Denial of Service Attack)</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>信息安全的三要素——“保密性”、“完整性”和“可用性”中，拒绝服务攻击，针对的目标正是“可用性”。该攻击方式利用目标系统网络服务功能缺陷或者直接消耗其系统资源，使得该目标系统无法提供正常的服务。</p>
+<p>拒绝服务攻击（DoS) 问题一直得不到合理的解决，目前还是世界性难题，究其原因是因为这是由于网络协议本身的安全缺陷造成的，从而拒绝服务攻击也成为了攻击者的终极手法。攻击者进行拒绝服务攻击，实际上让服务器实现两种效果：一是迫使服务器的缓冲区满，不接收新的请求；二是使用IP欺骗，迫使服务器把合法用户的连接复位，影响合法用户的连接。</p>
+<p>而分布式拒绝服务攻击 (DDoS) 是指攻击者采用分布式攻击手法施行 DoS 攻击，通常是控制了多台机器向目标主机或者路由器发起 DoS 攻击。</p>
+<p>针对区块链来说，攻击者通过 DDoS 攻击试图减慢网络速度，或者迫使网络停止运作。也可用于针对矿池，使矿池脱机，或者针对特定的目标主机，使其从网络离线。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_ddos_attack/11.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/14/network_attack_of_blockchain_ddos_attack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/13/network_attack_of_blockchain_sybil_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-13 10:23:58" itemprop="dateCreated datePublished" datetime="2020-04-13T10:23:58+08:00">2020-04-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+</ul>
+<h1 id="女巫攻击（Sybil-Attack）"><a href="#女巫攻击（Sybil-Attack）" class="headerlink" title="女巫攻击（Sybil Attack）"></a>女巫攻击（Sybil Attack）</h1><h2 id="什么是女巫攻击"><a href="#什么是女巫攻击" class="headerlink" title="什么是女巫攻击"></a>什么是女巫攻击</h2><p>“女巫”这个词我们应该不陌生，通常指邪恶的化身，并且拥有可怕的魔法。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_sybil_attack/1.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/13/network_attack_of_blockchain_sybil_attack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/12/network_attack_of_blockchain_eclipse_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-12 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-12T11:23:58+08:00">2020-04-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+</ul>
+<h1 id="日蚀攻击（Eclipse-Attack"><a href="#日蚀攻击（Eclipse-Attack" class="headerlink" title="日蚀攻击（Eclipse Attack)"></a>日蚀攻击（Eclipse Attack)</h1><h2 id="P2P-网络"><a href="#P2P-网络" class="headerlink" title="P2P 网络"></a>P2P 网络</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>在介绍什么是日蚀攻击之前，有必要先对区块链系统的底层 P2P 网络做一个简单的介绍，因为日蚀攻击就是利用了 P2P 网络的特性来进行的攻击。</p>
+<p>P2P 即 Peer to Peer，中文意思是对等网络，它是分布式系统和计算机网络相结合的产物。对等的意思就是网络中的节点角色、地位是平等的，任何节点具有极强的自由，可以任意加入、离开网络。这跟传统的 C/S 模型的结构有很大区别，任何节点既是 client ，也是 server，或者说网络中没有 server 节点，任何节点 down 掉不会对整个网络产生致命的影响，具有极强的伸缩性。</p>
+<p>P2P 网络从诞生到现在经过了几个阶段，分别是混合式 P2P，无结构化 P2P以及结构化 P2P。</p>
+<ul>
+<li>混合式：顾名思义，P2P 网络混合了传统的 C/S 模型，网络中有角色充当 server 角色</li>
+<li>无结构化：也就是网状结构模型，纯分布式网络，典型代表就是比特币网络，节点之间以一种随机的，松散的方式组织在一起</li>
+<li>结构化：节点按照一定规则组织在一起，路由算法比较精准，比如 DHT 算法</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/2.png" alt=""></p>
+<center>混合式</center>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/12/network_attack_of_blockchain_eclipse_attack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/11/network_attack_of_blockchain_51_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之51&#37攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-11 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-11T11:23:58+08:00">2020-04-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:39" itemprop="dateModified" datetime="2020-04-18T00:58:39+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+</ul>
+<h1 id="51-攻击"><a href="#51-攻击" class="headerlink" title="51%攻击"></a>51%攻击</h1><p>在了解什么是 51%攻击前，先简单科普下区块链的几个概念，这里主要以比特币为例作说明。</p>
+<h2 id="什么是挖矿？"><a href="#什么是挖矿？" class="headerlink" title="什么是挖矿？"></a>什么是挖矿？</h2><p>其实挖矿这个词描述得有点太过于形象了，以至于弄得反而很生涩。当然区块链世界里还有很多玩概念的东西，背后道理其实反而没那么复杂。</p>
+<p>在比特币网络里，大家共同在维护一张账目表，参与记账的节点可以称之为矿工，其中矿工需要做的事情就是拼命竞争记账的权利，这个竞争记账权的过程可以称之为挖矿，当一个节点得到这个记账权之后，可以描述为这个节点挖到矿了。那么节点为什么会拼命的竞争这个记账权呢？因为比特币会对挖到矿的节点有奖励。这个奖励是基于区块高度的，最开始是每个区块奖励 50btc，每产生 210000 个区块为一个减半间隔，减半间隔之后奖励会减半。比如目前（2020.04）区块奖励是 12.5btc。</p>
+<p>上面这段话里面有两个点需要解释：</p>
+<ol>
+<li><strong>为什么节点要竞争这个记账权</strong>？</li>
+<li><strong>区块高度又是什么</strong>？</li>
+</ol>
+<p>针对第一个问题，如果用比较白话的方式讲的话就是，在分布式去信任的系统中，由于有激励的存在，大家都想拿到这个记账权，但是这个记账权在同一时刻（这里用词不一定表示某一刻，更多的形容相对的同一时刻）只允许其中一个节点拿到，并且由这个节点对交易进行记录。这样才能保证这张账本是唯一的，大家看到的是一样的账本。不然大家都来记账的话，这张账本就乱了，这就是称之为 ”共识“ 的由来。</p>
+<p>针对第二个问题，很好理解，区块高度或者说时钟高度，其实是用来描述一个区块的序号的，从创世区块 0 开始依次递增。不用过分纠结，本身是一个很简单的东西，或者叫区块序号更容易理解【手动滑稽】,可以看一下下图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_51_attack/1.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/11/network_attack_of_blockchain_51_attack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/03/05/export_mac_wechat/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/03/05/export_mac_wechat/" class="post-title-link" itemprop="url">破解微信 DB, 导出 Mac 微信聊天记录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-05 11:23:58" itemprop="dateCreated datePublished" datetime="2018-03-05T11:23:58+08:00">2018-03-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前头的话"><a href="#前头的话" class="headerlink" title="前头的话"></a>前头的话</h1><p>最近由于手机内存告急，打算对手机进行一下瘦身。其中手机微信占用了将近 5G，这个简直太可怕了，于是打算把微信聊天记录备份到电脑上。本来备份就备份了，也没啥好说的，不过突发奇想想知道 Mac Wechat 把聊天记录备份到哪了？或者说平常聊天的数据放在哪里了？能不能把这些聊天记录导出成 txt 文件呢？</p>
+<p>于是就有了这篇文章。</p>
+<h1 id="导出微信聊天记录为txt"><a href="#导出微信聊天记录为txt" class="headerlink" title="导出微信聊天记录为txt"></a>导出微信聊天记录为txt</h1><p>导出微信聊天记录最简单的一种方式应该是使用 itunes 对 iphone 进行<strong>不加密备份</strong>，然后找到备份文件里面的数据，据说聊天记录是以明文的方式存在 DB 中的。这种方法我没去试过，这里主要讲一下通过<strong>破解微信 DB，读取到聊天记录，然后导出聊天记录</strong>。</p>
+<h2 id="微信数据目录"><a href="#微信数据目录" class="headerlink" title="微信数据目录"></a>微信数据目录</h2><figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 替换其中的 smaug 为你自己的用户名</span><br><span class="line">cd /Users/smaug/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/<span class="number">2.0b4</span><span class="number">.0</span><span class="number">.9</span></span><br><span class="line"></span><br><span class="line">find ./ -name <span class="string">"*.db"</span></span><br></pre></td></tr></table></figure>
+
+<p>以上目录就是微信数据存储的目录，可以看到有很多 db 文件：</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/ChatSync/ChatSync.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_1.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_5.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_4.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_0.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/fts/ftsmessage.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_7.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_3.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_2.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_6.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_9.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_8.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Sync/openim_oplog.db</span></span><br></pre></td></tr></table></figure>
+
+<p>其中类似于 msg_0.db、 msg_1.db 的就是聊天记录的数据文件，只不过是加过密的数据库，没法直接看。不过好在有各路大神，可以参考文末的参考链接。</p>
+<h2 id="破解步骤"><a href="#破解步骤" class="headerlink" title="破解步骤"></a>破解步骤</h2><p>1.打开 Mac Wechat，但是不要登录</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/export_mac_wechat/1.png" alt=""></p>
+<p>2.打开终端，输入命令</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lldb -p <span class="constructor">$(<span class="params">pgrep</span> WeChat)</span></span><br></pre></td></tr></table></figure>
+<p>lldb 是在 mac 上的一个调试工具，上面的意思是使用 lldb attach 到 WeChat 这个进程上，进行调试，回车之后进入 lldb 调试界面</p>
+<p>3.在 lldb 调试界面输入命令</p>
+<figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">br <span class="keyword">set</span> -n <span class="comment">sqlite3_key</span></span><br></pre></td></tr></table></figure>
+<p>然后回车。</p>
+<p><strong>这时调试屏幕上可能会出现一些 error，可以暂时忽略，不用管</strong>。</p>
+<p>4.输入 c  回车</p>
+<p>5.然后正常登录 Mac Wechat，点击登录，手机上点击允许（或者是扫码登录），不用关心此时 Mac Wechat 是否被卡住</p>
+<p>6.接着输入命令</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">memory</span> <span class="keyword">read</span> --size 1 --<span class="keyword">format</span> x --<span class="keyword">count</span> 32 <span class="variable">$rsi</span></span><br></pre></td></tr></table></figure>
+<p>回车。</p>
+<p>读取内存中 寄存器 rsi 存储的值。大致回输出如下的字样：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/export_mac_wechat/2.png" alt=""></p>
+<p>其中下面的这段是我们关心的：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x604004c346a0</span>: <span class="number">0xad</span> <span class="number">0x5c</span> <span class="number">0xff</span> <span class="number">0x0a</span> <span class="number">0x85</span> <span class="number">0xce</span> <span class="number">0x4a</span> <span class="number">0x5e</span></span><br><span class="line"><span class="number">0x604004c346a8</span>: <span class="number">0x9f</span> <span class="number">0x7f</span> <span class="number">0x8a</span> <span class="number">0xd3</span> <span class="number">0xa6</span> <span class="number">0xc6</span> <span class="number">0x02</span> <span class="number">0xf3</span></span><br><span class="line"><span class="number">0x604004c346b0</span>: <span class="number">0x25</span> <span class="number">0x02</span> <span class="number">0xb1</span> <span class="number">0x48</span> <span class="number">0x4c</span> <span class="number">0x76</span> <span class="number">0x4c</span> <span class="number">0x84</span></span><br><span class="line"><span class="number">0x604004c346b8</span>: <span class="number">0x82</span> <span class="number">0x38</span> <span class="number">0xc3</span> <span class="number">0x17</span> <span class="number">0x4d</span> <span class="number">0x27</span> <span class="number">0x14</span> <span class="number">0x33</span></span><br></pre></td></tr></table></figure>
+<p>把前面 0x604004c346b0： 去掉，同时删除后面所有的 0x 和空格，拼接成一个字符串为 (总共 64 个字符）：</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ad<span class="number">5</span>cff<span class="number">0</span>a<span class="number">85</span>ce<span class="number">4</span>a<span class="number">5e9</span>f<span class="number">7</span>f<span class="number">8</span>ad<span class="number">3</span>a<span class="number">6</span><span class="keyword">c</span><span class="number">602</span>f<span class="number">32502</span>b<span class="number">1484</span><span class="keyword">c</span><span class="number">764</span><span class="keyword">c</span><span class="number">848238</span><span class="keyword">c</span><span class="number">3174</span>d<span class="number">271433</span></span><br></pre></td></tr></table></figure>
+<p>前面加上 0x 就是我们用来破解 DB 的 key:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0xad5cff0a85ce4a5e9f7f8ad3a6c602f32502b1484c764c848238c3174d271433</span></span><br></pre></td></tr></table></figure>
+
+<p>到这里基本上就相当于拿到了微信数据库的 key 了，接下来就是用这个 key 打开 DB 文件了。</p>
+<p>TODO(smaug)</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/02/13/new_picture_bed_github/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/02/13/new_picture_bed_github/" class="post-title-link" itemprop="url">博客图床切换 Github + jsDelivr + PicGo</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-13 11:23:58" itemprop="dateCreated datePublished" datetime="2018-02-13T11:23:58+08:00">2018-02-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前头的话"><a href="#前头的话" class="headerlink" title="前头的话"></a>前头的话</h1><p>博客已经使用一两年了，最近去看以前的博客的时候发现有些博文里面的图片出现无法显示的情况，虽然问题不是很严重，不过少了图片，就少了很多连贯的东西。之前是采用七牛云存储作为博客图床，可能是因为七牛云存储做了一些限制吧，导致图片无法访问。<br>这次打算重新换一种图床方式吧，毕竟使用第三方的图床总有跑路的风险。谷歌搜索了一些解决方案，其中一个是使用 Github + jsDelivr + PicGo 的方式作为个人图床的。于是打算试试，本文作为一个试验。</p>
+<p><strong>使用 Github 存储图片有一个弊端就是由于 Github 仓库大小有限制，所以到了一定存量的时候，可能需要考虑其他方案或者新建新的仓库</strong>。</p>
+<ul>
+<li>Github： 图片仓库</li>
+<li>jsDelivr: 一种免费的 CDN 解决方案</li>
+<li>PicGo: 快速上传图片至 Github 并且自动拷贝图片地址（其实不用这个也行，手动把图片文件 Push 到 Github, 然后拼接图片地址就行）</li>
+</ul>
+<h1 id="图床测试"><a href="#图床测试" class="headerlink" title="图床测试"></a>图床测试</h1><blockquote>
+<p>图片1.狼</p>
+</blockquote>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wolf.jpg" alt=""></p>
+<blockquote>
+<p>图片2.SMAUG</p>
+</blockquote>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/smaug_huobiteren.jpg" alt=""></p>
+<blockquote>
+<p>图片3.AryaStark<br><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/AryaStark.jpg" alt=""></p>
+</blockquote>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://www.itrhx.com/2019/08/01/A27-image-hosting/" target="_blank" rel="noopener">Github+jsDelivr+PicGo 打造稳定快速、高效免费图床</a></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/02/13/new_picture_bed_github/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/01/16/using-iostat-dialectically/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/01/16/using-iostat-dialectically/" class="post-title-link" itemprop="url">辩证看待 iostat</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-16 11:23:58" itemprop="dateCreated datePublished" datetime="2018-01-16T11:23:58+08:00">2018-01-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/%E7%A3%81%E7%9B%98/" itemprop="url" rel="index"><span itemprop="name">磁盘</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>经常做系统分析会接触到很多有用的工具，比如 iostat,它是用来分析磁盘性能、系统 I/O 的利器。</p>
+<p>本文将重点<strong>介绍 iostat 命令的使用，并分析容易引起误解的几个指标</strong>。</p>
+<h1 id="iostat"><a href="#iostat" class="headerlink" title="iostat"></a>iostat</h1><blockquote>
+<p>iostat - Report Central Processing Unit (CPU) statistics and input/output statistics for devices and partitions.</p>
+</blockquote>
+<p>上面是 man 手册关于 iostat 命令的介绍，非常简单明了。iostat 是我们经常用来分析 cpu 负载和磁盘 I/O 情况的工具。</p>
+<h2 id="iostat-基本使用"><a href="#iostat-基本使用" class="headerlink" title="iostat 基本使用"></a>iostat 基本使用</h2><p>常用命令（个人习惯）：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iostat -xk <span class="number">2</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+<p>参数的解释可以查看 man 手册：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">OPTIONS</span><br><span class="line">       -c     Display the CPU utilization report.</span><br><span class="line"></span><br><span class="line">       -d     Display the device utilization report.</span><br><span class="line"></span><br><span class="line">       -g group_name &#123; device [<span class="built_in">..</span>.] | ALL &#125;</span><br><span class="line">              Display statistics <span class="keyword">for</span> a<span class="built_in"> group </span>of devices.  The iostat command reports statistics <span class="keyword">for</span> each individual device <span class="keyword">in</span> the list then a line of global statistics <span class="keyword">for</span> the<span class="built_in"> group </span>displayed as group_name <span class="keyword">and</span> made  up  of  all  the</span><br><span class="line">              devices <span class="keyword">in</span> the list. The ALL keyword means that all the block devices defined by the<span class="built_in"> system </span>shall be included <span class="keyword">in</span> the group.</span><br><span class="line"></span><br><span class="line">       -h     Make the Device Utilization Report easier <span class="keyword">to</span> read by a human.</span><br><span class="line"></span><br><span class="line">       -j &#123; ID | LABEL | PATH | UUID | <span class="built_in">..</span>. &#125; [ device [<span class="built_in">..</span>.] | ALL ]</span><br><span class="line">              Display  persistent  device  names.  Options  ID,  LABEL,  etc.  specify  the<span class="built_in"> type </span>of the persistent name. These options are <span class="keyword">not</span> limited, only prerequisite is that directory with required persistent names is present <span class="keyword">in</span></span><br><span class="line">              /dev/disk.  Optionally, multiple devices can be specified <span class="keyword">in</span> the chosen persistent name type.  Because persistent device names are usually long, option -h is enabled implicitly with this option.</span><br><span class="line"></span><br><span class="line">       -k     Display statistics <span class="keyword">in</span> kilobytes per second.</span><br><span class="line"></span><br><span class="line">       -m     Display statistics <span class="keyword">in</span> megabytes per second.</span><br><span class="line"></span><br><span class="line">       -N     Display the registered device mapper names <span class="keyword">for</span> any device mapper devices.  Useful <span class="keyword">for</span> viewing LVM2 statistics.</span><br><span class="line"></span><br><span class="line">       -p [ &#123; device [,<span class="built_in">..</span>.] | ALL &#125; ]</span><br><span class="line">              The -p option displays statistics <span class="keyword">for</span> block devices <span class="keyword">and</span> all their partitions that are used by the system.  <span class="keyword">If</span> a device name is entered on the command line, then statistics <span class="keyword">for</span> it <span class="keyword">and</span> all its partitions  are  displayed.</span><br><span class="line">              Last,  the  ALL  keyword  indicates  that  statistics  have <span class="keyword">to</span> be displayed <span class="keyword">for</span> all the block devices <span class="keyword">and</span> partitions defined by the system, including those that have never been used. <span class="keyword">If</span> option -j is defined before this</span><br><span class="line">              option, devices entered on the command line can be specified with the chosen persistent name type.</span><br><span class="line"></span><br><span class="line">       -T     This option must be used with option -g <span class="keyword">and</span> indicates that only global statistics <span class="keyword">for</span> the<span class="built_in"> group </span>are <span class="keyword">to</span> be displayed, <span class="keyword">and</span> <span class="keyword">not</span> statistics <span class="keyword">for</span> individual devices <span class="keyword">in</span> the group.</span><br><span class="line"></span><br><span class="line">       -t     <span class="builtin-name">Print</span> the time <span class="keyword">for</span> each report displayed. The timestamp format may depend on the value of the S_TIME_FORMAT environment variable (see below).</span><br><span class="line"></span><br><span class="line">       -V     <span class="builtin-name">Print</span> version number then exit.</span><br><span class="line"></span><br><span class="line">       -x     Display extended statistics.</span><br><span class="line"></span><br><span class="line">       -y     Omit first report with statistics since<span class="built_in"> system </span>boot, <span class="keyword">if</span> displaying multiple records at given interval.</span><br><span class="line"></span><br><span class="line">       -z     Tell iostat <span class="keyword">to</span> omit output <span class="keyword">for</span> any devices <span class="keyword">for</span> which there was <span class="literal">no</span> activity during the sample period.</span><br></pre></td></tr></table></figure>
+<p>简单讲，-x 参数能比较详细的给出一些指标，2 代表间隔时间为 2s，统计输出 10 次。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/01/16/using-iostat-dialectically/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/01/08/wechat_jump_hack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/01/08/wechat_jump_hack/" class="post-title-link" itemprop="url">微信跳一跳高分辅助踩坑</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-08 23:23:58" itemprop="dateCreated datePublished" datetime="2018-01-08T23:23:58+08:00">2018-01-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/ios/" itemprop="url" rel="index"><span itemprop="name">ios</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="最近挺火的微信跳一跳"><a href="#最近挺火的微信跳一跳" class="headerlink" title="最近挺火的微信跳一跳"></a>最近挺火的微信跳一跳</h1><p>最近新版微信的『跳一跳』小程序着实火了一把，也把小程序这个概念再次推波助澜了一波，看来以后小程序这个入口会有大作为。</p>
+<blockquote>
+<p>张小龙：一个好的 APP 应该是用完即走的。</p>
+</blockquote>
+<p>这句话对用户来说是个好消息，对其他创业者来说却可能会招来恶语相向。现在这个时代的步伐越来越快，大家好像都很忙，时间越来越珍贵。如果以后微信真的把小程序这个入口做好了，我觉得对于用户来说，是件好事，当然前提是做好了，比如安全性啥的，比如不会被外挂啥的！</p>
+<p>现在中午，吃完饭没事大家都会高呼 “来一波！来一波！”，就是微信小游戏『坦克大战』，3V3 玩得不亦乐乎！</p>
+<p>废话不多说，看着别人微信跳一跳几百分那么高的分，感觉坐不住了，为了装逼，所以有了这篇博文！</p>
+<blockquote>
+<p>林夕水共是我，这是目前能让好友看到的最高分</p>
+</blockquote>
+<p><img src="/images/bi.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/01/08/wechat_jump_hack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" class="post-title-link" itemprop="url">nginx 写⽇志对响应速度的影响探究（二）</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-04 16:23:58" itemprop="dateCreated datePublished" datetime="2018-01-04T16:23:58+08:00">2018-01-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/nginx/lua/" itemprop="url" rel="index"><span itemprop="name">lua</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《<a href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" target="_blank" rel="noopener">nginx写日志对于响应速度的影响探究（一）</a>》中其实提出了两个问题还有待研究：</p>
+<ul>
+<li>log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ?</li>
+<li>request time 成周期性波动，周期为 60s，即大概每 60s request time 会出现一个突峰，如下图。so why ？<br><img src="/images/requesttimebodong.png" alt=""></li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+</body>
+</html>

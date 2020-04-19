@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="问题描述小米监控发现我自己的一台机器的cpu.iowait偏高，波动很严重。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CPU.IOWAIT 偏高问题">
+<meta property="og:url" content="http://www.rebootcat.com/2017/12/14/instability-of-cpu/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="问题描述小米监控发现我自己的一台机器的cpu.iowait偏高，波动很严重。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://www.rebootcat.com/images/problem.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/rediscpubusy.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/p1.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/irukayali1.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/irukayali2.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/opendisk.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/iotop_iostat.png">
+<meta property="article:published_time" content="2017-12-14T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.942Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="cpu">
+<meta property="article:tag" content="iowait">
+<meta property="article:tag" content="iotop">
+<meta property="article:tag" content="iostat">
+<meta property="article:tag" content="open-falcon">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://www.rebootcat.com/images/problem.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2017/12/14/instability-of-cpu/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>CPU.IOWAIT 偏高问题 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/12/14/instability-of-cpu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CPU.IOWAIT 偏高问题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-14 11:23:58" itemprop="dateCreated datePublished" datetime="2017-12-14T11:23:58+08:00">2017-12-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/open-falcon/" itemprop="url" rel="index"><span itemprop="name">open-falcon</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>小米监控发现我自己的一台机器的cpu.iowait偏高，波动很严重。</p>
+<p><img src="/images/problem.png" alt=""></p>
+<a id="more"></a>
+<p>那么是什么导致这个问题的产生呢？下面听我细细道来。</p>
+<h1 id="探究过程"><a href="#探究过程" class="headerlink" title="探究过程"></a>探究过程</h1><blockquote>
+<p>每当出现一个问题的时候，背后一定存在着因果关系，区别只是背后的因素隐藏的多深！</p>
+</blockquote>
+<p>这句话可以辩证的看待，不用过分纠结这句话本身，因为任何东西纠结到极致其实都失去了意义，比如普朗克时间内追求因果律就没有意义。</p>
+<h2 id="分析途径"><a href="#分析途径" class="headerlink" title="分析途径"></a>分析途径</h2><p>问题出现后需要定位问题来源，离不开各种工具的辅助甚至人肉辅助。目前我手里现有的分析途径如下：</p>
+<ul>
+<li>小米监控</li>
+<li>各种linux命令 &amp;&amp; 各种代码技能</li>
+<li><strong>一颗充满兴趣的心</strong>（最重要的东西）</li>
+</ul>
+<h2 id="初步怀疑"><a href="#初步怀疑" class="headerlink" title="初步怀疑"></a>初步怀疑</h2><p>问题已经比较明确了，看着这么大幅度的波动，我<strong>首先怀疑的是小米监控的agent采集的数据是不是出了问题？</strong></p>
+<p>小米监控的agent是每分钟采集一次数据，具体的计算方法应该是分析 <strong><a href="http://man7.org/linux/man-pages/man5/proc.5.html" target="_blank" rel="noopener">/proc/stat</a></strong> 文件。包括top命令也是分析这个文件得出的cpu占用率。那么我自己来分析这个文件试试。核心代码部分如下：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">cmd = <span class="string">'cat /proc/stat |grep "cpu "'</span></span><br><span class="line">ret = os.popen(cmd).readlines()[0]</span><br><span class="line">ret = ret.split()</span><br><span class="line">ret = ret[1:]</span><br><span class="line">total = 0</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> ret:</span><br><span class="line">  total += int(i)</span><br><span class="line"></span><br><span class="line">user = int(ret[0])</span><br><span class="line">nice = int(ret[1])</span><br><span class="line">system = int(ret[2])</span><br><span class="line">idle = int(ret[3])</span><br><span class="line">iowait = int(ret[4])</span><br><span class="line">irq = int(ret[5])</span><br><span class="line">softirq = int(ret[6])</span><br><span class="line">cpubusy = total - idle</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">user = float(user / os.sysconf(os.sysconf_names[<span class="string">'SC_CLK_TCK'</span>]))</span><br><span class="line">nice = float(nice / os.sysconf(os.sysconf_names[<span class="string">'SC_CLK_TCK'</span>]))</span><br><span class="line">system = float(system / os.sysconf(os.sysconf_names[<span class="string">'SC_CLK_TCK'</span>]))</span><br><span class="line">idle = float(idle / os.sysconf(os.sysconf_names[<span class="string">'SC_CLK_TCK'</span>]))</span><br><span class="line">iowait = float(iowait / os.sysconf(os.sysconf_names[<span class="string">'SC_CLK_TCK'</span>]))</span><br><span class="line">irq = float(irq / os.sysconf(os.sysconf_names[<span class="string">'SC_CLK_TCK'</span>]))</span><br><span class="line">softirq = float(softirq / os.sysconf(os.sysconf_names[<span class="string">'SC_CLK_TCK'</span>]))</span><br><span class="line">cpubusy = float(cpubusy / os.sysconf(os.sysconf_names[<span class="string">'SC_CLK_TCK'</span>]))</span><br><span class="line"></span><br><span class="line">timestamp = int(time.time())</span><br><span class="line"></span><br><span class="line">STORE[<span class="string">'user'</span>] = user</span><br><span class="line">STORE[<span class="string">'nice'</span>] = nice</span><br><span class="line">STORE[<span class="string">'system'</span>] = system</span><br><span class="line">STORE[<span class="string">'idle'</span>] = idle</span><br><span class="line">STORE[<span class="string">'iowait'</span>] = iowait</span><br><span class="line">STORE[<span class="string">'irq'</span>] = irq</span><br><span class="line">STORE[<span class="string">'softirq'</span>] = softirq</span><br><span class="line">STORE[<span class="string">'cpubusy'</span>] = cpubusy</span><br><span class="line"></span><br><span class="line">STORE[<span class="string">'timestamp'</span>] = timestamp</span><br><span class="line">with open(CPUSTORE,<span class="string">'w'</span>) as fout:</span><br><span class="line">  fout.write(json.dumps(STORE))</span><br></pre></td></tr></table></figure>
+
+<p>采集到的数据先暂存到redis:</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">t1 = <span class="built_in">result</span>.<span class="built_in">get</span>(<span class="string">'timestamp'</span>)</span><br><span class="line">t1 = int(t1)</span><br><span class="line">l1 = <span class="built_in">time</span>.localtime(t1)</span><br><span class="line">d1 = <span class="built_in">time</span>.strftime(<span class="string">'%d%H%M%S'</span>, l1)</span><br><span class="line">hostname = os.uname()[<span class="number">1</span>]</span><br><span class="line">skey = <span class="string">'scpu_%s'</span> % hostname</span><br><span class="line">hkey = <span class="string">'cpu_%s_%s'</span> % (hostname,d1)</span><br><span class="line">r.sadd(skey,hkey)</span><br><span class="line">r.hset(hkey,<span class="string">'timestamp'</span>,d1)</span><br><span class="line">r.hset(hkey,<span class="string">'cpubusy'</span>,<span class="built_in">result</span>.<span class="built_in">get</span>(<span class="string">'cpubusy'</span>))</span><br><span class="line">r.hset(hkey,<span class="string">'user'</span>,<span class="built_in">result</span>.<span class="built_in">get</span>(<span class="string">'user'</span>))</span><br><span class="line">r.hset(hkey,<span class="string">'nice'</span>,<span class="built_in">result</span>.<span class="built_in">get</span>(<span class="string">'nice'</span>))</span><br><span class="line">r.hset(hkey,<span class="string">'system'</span>,<span class="built_in">result</span>.<span class="built_in">get</span>(<span class="string">'system'</span>))</span><br><span class="line">r.hset(hkey,<span class="string">'idle'</span>,<span class="built_in">result</span>.<span class="built_in">get</span>(<span class="string">'idle'</span>))</span><br><span class="line">r.hset(hkey,<span class="string">'iowait'</span>,<span class="built_in">result</span>.<span class="built_in">get</span>(<span class="string">'iowait'</span>))</span><br><span class="line">r.hset(hkey,<span class="string">'irq'</span>,<span class="built_in">result</span>.<span class="built_in">get</span>(<span class="string">'irq'</span>))</span><br><span class="line">r.hset(hkey,<span class="string">'softirq'</span>,<span class="built_in">result</span>.<span class="built_in">get</span>(<span class="string">'softirq'</span>))</span><br><span class="line"><span class="comment">#每隔5s采集一次</span></span><br><span class="line"><span class="built_in">time</span>.sleep(<span class="number">5</span>)</span><br></pre></td></tr></table></figure>
+
+<p>所以最终redis里面的数据如下所示：<img src="/images/rediscpubusy.png" alt=""><br>有了数据，现在就缺一个前端的展示，很简单，<a href="https://www.hcharts.cn/" target="_blank" rel="noopener">highcharts</a>用起来，最终前端展示得到的曲线如下图：<img src="/images/p1.png" alt=""></p>
+<p>可以看到这台机器的cpu.iowait确实波动很厉害，说明小米监控的agent采集到的数据是准确的。</p>
+<p>那么：</p>
+<ul>
+<li>什么是cpu.iowait呢？</li>
+<li>cpu.iowait过高是否说明了系统存在I/O问题？</li>
+<li>是什么导致了cpu.iowait这么高？</li>
+</ul>
+<h2 id="iowait深入探究"><a href="#iowait深入探究" class="headerlink" title="iowait深入探究"></a>iowait深入探究</h2><p>%iowait表示什么？其实我自己也是一知半解，google了一番，找到讲的比较透彻的一篇文章：<a href="http://linuxperf.com/?p=33" target="_blank" rel="noopener">理解 %IOWAIT (%WIO)</a>，文中核心的两段话是：</p>
+<blockquote>
+<p>我们不妨采纳Linux的措辞，%iowait 表示在一个采样周期内有百分之几的时间属于以下情况：<strong>CPU空闲、并且有仍未完成的I/O请求。</strong></p>
+</blockquote>
+<blockquote>
+<p>对 %iowait 常见的误解有两个：一是误以为 %iowait 表示CPU不能工作的时间，二是误以为 %iowait 表示I/O有瓶颈。</p>
+</blockquote>
+<p>看来%iowait偏高不能说明什么问题。根据定义，它需要同时满足<strong>CPU空闲和有仍未完成的I/O请求</strong>这两个条件，说明CPU其实有空闲的，而且空闲率很高，且落在CPU空闲状态的I/O很多，才导致iowait%偏高。</p>
+<h3 id="CPU不能工作？"><a href="#CPU不能工作？" class="headerlink" title="CPU不能工作？"></a>CPU不能工作？</h3><p>为了证明CPU确实是有空闲的，仍然能进行工作，那么如果我把CPU压满，CPU没有了空闲，iowait%理应很低或者波动很小。所以简单写了一个cpu密集型的任务：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment">#-*- coding:utf8 -*-</span></span><br><span class="line"><span class="keyword">from</span> multiprocessing import Pool</span><br><span class="line"></span><br><span class="line">def <span class="builtin-name">run</span>(num):</span><br><span class="line">  <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    num += 1</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line"> <span class="built_in"> pool </span>= Pool(6)</span><br><span class="line">  pool.map(run,range(6))</span><br><span class="line">  pool.close()</span><br><span class="line">  pool.join()</span><br></pre></td></tr></table></figure>
+<p>没错，就是这么简单！！</p>
+<p>为了进行对比，故采取的方式为跑压力一段时间，然后撤掉压力再收集一段时间，最后的曲线图如下：<br><img src="/images/irukayali1.png" alt=""><br>局部放大之后：<br><img src="/images/irukayali2.png" alt=""></p>
+<p>从这两幅曲线图可以很明显的看到cpu.busy压到了 70 ~ 90 ，波动范围变小了很多，同时cpu.iowait波动范围也很小了，对比撤掉压力之后的，可以说差别很大。从这里也证明了之前的猜想，<strong>CPU确实是有空闲的，也确实能进行工作，造成cpu.busy波动严重的指标就是cpu.iowait</strong>。那么是什么导致了cpu.iowait偏高，I/O是不是到了瓶颈呢？</p>
+<h3 id="I-O存在瓶颈？"><a href="#I-O存在瓶颈？" class="headerlink" title="I/O存在瓶颈？"></a>I/O存在瓶颈？</h3><p>要分析I/O是不是存在瓶颈，必然要借助一些磁盘、I/O性能分析工具，通常分析磁盘性能的工具有iostat,sar等，分析I/O情况的有iotop等，同时结合小米监控的数据进行分析。</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>xxx<span class="number">-008</span> ~]# iostat  -xk <span class="number">2</span> <span class="number">100</span></span><br><span class="line"></span><br><span class="line">avg-cpu:  %user   %nice %system %iowait  %steal   %idle</span><br><span class="line">           <span class="number">6.77</span>    <span class="number">0.00</span>    <span class="number">3.88</span>    <span class="number">4.31</span>    <span class="number">0.00</span>   <span class="number">85.05</span></span><br><span class="line"></span><br><span class="line">Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await  svctm  %util</span><br><span class="line">sda               <span class="number">0.02</span>    <span class="number">10.39</span>  <span class="number">254.22</span>  <span class="number">104.63</span> <span class="number">12579.25</span>  <span class="number">5175.08</span>    <span class="number">98.95</span>     <span class="number">0.44</span>    <span class="number">1.21</span>   <span class="number">0.50</span>  <span class="number">17.79</span></span><br><span class="line">sdb               <span class="number">0.00</span>     <span class="number">5.04</span>   <span class="number">23.05</span>   <span class="number">23.75</span>  <span class="number">1375.87</span>  <span class="number">1809.86</span>   <span class="number">136.14</span>     <span class="number">0.34</span>    <span class="number">7.28</span>   <span class="number">5.69</span>  <span class="number">26.63</span></span><br><span class="line">sdc               <span class="number">0.00</span>     <span class="number">4.66</span>   <span class="number">23.00</span>   <span class="number">24.04</span>  <span class="number">1372.72</span>  <span class="number">1796.91</span>   <span class="number">134.77</span>     <span class="number">0.35</span>    <span class="number">7.41</span>   <span class="number">5.67</span>  <span class="number">26.67</span></span><br><span class="line">sdd               <span class="number">0.00</span>     <span class="number">6.23</span>   <span class="number">22.83</span>   <span class="number">18.82</span>  <span class="number">1356.25</span>  <span class="number">1697.11</span>   <span class="number">146.61</span>     <span class="number">0.39</span>    <span class="number">9.42</span>   <span class="number">6.17</span>  <span class="number">25.71</span></span><br><span class="line">sde               <span class="number">0.00</span>     <span class="number">7.01</span>   <span class="number">20.54</span>   <span class="number">19.57</span>  <span class="number">1227.02</span>  <span class="number">1724.81</span>   <span class="number">147.18</span>     <span class="number">0.10</span>    <span class="number">2.45</span>   <span class="number">8.01</span>  <span class="number">32.14</span></span><br></pre></td></tr></table></figure>
+<p>关于iostat的各项参数解释如下：</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">rrqm</span>/<span class="selector-tag">s</span>:  	每秒进行 <span class="selector-tag">merge</span> 的读操作数目。即 <span class="selector-tag">delta</span>(rmerge)/<span class="selector-tag">s</span></span><br><span class="line"><span class="selector-tag">wrqm</span>/<span class="selector-tag">s</span>:		每秒进行 <span class="selector-tag">merge</span> 的写操作数目。即 <span class="selector-tag">delta</span>(wmerge)/<span class="selector-tag">s</span></span><br><span class="line"><span class="selector-tag">r</span>/<span class="selector-tag">s</span>:		每秒完成的读 <span class="selector-tag">I</span>/<span class="selector-tag">O</span> 设备次数。即 <span class="selector-tag">delta</span>(rio)/<span class="selector-tag">s</span></span><br><span class="line"><span class="selector-tag">w</span>/<span class="selector-tag">s</span>:		每秒完成的写 <span class="selector-tag">I</span>/<span class="selector-tag">O</span> 设备次数。即 <span class="selector-tag">delta</span>(wio)/<span class="selector-tag">s</span></span><br><span class="line"><span class="selector-tag">rsec</span>/<span class="selector-tag">s</span>:		每秒读扇区数。即 <span class="selector-tag">delta</span>(rsect)/<span class="selector-tag">s</span></span><br><span class="line"><span class="selector-tag">wsec</span>/<span class="selector-tag">s</span>:		每秒写扇区数。即 <span class="selector-tag">delta</span>(wsect)/<span class="selector-tag">s</span></span><br><span class="line"><span class="selector-tag">rkB</span>/<span class="selector-tag">s</span>:		每秒读<span class="selector-tag">K</span>字节数。是 <span class="selector-tag">rsect</span>/<span class="selector-tag">s</span> 的一半，因为每扇区大小为<span class="selector-tag">512</span>字节。(需要计算)</span><br><span class="line"><span class="selector-tag">wkB</span>/<span class="selector-tag">s</span>:		每秒写<span class="selector-tag">K</span>字节数。是 <span class="selector-tag">wsect</span>/<span class="selector-tag">s</span> 的一半。(需要计算)</span><br><span class="line"><span class="selector-tag">avgrq-sz</span>:	平均每次设备<span class="selector-tag">I</span>/<span class="selector-tag">O</span>操作的数据大小 (扇区)。<span class="selector-tag">delta</span>(rsect+wsect)/<span class="selector-tag">delta</span>(rio+wio)</span><br><span class="line"><span class="selector-tag">avgqu-sz</span>:	平均<span class="selector-tag">I</span>/<span class="selector-tag">O</span>队列长度。即 <span class="selector-tag">delta</span>(aveq)/<span class="selector-tag">s</span>/<span class="selector-tag">1000</span> (因为aveq的单位为毫秒)。</span><br><span class="line"><span class="selector-tag">await</span>:		平均每次设备<span class="selector-tag">I</span>/<span class="selector-tag">O</span>操作的等待时间 (毫秒)。即 <span class="selector-tag">delta</span>(ruse+wuse)/<span class="selector-tag">delta</span>(rio+wio)</span><br><span class="line"><span class="selector-tag">svctm</span>:		平均每次设备<span class="selector-tag">I</span>/<span class="selector-tag">O</span>操作的服务时间 (毫秒)。即 <span class="selector-tag">delta</span>(use)/<span class="selector-tag">delta</span>(rio+wio)</span><br><span class="line">%<span class="selector-tag">util</span>:		一秒中有百分之多少的时间用于 <span class="selector-tag">I</span>/<span class="selector-tag">O</span> 操作，或者说一秒中有多少时间 <span class="selector-tag">I</span>/<span class="selector-tag">O</span> 队列是非空的。即 <span class="selector-tag">delta</span>(use)/<span class="selector-tag">s</span>/<span class="selector-tag">1000</span> (因为use的单位为毫秒)</span><br></pre></td></tr></table></figure>
+
+<p>其中重点需要关注的是<strong>avgqu-sz、await、svctm、util</strong>这四个指标，这里推荐可以看一下这篇文章<a href="http://linuxperf.com/?p=156" target="_blank" rel="noopener">容易被误读的IOSTAT</a>，里面提到util和await两个指标要辩证的看待，并不绝对。对于util，由于当今世界的ssd已经具有较高的并行速度，即便util达到了100%也并不能证明磁盘利用率很高，await这个指标也没有较为标准的衡量。<strong>但是，我们可以借此来分析，作为参考</strong>，这是可以的。</p>
+<p>同时，查看小米监控关于磁盘的各项数据(主要是disk.io.avgqu-sz、disk.io.util、disk.io.svctm、disk.io.await)：<br><img src="/images/opendisk.png" alt=""></p>
+<p>上图可以看到这几个指标波动很大，disk.io.util波动幅度很大很严重；disk.io.await最大值竟然达到了1.252k；disk.io.svctm最大值竟然飙到了192.6；同时disk.io.avgqu-sz也波动，该指标是I/O量的衡量。<strong>猜测这台机器的SSD磁盘确实可能存在I/O性能问题。</strong></p>
+<p>那么怎么验证呢？</p>
+<h2 id="Find-The-Murderer"><a href="#Find-The-Murderer" class="headerlink" title="Find The Murderer"></a>Find The Murderer</h2><blockquote>
+<p>一定要找到凶手！  《致命ID》</p>
+</blockquote>
+<p>上面的过程可谓拨开云雾见青天，经过一步一步的分析探究，最终得到了猜想：</p>
+<blockquote>
+<p><strong>猜测这台机器的SSD磁盘确实可能存在I/O性能问题。</strong></p>
+</blockquote>
+<p>那么怎么来验证呢？很简单，找到造成这些I/O的凶手就行！怎么找，过程中我先后使用了两种方法。</p>
+<h3 id="Process-Status-D"><a href="#Process-Status-D" class="headerlink" title="Process  Status D"></a>Process  Status D</h3><p>ps 命令可以查看有关进程的详细信息，比如状态码，关于进程状态码的解释如下：</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">PROCESS STATE CODES</span><br><span class="line">       D   uninterruptible sleep (usually IO)</span><br><span class="line">       R   runnable (<span class="keyword">on</span> <span class="title">run</span> <span class="title">queue</span>)</span><br><span class="line">       S   sleeping</span><br><span class="line">       T   traced <span class="keyword">or</span> stopped</span><br><span class="line">       Z   <span class="keyword">a</span> defunct (<span class="string">"zombie"</span>) <span class="built_in">process</span></span><br><span class="line"></span><br><span class="line">       For BSD formats <span class="keyword">and</span> when <span class="keyword">the</span> <span class="string">"stat"</span> keyword is used, additional letters may be displayed:</span><br><span class="line">       W   has no resident pages</span><br><span class="line">       &lt;   high-priority <span class="built_in">process</span></span><br><span class="line">       N   low-priority task</span><br><span class="line">       L   has pages locked <span class="keyword">into</span> memory (<span class="keyword">for</span> real-<span class="built_in">time</span> <span class="keyword">and</span> custom IO)</span><br></pre></td></tr></table></figure>
+<p>其中重点关注的状态码为<strong>D</strong>，它表示不可中断的休眠状态，通常表示I/O操作。这就很简单了，要找到进行I/O操作的进程，写个脚本抓一下：</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment">#-*- coding:utf-8 -*-</span></span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import <span class="built_in">time</span></span><br><span class="line"></span><br><span class="line">def run():</span><br><span class="line">  <span class="built_in">result</span> = []</span><br><span class="line">  timestamp = <span class="built_in">time</span>.strftime(<span class="string">'%Y-%m-%d %H:%M:%S'</span>, <span class="built_in">time</span>.localtime(<span class="built_in">time</span>.<span class="built_in">time</span>()))</span><br><span class="line">  cmd = <span class="string">'ps auxf'</span></span><br><span class="line">  ret = os.popen(cmd).readlines()</span><br><span class="line">  <span class="keyword">for</span> i <span class="keyword">in</span> ret:</span><br><span class="line">    <span class="keyword">item</span> = i.<span class="built_in">split</span>()</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(<span class="keyword">item</span>) &gt; <span class="number">7</span>:</span><br><span class="line">      <span class="keyword">item</span> = <span class="keyword">item</span>[<span class="number">7</span>]</span><br><span class="line">      <span class="keyword">if</span> <span class="keyword">item</span> == <span class="string">'D'</span>:</span><br><span class="line">        <span class="built_in">result</span>.append(i)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> r <span class="keyword">in</span> <span class="built_in">result</span>:</span><br><span class="line">    <span class="built_in">process</span> = <span class="string">'%s %s'</span> % ( timestamp,r[:<span class="number">-1</span>])</span><br><span class="line">    print <span class="built_in">process</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> <span class="built_in">result</span>:</span><br><span class="line">    print <span class="string">'\n'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">  <span class="keyword">while</span> True:</span><br><span class="line">    run()</span><br><span class="line">    <span class="built_in">time</span>.sleep(<span class="number">0.5</span>)</span><br></pre></td></tr></table></figure>
+<p>最终得到的结果如下：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">378315</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">27</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">5</span>:<span class="number">18</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">378337</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">27</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">7</span>:<span class="number">34</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">378339</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">27</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">7</span>:<span class="number">36</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">378340</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">27</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">7</span>:<span class="number">37</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">378343</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">27</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">7</span>:<span class="number">40</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">378344</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">27</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">7</span>:<span class="number">41</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">382918</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">31</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">3</span>:<span class="number">1</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">383821</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">31</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">6</span>:<span class="number">8</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384627</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">3</span>:<span class="number">2</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384638</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">3</span>:<span class="number">3</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384640</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">0</span>:<span class="number">0</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384642</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">4</span>:<span class="number">0</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384643</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">4</span>:<span class="number">1</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384644</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">4</span>:<span class="number">3</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384645</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">4</span>:<span class="number">4</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384654</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">2</span>:<span class="number">10</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384655</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">2</span>:<span class="number">11</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384656</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">2</span>:<span class="number">12</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384659</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">5</span>:<span class="number">1</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384660</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">5</span>:<span class="number">2</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384661</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">5</span>:<span class="number">3</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384662</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">5</span>:<span class="number">4</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">384663</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">32</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">5</span>:<span class="number">5</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">393220</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">36</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">3</span>:<span class="number">4</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> root      <span class="number">393222</span>  <span class="number">0.0</span>  <span class="number">0.0</span>      <span class="number">0</span>     <span class="number">0</span> ?        D    <span class="number">10</span>:<span class="number">36</span>   <span class="number">0</span>:<span class="number">00</span>  \_ [kworker/<span class="number">3</span>:<span class="number">5</span>]</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> nobody   <span class="number">2646439</span>  <span class="number">2.5</span>  <span class="number">1.1</span> <span class="number">2626256</span> <span class="number">191388</span> ?      D    Dec04 <span class="number">369</span>:<span class="number">05</span>      \_ nginx: worker process</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> nobody   <span class="number">2646440</span>  <span class="number">2.9</span>  <span class="number">1.1</span> <span class="number">2029968</span> <span class="number">185368</span> ?      D    Dec04 <span class="number">422</span>:<span class="number">39</span>      \_ nginx: worker process</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> nobody   <span class="number">2646441</span>  <span class="number">2.5</span>  <span class="number">1.2</span> <span class="number">3371008</span> <span class="number">208164</span> ?      D    Dec04 <span class="number">363</span>:<span class="number">58</span>      \_ nginx: worker process</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> nobody   <span class="number">2646442</span>  <span class="number">3.4</span>  <span class="number">1.1</span> <span class="number">2337132</span> <span class="number">188544</span> ?      D    Dec04 <span class="number">490</span>:<span class="number">30</span>      \_ nginx: worker process</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> nobody   <span class="number">2646443</span>  <span class="number">2.5</span>  <span class="number">1.1</span> <span class="number">2646092</span> <span class="number">195748</span> ?      D    Dec04 <span class="number">371</span>:<span class="number">57</span>      \_ nginx: worker process</span><br><span class="line"><span class="number">2017</span><span class="number">-12</span><span class="number">-14</span> <span class="number">10</span>:<span class="number">36</span>:<span class="number">25</span> nobody   <span class="number">2646445</span>  <span class="number">4.6</span>  <span class="number">1.1</span> <span class="number">2576596</span> <span class="number">195664</span> ?      D    Dec04 <span class="number">662</span>:<span class="number">33</span>      \_ nginx: worker process</span><br></pre></td></tr></table></figure>
+
+<p>这里发现有nginx进程，这个并不奇怪，但是也有大量的kworker进程，一脸懵逼！</p>
+<h3 id="使用iotop"><a href="#使用iotop" class="headerlink" title="使用iotop"></a>使用iotop</h3><p>这台机器没有这个工具，本地下载了iotop的源码包后传上去，运行抛错：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Could <span class="keyword">not</span> <span class="builtin-name">run</span> iotop as some of the requirements are <span class="keyword">not</span> met:</span><br><span class="line">- Linux &gt;= 2.6.20 with</span><br><span class="line">  - I/O<span class="built_in"> accounting </span>support (CONFIG_TASKSTATS, CONFIG_TASK_DELAY_ACCT, CONFIG_TASK_IO_ACCOUNTING)</span><br></pre></td></tr></table></figure>
+<p>错误的原因很明显，内核版本不对，因为这台机器是裁剪了linux内核并重新进行了命名，那么怎么办？</p>
+<p>也很简单，修改iotop/data.py，注释掉下面这段代码就行，骗一下iotop:</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">'''</span><br><span class="line">if not ioaccounting or not vm<span class="emphasis">_event_</span>counters:</span><br><span class="line"><span class="code">    print('Could not run iotop as some of the requirements are not met:')</span></span><br><span class="line"><span class="code">    print('- Linux &gt;= 2.6.20 with')</span></span><br><span class="line"><span class="code">    if not ioaccounting:</span></span><br><span class="line"><span class="code">        print('  - I/O accounting support ' \</span></span><br><span class="line"><span class="code">          '(CONFIG_TASKSTATS, CONFIG_TASK_DELAY_ACCT, ' \</span></span><br><span class="line"><span class="code">          'CONFIG_TASK_IO_ACCOUNTING)')</span></span><br><span class="line"><span class="code">    if not vm_event_counters:</span></span><br><span class="line"><span class="code">        print('  - VM event counters (CONFIG_VM_EVENT_COUNTERS)')</span></span><br><span class="line"><span class="code">    sys.exit(1)</span></span><br><span class="line">'''</span><br></pre></td></tr></table></figure>
+<p>iotop命令的使用很简单，我常用命令：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">python</span> iotop.<span class="keyword">py</span> -<span class="keyword">o</span></span><br></pre></td></tr></table></figure>
+<p> <strong>-o</strong>参数表示：only show processes or threads actually doing I/O。</p>
+<p> <strong>在寻找进行I/O操作的进程的同时，我同时也打开了iostat命令，重点关心%iowait，看当有I/O操作的时候%iowait是不是变高了，两个命令均是动态运行，所以能够抓到同时产生的现象</strong>：<br> <img src="/images/iotop_iostat.png" alt=""></p>
+<p>如上图所示，屏幕左右两边是同时产生的结果，左边iotop抓到了产生大量I/O操作的进程，同时屏幕右半边最下面iostat命令输出%iowait从一个很低的值 0.25 飙升到了 51.71，同时注意avgqu-sz、await、svctm三个指标，三个指标均出现了大幅度的增加。从这里就可以肯定的说明<strong>系统I/O确实存在问题，I/O操作量较大的进程也找到了。</strong> </p>
+<p> 这里也出现了大量的kworker进程，那么到底kworker是什么？谷歌了一番：</p>
+<ul>
+<li><a href="https://askubuntu.com/a/421916" target="_blank" rel="noopener">what is kworker</a></li>
+</ul>
+<p>简而言之，kworker进程是内核在做一些工作，比如系统调用等等。这里的kworker伴随着X进程大量出现，可以猜测是bear进程进行的一些系统调用。</p>
+<p>到这里，其实已经可以得出结论了。</p>
+<h1 id="最终结论"><a href="#最终结论" class="headerlink" title="最终结论"></a>最终结论</h1><p>经过上述的探究，可以得到如下的结论：</p>
+<p><strong>系统存在I/O瓶颈，这台机器的SSD系统盘有性能退化问题。</strong></p>
+<h1 id="回顾"><a href="#回顾" class="headerlink" title="回顾"></a>回顾</h1><p>整个探究过程经过了大概3天左右的时间，相对来说还是有点复杂，有些时候信息太多也不是一件好事，因为太多的信息反而会让你忽视掉一些东西，我说的是小米监控上的数据，小米监控上的指标太多了，而且精度也不算很高。探究问题的过程就是慢慢的把复杂的繁杂的信息简化剥离成清晰明了的东西。没错！</p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/01/04/analyze-of-high-iowait/" rel="bookmark">CPU.IOWAIT 偏高问题《二》</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" rel="bookmark">nginx 写⽇志对响应速度的影响探究（二）</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/01/16/using-iostat-dialectically/" rel="bookmark">辩证看待 iostat</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/10/16/pull_history_data_from_open-falcon/" rel="bookmark">拉取小米监控(open-falcon)历史监控数据</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2017/12/14/instability-of-cpu/" title="CPU.IOWAIT 偏高问题">http://www.rebootcat.com/2017/12/14/instability-of-cpu/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cpu/" rel="tag"># cpu</a>
+              <a href="/tags/iowait/" rel="tag"># iowait</a>
+              <a href="/tags/iotop/" rel="tag"># iotop</a>
+              <a href="/tags/iostat/" rel="tag"># iostat</a>
+              <a href="/tags/open-falcon/" rel="tag"># open-falcon</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" rel="prev" title="nginx 写日志对响应速度的影响探究（一）">
+      <i class="fa fa-chevron-left"></i> nginx 写日志对响应速度的影响探究（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/01/04/analyze-of-high-iowait/" rel="next" title="CPU.IOWAIT 偏高问题《二》">
+      CPU.IOWAIT 偏高问题《二》 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#问题描述"><span class="nav-number">1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#探究过程"><span class="nav-number">2.</span> <span class="nav-text">探究过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#分析途径"><span class="nav-number">2.1.</span> <span class="nav-text">分析途径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#初步怀疑"><span class="nav-number">2.2.</span> <span class="nav-text">初步怀疑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iowait深入探究"><span class="nav-number">2.3.</span> <span class="nav-text">iowait深入探究</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU不能工作？"><span class="nav-number">2.3.1.</span> <span class="nav-text">CPU不能工作？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#I-O存在瓶颈？"><span class="nav-number">2.3.2.</span> <span class="nav-text">I&#x2F;O存在瓶颈？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Find-The-Murderer"><span class="nav-number">2.4.</span> <span class="nav-text">Find The Murderer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Process-Status-D"><span class="nav-number">2.4.1.</span> <span class="nav-text">Process  Status D</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用iotop"><span class="nav-number">2.4.2.</span> <span class="nav-text">使用iotop</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#最终结论"><span class="nav-number">3.</span> <span class="nav-text">最终结论</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#回顾"><span class="nav-number">4.</span> <span class="nav-text">回顾</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

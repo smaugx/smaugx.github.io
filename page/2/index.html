@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="人至贱则无敌">
+<meta property="og:type" content="website">
+<meta property="og:title" content="林夕水共">
+<meta property="og:url" content="http://www.rebootcat.com/page/2/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="人至贱则无敌">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://www.rebootcat.com/page/2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/01/04/analyze-of-high-iowait/" class="post-title-link" itemprop="url">CPU.IOWAIT 偏高问题《二》</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-04 11:23:58" itemprop="dateCreated datePublished" datetime="2018-01-04T11:23:58+08:00">2018-01-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！</p>
+<p>这几天好好的写一篇总结！2018年对我来说，很重要！</p>
+<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><p>上一篇文章 <a href="http://rebootcat.com/2017/12/14/instability-of-cpu/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中其实已经大致分析出了问题所在。</p>
+<p>文中『Find The Murderer』章节也指出了可能造成 IOWAIT% 偏高的进程，但不够有说服力。故此文尝试进一步的分析造成 IOWAIT% 偏高的原因！</p>
+<p><img src="/images/problem.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/01/04/analyze-of-high-iowait/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/12/14/instability-of-cpu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/12/14/instability-of-cpu/" class="post-title-link" itemprop="url">CPU.IOWAIT 偏高问题</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-14 11:23:58" itemprop="dateCreated datePublished" datetime="2017-12-14T11:23:58+08:00">2017-12-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/open-falcon/" itemprop="url" rel="index"><span itemprop="name">open-falcon</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>小米监控发现我自己的一台机器的cpu.iowait偏高，波动很严重。</p>
+<p><img src="/images/problem.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/12/14/instability-of-cpu/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" class="post-title-link" itemprop="url">nginx 写日志对响应速度的影响探究（一）</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-06 11:23:58" itemprop="dateCreated datePublished" datetime="2017-12-06T11:23:58+08:00">2017-12-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="惯例闲聊"><a href="#惯例闲聊" class="headerlink" title="惯例闲聊"></a>惯例闲聊</h1><p>现在是杭州的冬天，鼻炎让我一直难受，特别不舒服，鼻子快被我拧坏了，最近过的也很糟心，各种烦心事，几乎一周一件烦心事甚至一周好几件烦心事，最近过得感觉很不好！以前我感觉我自己很潇洒，很酷，现在越来越发现我不酷了，连自身形象我都懒得去整理了，胡子一周不想剃，衣服放一周不想洗，头发每天乱糟糟的，几乎每天都不敢去看镜子了。</p>
+<p>真的很不喜欢冬天！不喜欢冷！不喜欢浑浑噩噩！不喜欢越来越没激情！</p>
+<p>这已经是2017年的最后一个月了，回想年初定下的目标，几乎没有一件事达成或满意，一直想学的茶道一直也没去做，茶具也没买，骑车这件大事也慢慢落下了，身体也慢慢垮了，唯一感觉工作本身成长很大，这样下去不行的！</p>
+<p>好了，废话不多说，这篇博文是完完全全的工作内容，所以内容会很技术，很严肃很干货。</p>
+<h1 id="问题提出"><a href="#问题提出" class="headerlink" title="问题提出"></a>问题提出</h1><p>为了精细化提高 nginx(marxxx) 的性能, 现分析写日志对于请求的影响。</p>
+<ul>
+<li>条件</li>
+</ul>
+<ol>
+<li>日志大小为 500 字节</li>
+<li>响应大小  111 字节</li>
+<li>除日志外 nginx 服务不进行任何 io 操作，使用 nginx 语法直接返回响应</li>
+</ol>
+<ul>
+<li>变量</li>
+</ul>
+<ol>
+<li>qps服务压力了决定的磁盘承受的写日志的压力</li>
+<li>request time分布</li>
+<li>nginx log buffer: 分别测试 log buffer 为 4k,  64k, 128k 以及关闭log的情况</li>
+</ol>
+<h1 id="探究结论"><a href="#探究结论" class="headerlink" title="探究结论"></a>探究结论</h1>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/10/16/pull_history_data_from_open-falcon/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/10/16/pull_history_data_from_open-falcon/" class="post-title-link" itemprop="url">拉取小米监控(open-falcon)历史监控数据</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-10-16 11:23:58" itemprop="dateCreated datePublished" datetime="2017-10-16T11:23:58+08:00">2017-10-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="杭州天气变冷了"><a href="#杭州天气变冷了" class="headerlink" title="杭州天气变冷了"></a>杭州天气变冷了</h1><p>最近杭州的温度下降的有点多，提前进入冬天的节奏，鼻涕不停的流。相对冷，我更喜欢热。冷真的让我受不了，杭州可还算是南方啊！</p>
+<p>好久也没写博客了，这段时间一直在忙工作的事情，甚至都没顾上自己的生活。也好久没去骑车了，天气变冷了，身体也越来越垮了。想想下个月5号还有一场180KM的骑行比赛，腿上顿时一阵抽搐，该练练腿了。</p>
+<p>该平衡下工作和生活了。没事骑骑车，写写博客了。好了废话不多说，今天分享的是拉取小米监控(open-falcon)历史监控数据。</p>
+<h1 id="open-falcon是个啥"><a href="#open-falcon是个啥" class="headerlink" title="open-falcon是个啥?"></a>open-falcon是个啥?</h1><p><img src="http://o8fj2jbwb.bkt.clouddn.com/open-falcon-main.png" alt=""><br>正如<a href="http://open-falcon.com/" target="_blank" rel="noopener">官网</a>介绍的那样，open-falcon是一个分布式的、高性能的互联网企业级监控系统。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/10/16/pull_history_data_from_open-falcon/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/08/20/Elasticsearch_handle_with_python/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/08/20/Elasticsearch_handle_with_python/" class="post-title-link" itemprop="url">python操作ES(Elasticsearch)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-08-20 14:23:58" itemprop="dateCreated datePublished" datetime="2017-08-20T14:23:58+08:00">2017-08-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="最近好忙"><a href="#最近好忙" class="headerlink" title="最近好忙"></a>最近好忙</h1><p>最近这段时间工作上很忙，几乎是没有时间照顾到自己的生活，有时候甚至废寝忘食，虽然挺享受这个过程的，但是感觉身体慢慢垮了下去，好久也没骑车了。</p>
+<p>今年元旦定下的骑车计划目前看来是完不成了，计划完成2000公里，目前只骑了200多公里，而现在已经是快9月份了，离明年元旦也没几个月了。</p>
+<p>哎…生活和工作真的平衡不了么？</p>
+<p>好了废话不多说，今天分享的是使用python来操作es，包括数据的插入，查询，拉取，删除等。</p>
+<h1 id="Elasticsearch"><a href="#Elasticsearch" class="headerlink" title="Elasticsearch?"></a>Elasticsearch?</h1><p><img src="http://o8fj2jbwb.bkt.clouddn.com/esmain.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/08/20/Elasticsearch_handle_with_python/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/07/16/python-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/07/16/python-notes/" class="post-title-link" itemprop="url">python杂记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-07-16 11:23:58" itemprop="dateCreated datePublished" datetime="2017-07-16T11:23:58+08:00">2017-07-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="唠里个叨"><a href="#唠里个叨" class="headerlink" title="唠里个叨"></a>唠里个叨</h1><p>关于python的笔记，比较杂，想到啥就说啥。</p>
+<h1 id="文件读写"><a href="#文件读写" class="headerlink" title="文件读写"></a>文件读写</h1><p>官方文档: <a href="https://docs.python.org/2/library/functions.html#open" target="_blank" rel="noopener">open</a></p>
+<p>这是python内建的函数，基本用法如下：</p>
+<pre><code>hfile  = open(file_name [, access_mode][, buffering])</code></pre><p>其中access_mode表示打开的模式，常用的如下：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>r</td>
+<td>以只读方式打开文件。文件的指针将会放在文件的开头。这是默认模式。</td>
+</tr>
+<tr>
+<td>rb</td>
+<td>以二进制格式打开一个文件用于只读。文件指针将会放在文件的开头。这是默认模式。</td>
+</tr>
+<tr>
+<td>r+</td>
+<td>打开一个文件用于读写。文件指针将会放在文件的开头。</td>
+</tr>
+<tr>
+<td>rb+</td>
+<td>以二进制格式打开一个文件用于读写。文件指针将会放在文件的开头。</td>
+</tr>
+<tr>
+<td>w</td>
+<td>打开一个文件只用于写入。如果该文件已存在则将其覆盖。如果该文件不存在，创建新文件。</td>
+</tr>
+<tr>
+<td>a</td>
+<td>打开一个文件用于追加。</td>
+</tr>
+<tr>
+<td>a+</td>
+<td>打开一个文件用于读写。如果该文件已存在，文件指针将会放在文件的结尾。文件打开时会是追加模式。如果该文件不存在，创建新文件用于读写。</td>
+</tr>
+</tbody></table>
+<p>举例如下：</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/07/16/python-notes/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/06/10/demos-about-data-visualization-using-matplotlib/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/06/10/demos-about-data-visualization-using-matplotlib/" class="post-title-link" itemprop="url">matplotlib数据可视化小试</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-06-10 11:23:58" itemprop="dateCreated datePublished" datetime="2017-06-10T11:23:58+08:00">2017-06-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="为什么有这么一出"><a href="#为什么有这么一出" class="headerlink" title="为什么有这么一出"></a>为什么有这么一出</h1><p>最早接触到数据可视化应该是大学的时候了吧，那个时候使用的工具是matlab,可以用matlat对数据进行分析，进行可视化。但是那个时候总觉得matlab很难用，或者说matlab的代码不太友好，不过我现在也基本忘记了具体怎么使用matlab了。</p>
+<p>工作的原因，需要利用监控数据进行软件性能的定标，这个过程就需要用到数据可视化。把海量的数据进行分析，然后可视化，或者可视化然后分析，也算数据挖掘的范畴吧。具体内容是，拉取小米监控(<a href="https://book.open-falcon.org/zh/index.html" target="_blank" rel="noopener">open-falcon</a>)的历史数据，然后分析CPU,QPS,BandWidth之间的关系。</p>
+<h1 id="选择了matplotlib"><a href="#选择了matplotlib" class="headerlink" title="选择了matplotlib"></a>选择了matplotlib</h1><p>数据可视化工具有很多，各种语言的也不一样。我的老本行是使用c/c++，这方面的类库好像很少，正好，刚入门了python，python的第三方库很丰富，数据可视化方面的类库也很丰富，说出来的有Pandas、Seaborn、ggplot、Bokeh、pygal、Plotly、matplotlib,详细可以查看<a href="http://python.jobbole.com/85601/" target="_blank" rel="noopener">这篇文章</a>。最终选择了<a href="http://matplotlib.org/" target="_blank" rel="noopener">matplotlib</a>作为我的数据可视化工具，原因很简单，我分析了自己的需求，需要实现坐标图，可能涉及动画，可能涉及3D，可能涉及散点图等，同时网上关于matplotlib的例子很丰富，官网上的例子也很详尽，上手应该很容易，所以最终选择了matplotlib。</p>
+<p>关于matplotlib的介绍，官网如是说：</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/06/10/demos-about-data-visualization-using-matplotlib/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/05/29/smalltalk_about_interview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/05/29/smalltalk_about_interview/" class="post-title-link" itemprop="url">聊聊面试那点事</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-05-29 11:23:58" itemprop="dateCreated datePublished" datetime="2017-05-29T11:23:58+08:00">2017-05-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96/" itemprop="url" rel="index"><span itemprop="name">其他</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96/%E8%81%8A%E4%B8%80%E8%81%8A/" itemprop="url" rel="index"><span itemprop="name">聊一聊</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="食言了"><a href="#食言了" class="headerlink" title="食言了"></a>食言了</h1><p>记得刚写好之前的一篇博客<a href="http://rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/" target="_blank" rel="noopener">c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率</a>时在文末承诺下一篇写面试的经验与感想，然而下一篇并没有写关于面试的东西。刚才的这篇博文是我离职上一个公司的最后几天写的，那个时候已经找到了新的工作，也面试了好几家公司，因此想趁热打铁，好好记录下面试的过程，分享下面试的感想，然而一直拖到了今天。因此我食言了。废话不多说，东拉西扯开始了。</p>
+<h1 id="躲不过去的追问"><a href="#躲不过去的追问" class="headerlink" title="躲不过去的追问"></a>躲不过去的追问</h1><p>当我们谈面试的时候，意味着离职，那么我们必然要问“你为什么离职？”这个问题的答案有很多方面，每个人的答案或许都有不同，但总是离不开两个至关重要的因素，这也是马云爸爸说过的，“要么是不开心，要么是钱少了”，然而钱在一定程度上影响了大部分的开心或不开心，所以归根结底，大多数离职是因为“不开心”。这里不跟别人争辩，我只说大多数，当然还有很多因素，比如发展，比如规划，比如各种各种很有正能量的道理，但这些我并没有否认。</p>
+<p>那么既然说了“不开心”,再追问“为什么不开心？”我想这个地方追问得到的答案才是千变万化，比如“这跟我之前的预期不太一样”“这完全发挥不了自己的能力”“公司技术氛围不是很浓厚”“团队氛围不好，内部学和尚的太多”，当然还有很多很多。</p>
+<p>那么既然已经追问得到了这些深层次的原因，那么为什么就已经得到了解答。但这跟离职之之间好像还间隔一个问题可以再追问，“你为什么不尝试找解决方法，你为什么不改变自己适应环境，你有没有想过是你自己不够优秀？”诚然，这些都对，这些都是值得思考的问题。我一直觉得，工作就像恋爱，开心最重要，从相识相知到相爱，但还有可能从相识相知相爱到相不爱。由相爱到相不爱的过程，我们也尝试过各种解决办法，我们也曾怀疑自己不够优秀，我们也在努力的坚持。但不合适或许就该放手，懂得妥协也许是一种最正确的处世哲学。说得偏了些，简而言之，目前的工作不适合自己，我应该找合适的工作，发挥自己的最大价值，实现自己的理想，因为我生活的理想啊，就是理想的生活。</p>
+<h1 id="面试"><a href="#面试" class="headerlink" title="面试"></a>面试</h1>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/05/29/smalltalk_about_interview/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/03/22/rebuild_hexoblog_in_mac/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/03/22/rebuild_hexoblog_in_mac/" class="post-title-link" itemprop="url">切换博客从win到mac</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-22 11:23:58" itemprop="dateCreated datePublished" datetime="2017-03-22T11:23:58+08:00">2017-03-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blog/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="哎"><a href="#哎" class="headerlink" title="哎"></a>哎</h1><p>事实证明，之前做的那些自动化集成并没有很好的运用，现如今换了电脑，需要写博客，还是想重新再mac上搭建一个全新的hexo博客，哎，折腾的人生！</p>
+<p>搭建过程类似我之前写过的博客，请自行查阅。这篇博文为了测试！</p>
+<h1 id="还是简要记录下"><a href="#还是简要记录下" class="headerlink" title="还是简要记录下"></a>还是简要记录下</h1><p>重新换电脑搭建博客，相对来说快了很多，大概用了1个小时搞定（还是有点久？）下面简单记录下步骤吧~</p>
+<h2 id="安装hexo，安装node-js"><a href="#安装hexo，安装node-js" class="headerlink" title="安装hexo，安装node.js"></a>安装hexo，安装node.js</h2><p>步骤很简单。略。这里的就会埋下隐患，因为hexo是最新版，node.js也是，如果采用前面的博文<a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端同步编写博客</a>中的方法就会出现问题。原因是最初搭建博客时候的hexo和node.js的版本与现在的不一样了。</p>
+<p>好吧，我们另觅他径。</p>
+<h2 id="另外的办法"><a href="#另外的办法" class="headerlink" title="另外的办法"></a>另外的办法</h2><p>参照之前的博文<a href="http://rebootcat.com/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" target="_blank" rel="noopener">我的个人博客搭建记录</a>中的方法，<strong>配置好ssh key</strong>后，执行下方几个命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo npm install hexo-cli -g</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> hexo init blog</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> blog</span></span><br></pre></td></tr></table></figure>
+<p>完了之后你可以用hexo s命令看看是不是能看到helloworld的博文。能的话基本证明博客框架是没问题的。那么接下来怎么做呢？</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/03/22/rebuild_hexoblog_in_mac/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/03/17/use-gcov-in-hugeprogram/" class="post-title-link" itemprop="url">c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-17 11:23:58" itemprop="dateCreated datePublished" datetime="2017-03-17T11:23:58+08:00">2017-03-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c-c/" itemprop="url" rel="index"><span itemprop="name">c/c++</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c-c/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="先来闲聊下"><a href="#先来闲聊下" class="headerlink" title="先来闲聊下"></a>先来闲聊下</h1><p>3月的杭州，依旧不见暖意。从老家过完年回来，气温低的有点不适应，还感冒了一次。身体没消停，思想也没消停，目前的环境，不太适合自身的发展与追求，良禽择木而栖，打算辞职。忙完了新公司的面试，空下了大半个月的时间，用来处理老东家这边手头的工作交接以及一系列离职手续相关的事项，另外，也打算为下一份工作做点准备，学学python,写个爬虫程序玩玩。后面我会写一篇博文分享一下最近面试的感触与经验。这篇博文主要来聊聊目前我手头还没有交接的工作——cppunit的使用以及gcov统计代码覆盖率的问题。</p>
+<h1 id="CPPUNIT"><a href="#CPPUNIT" class="headerlink" title="CPPUNIT"></a>CPPUNIT</h1><p><a href="https://sourceforge.net/projects/cppunit/" target="_blank" rel="noopener">cppunit</a>是个基于LGPL的开源项目，最初版本移植自 JUnit，是一个非常优秀的开源测试框架。正如官方介绍那样：</p>
+<blockquote>
+<p>CppUnit is the C++ port of the famous JUnit framework for unit testing.<br>Test output is in XML or text format for automatic testing and GUI based for supervised tests.</p>
+</blockquote>
+<p>废话不多说，开始正题。或许你也可以参考<a href="http://cppunit.sourceforge.net/doc/cvs/cppunit_cookbook.html" target="_blank" rel="noopener">CppUnit Cookbook</a>快速上手，进行单元测试案例的编写。</p>
+<h2 id="CppUnit原理"><a href="#CppUnit原理" class="headerlink" title="CppUnit原理"></a>CppUnit原理</h2><p><img src="http://o8fj2jbwb.bkt.clouddn.com/TestCase.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/03/17/use-gcov-in-hugeprogram/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+</body>
+</html>

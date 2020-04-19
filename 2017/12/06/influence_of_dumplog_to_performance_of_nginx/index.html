@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="惯例闲聊现在是杭州的冬天，鼻炎让我一直难受，特别不舒服，鼻子快被我拧坏了，最近过的也很糟心，各种烦心事，几乎一周一件烦心事甚至一周好几件烦心事，最近过得感觉很不好！以前我感觉我自己很潇洒，很酷，现在越来越发现我不酷了，连自身形象我都懒得去整理了，胡子一周不想剃，衣服放一周不想洗，头发每天乱糟糟的，几乎每天都不敢去看镜子了。 真的很不喜欢冬天！不喜欢冷！不喜欢浑浑噩噩！不喜欢越来越没激情！ 这已经是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nginx 写日志对响应速度的影响探究（一）">
+<meta property="og:url" content="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="惯例闲聊现在是杭州的冬天，鼻炎让我一直难受，特别不舒服，鼻子快被我拧坏了，最近过的也很糟心，各种烦心事，几乎一周一件烦心事甚至一周好几件烦心事，最近过得感觉很不好！以前我感觉我自己很潇洒，很酷，现在越来越发现我不酷了，连自身形象我都懒得去整理了，胡子一周不想剃，衣服放一周不想洗，头发每天乱糟糟的，几乎每天都不敢去看镜子了。 真的很不喜欢冬天！不喜欢冷！不喜欢浑浑噩噩！不喜欢越来越没激情！ 这已经是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_falcon.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_falcon_disk.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_a.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_b.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_bb.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_c.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_cc.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/64k8j_falcon.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/64k8j_falcon_disk.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/64k8j_iruka_a.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/64k8j_iruka_b.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/128k8j_falcon.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/128k8j_falcon_disk.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/128k8j_iruka_a.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/128k8j_iruka_b.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/128k2j_iruka_a.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/128k2j_iruka_b.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/off8j_falcon.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/off8j_falcon_disk.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/off8j_iruka_a.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/off8j_iruka_c.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/off8j_iruka_d.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/sum_iruka_a.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/sum_iruka_b.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/iruka_d.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/iruka_e.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/iruka_f.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/iruka_zhouqi_a.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/iruka_zhouqi_b.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/iruka_zhouqi_c.png">
+<meta property="article:published_time" content="2017-12-06T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.956Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="nginx">
+<meta property="article:tag" content="wrk">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://www.rebootcat.com/images/4k8j_falcon.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>nginx 写日志对响应速度的影响探究（一） | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          nginx 写日志对响应速度的影响探究（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-06 11:23:58" itemprop="dateCreated datePublished" datetime="2017-12-06T11:23:58+08:00">2017-12-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="惯例闲聊"><a href="#惯例闲聊" class="headerlink" title="惯例闲聊"></a>惯例闲聊</h1><p>现在是杭州的冬天，鼻炎让我一直难受，特别不舒服，鼻子快被我拧坏了，最近过的也很糟心，各种烦心事，几乎一周一件烦心事甚至一周好几件烦心事，最近过得感觉很不好！以前我感觉我自己很潇洒，很酷，现在越来越发现我不酷了，连自身形象我都懒得去整理了，胡子一周不想剃，衣服放一周不想洗，头发每天乱糟糟的，几乎每天都不敢去看镜子了。</p>
+<p>真的很不喜欢冬天！不喜欢冷！不喜欢浑浑噩噩！不喜欢越来越没激情！</p>
+<p>这已经是2017年的最后一个月了，回想年初定下的目标，几乎没有一件事达成或满意，一直想学的茶道一直也没去做，茶具也没买，骑车这件大事也慢慢落下了，身体也慢慢垮了，唯一感觉工作本身成长很大，这样下去不行的！</p>
+<p>好了，废话不多说，这篇博文是完完全全的工作内容，所以内容会很技术，很严肃很干货。</p>
+<h1 id="问题提出"><a href="#问题提出" class="headerlink" title="问题提出"></a>问题提出</h1><p>为了精细化提高 nginx(marxxx) 的性能, 现分析写日志对于请求的影响。</p>
+<ul>
+<li>条件</li>
+</ul>
+<ol>
+<li>日志大小为 500 字节</li>
+<li>响应大小  111 字节</li>
+<li>除日志外 nginx 服务不进行任何 io 操作，使用 nginx 语法直接返回响应</li>
+</ol>
+<ul>
+<li>变量</li>
+</ul>
+<ol>
+<li>qps服务压力了决定的磁盘承受的写日志的压力</li>
+<li>request time分布</li>
+<li>nginx log buffer: 分别测试 log buffer 为 4k,  64k, 128k 以及关闭log的情况</li>
+</ol>
+<h1 id="探究结论"><a href="#探究结论" class="headerlink" title="探究结论"></a>探究结论</h1><a id="more"></a>
+<p>1 . 关闭日志与否</p>
+<p><strong>开启log的情况下，request time波动明显，也即nginx提供服务的功率不稳定；而关闭日志后，request time波动微小，几乎可以忽略，也即nginx能提供更为稳定的服务，说明写日志操作对nginx的输出功率的稳定性具有关键性影响。因此线上的服务，对于要求较为苛刻的大客户可以考虑关闭日志，提供更为稳定更为高性能的服务。</strong></p>
+<p>2 . log buffer的大小</p>
+<p><strong>探究过程中发现log buffer 分别为4k、64k、128k下，nginx的性能表现不同，log buffer 为 64k 情况下表现相对更优，这里的表现指qps相对更高，request time相对更低。关于该条结论更为详细的探究将在（二）中描述。</strong></p>
+<p><strong>另外，log buffer调大对cpu利用率下降，大约下降 0% ~ 5%。</strong></p>
+<p>3 . 磁盘压力</p>
+<p><strong>整体来看，记录日志导致的磁盘压力并没有很高，但不同的log buffer磁盘压力不一样。</strong></p>
+<h1 id="探究过程"><a href="#探究过程" class="headerlink" title="探究过程"></a>探究过程</h1><h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>由于条件的限制，在响应为 111 字节（实际情况为132字节），request time很小，几乎都是0ms、1ms，对后面分析不利，故调整了ngxin.conf的配置，使用连续多跳的机制，比如从 8088 端口，到 8089 再到 8090 再到8091 …最后返回。这样增大了request time的同时避免了其他的任何IO操作。</p>
+<p><strong>故下文会出现4k8j，64k8j的字样，代表的意思如下：</strong></p>
+<ul>
+<li><strong>4K8j: 表示log buffer为 4k，在ngxin内部经过了 8 个端口(8 jump)</strong></li>
+<li><strong>64k8j: 表示log buffer为 64k，在nginx内部经过了 8 个端口(8 jump)</strong></li>
+<li><strong>128K8j: 表示log buffer为 128k，在ngxin内部经过了 8 个端口(8 jump)</strong></li>
+<li><strong>128k2j: 表示log buffer为 128k，在nginx内部经过了 2 个端口(2 jump)</strong></li>
+<li><strong>off8j: 表示关闭了log，在nginx内部经过了 8 个端口(8 jump)</strong></li>
+<li><strong>off8jvx: 表示关闭日志后，调整了其他变量再次进行研究，简单理解为第几版本</strong></li>
+</ul>
+<h2 id="探究方法"><a href="#探究方法" class="headerlink" title="探究方法"></a>探究方法</h2><p>1 . 使用小米监控，编写脚本采集不同条件下的指标（精度有限，只做参考）</p>
+<ul>
+<li>nginx status 开启，编写小米监控脚本收集连接数，请求数等，目标指标是nginx的qps</li>
+<li>编写小米监控脚本计算nginx平均每个worker占用的cpu(%)情况</li>
+<li>request time的采集使用抽样方式，每分钟取access.log的后1000条日志计算平均request time</li>
+</ul>
+<p>2 . 搭建nginx，收集压测日志</p>
+<ul>
+<li>使用wrk压测，结合lua脚本。lua脚本功能是当关闭日志后通过nginx 将request time写到响应头（body 132字节，忽略body发送时间），分析每次请求的响应头过滤request time</li>
+</ul>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup wrk -c <span class="number">100</span> -t <span class="number">8</span> -d20m http:<span class="regexp">//</span><span class="number">127.0</span>.<span class="number">0.1</span>:<span class="number">8088</span> -s <span class="regexp">/disk/</span>ssd1<span class="regexp">/ngx/</span>benchngx_logoff.lua &gt; <span class="regexp">/dev/</span>null &amp; <span class="number">2</span>&gt;&amp;<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用ab压测，排除压测客户端本身带来的影响，比如提供http请求的稳定度</li>
+</ul>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ab -n <span class="number">5000000</span> -c <span class="number">8</span>  -v <span class="number">3</span>   -k http:<span class="comment">//127.0.0.1:8088/   |grep 'X-Time'  |cut -d ' ' -f 2,3,4  &gt;&gt; off8jv13.a</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>分析大量日志，计算指标间关系，绘制关系图。使用到python/redis/highcharts</li>
+</ul>
+<h2 id="探究过程记录"><a href="#探究过程记录" class="headerlink" title="探究过程记录"></a>探究过程记录</h2><p>1 . <strong>log buffer = 4k &amp;&amp; 8 jump</strong></p>
+<ul>
+<li><p>小米监控的结果（qps，cpu，request time，磁盘指标）<br><img src="/images/4k8j_falcon.png" alt=""><br><img src="/images/4k8j_falcon_disk.png" alt=""></p>
+</li>
+<li><p>日志分析<br><img src="/images/4k8j_iruka_a.png" alt=""><br><img src="/images/4k8j_iruka_b.png" alt=""></p>
+</li>
+</ul>
+<p><strong><em>局部放大后：</em></strong><br><img src="/images/4k8j_iruka_bb.png" alt=""><br><img src="/images/4k8j_iruka_c.png" alt=""><br><strong><em>局部放大后：</em></strong><br><img src="/images/4k8j_iruka_cc.png" alt=""></p>
+<ul>
+<li>初步分析结果：</li>
+</ul>
+<p>a . 从小米监控来看，压测过程几乎跑满了cpu，平均每个worker的cpu在92%左右，qps在 120.5k 左右，磁盘压力不算大</p>
+<p>b . 分析大量日志来看，qps比较稳定，在 120k ~ 125k之间，request time在 12ms ~ 13ms之间，也比较稳定。两者之间的关系，qps随request time增加有所下降</p>
+<p>2 . <strong>log buffer = 64k &amp;&amp; 8 jump</strong></p>
+<ul>
+<li><p>小米监控的结果（qps，cpu，request time，磁盘指标）<br><img src="/images/64k8j_falcon.png" alt=""><br><img src="/images/64k8j_falcon_disk.png" alt=""></p>
+</li>
+<li><p>日志分析<br><img src="/images/64k8j_iruka_a.png" alt=""><br><img src="/images/64k8j_iruka_b.png" alt=""></p>
+</li>
+</ul>
+<ul>
+<li>初步分析结果：</li>
+</ul>
+<p>a . 从小米监控来看，压测过程ngxin的平均每个worker跑到88%左右的cpu，相较上面log buffer为 4k 的情况有所下降，qps平均为124k，有所上升；磁盘压力不大</p>
+<p>b . 分析大量日志来看，qps比较稳定，在 120k ~ 125k之间，request time在 12ms ~ 13ms之间，也比较稳定。两者之间的关系，qps随request time增加有所下降</p>
+<p>3 . <strong>log buffer = 128k &amp;&amp; 8 jump</strong></p>
+<ul>
+<li><p>小米监控的结果（qps，cpu，request time，磁盘指标）<br><img src="/images/128k8j_falcon.png" alt=""><br><img src="/images/128k8j_falcon_disk.png" alt=""></p>
+</li>
+<li><p>日志分析<br><img src="/images/128k8j_iruka_a.png" alt=""><br><img src="/images/128k8j_iruka_b.png" alt=""></p>
+</li>
+<li><p>初步分析结果：</p>
+</li>
+</ul>
+<p>a . 从小米监控来看，nginx平均每个worker跑到 87% cpu，qps在 123.6k 左右。磁盘压力不大</p>
+<p>b .分析大量日志来看，qps比较稳定，在 120k ~ 130k之间，request time在 12ms ~ 13ms之间，也比较稳定。两者之间的关系，qps随request time增加有所下降</p>
+<p>4 . <strong>log buffer = 128k &amp;&amp; 2 jump</strong></p>
+<ul>
+<li><p>日志分析<br><img src="/images/128k2j_iruka_a.png" alt=""><br><img src="/images/128k2j_iruka_b.png" alt=""></p>
+</li>
+<li><p>初步分析结果：</p>
+</li>
+</ul>
+<p>a . 分析大量日志来看，qps在 150k  ~ 170k之间，并且qps相对不稳定。request time在 2ms ~ 3ms之间</p>
+<p>5 . <strong>log off &amp;&amp; 8 jump</strong><br><img src="/images/off8j_falcon.png" alt=""><br><img src="/images/off8j_falcon_disk.png" alt=""><br><img src="/images/off8j_iruka_a.png" alt=""><br><img src="/images/off8j_iruka_c.png" alt=""><br><img src="/images/off8j_iruka_d.png" alt=""></p>
+<ul>
+<li>初步分析结果：</li>
+</ul>
+<p>a . 压测nginx平均每个worker跑满88%左右的cpu，qps在128k左右，是同样条件下qps最高的，磁盘压力很小。</p>
+<p>b. 图中可以看到关闭日志后request time相较其他几种情况很平稳，几乎是一条直线的状态</p>
+<p>c. 所以可以考虑线上某些要求较为苛刻的客户针对性的关闭日志，提高服务的稳定性</p>
+<p>d. request time有周期性（后面有说到）</p>
+<p>6 . <strong>汇总来看</strong><br><img src="/images/sum_iruka_a.png" alt=""><br><img src="/images/sum_iruka_b.png" alt=""></p>
+<ul>
+<li>初步分析结果：</li>
+</ul>
+<p>a . 从汇总的结果来看，抛开128k2j的那项，其他几个（4k8j,64k8j,128k8j）几乎都是重合状态，说明log buffer的大小对qps的影响不大，同时对request time的影响也不大</p>
+<p>b . 128k2j的那项明显qps高出其他几项好多，同时request time低的也很明显</p>
+<p>7 . <strong>其他分析</strong><br><img src="/images/iruka_d.png" alt=""><br><img src="/images/iruka_e.png" alt=""><br><img src="/images/iruka_f.png" alt=""></p>
+<ul>
+<li><p>初步分析结果：</p>
+<p>a . request time凸峰的时候，qps凹峰，即request time增加，qps减少</p>
+<p>b . log buffer 分别为4k，64k，128k的情况下，<strong>log buffer 为64k的情况下表现最优（原因？将在《二》里详细分析）</strong></p>
+</li>
+</ul>
+<h2 id="探究过程的难点"><a href="#探究过程的难点" class="headerlink" title="探究过程的难点"></a>探究过程的难点</h2><ul>
+<li>通过小米监控采集的指标精度很差，而且探究过程中由于小米监控自身的问题，导致很多曲线数据丢失，像类似cpu，磁盘压力等指标只能作为参考</li>
+<li>日志的分析相对是比较精确的，但问题是数据量很大，由于qps在十万以上，压测10分钟，日志量可能就有接近10~15G,所以最后分析的样本总大小160G，这是一个比较大的数据量了。但从日志里只能分析得到qps，request time等指标</li>
+<li>整个过程很难得出比较明确的结论，由于精度的问题，另外有其他变量的影响，分析得到的结论不会有很巨大的差距，得出很明确的结论。所以最终结论只能参考</li>
+<li>当探究的精度更高的时候往往目标指标更容易受到其他变量的影响，要排除这些因素往往要做很多次测试，一次次排除分析，而且不一定找对影响变量，整体来讲，精细化的探究受其他因素影响较为敏感，探究更难</li>
+</ul>
+<h1 id="意外发现"><a href="#意外发现" class="headerlink" title="意外发现"></a>意外发现</h1><p>关闭或者不关闭日志的情况下，request time以每分钟的周期波动，如下：<br><img src="/images/iruka_zhouqi_a.png" alt=""><br><img src="/images/iruka_zhouqi_b.png" alt=""><br><img src="/images/iruka_zhouqi_c.png" alt=""><br>从上面三福图可以看出，request time成周期性波动，周期为60s。关于这块的深入探究另起篇幅进行研究。</p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" rel="bookmark">nginx 写⽇志对响应速度的影响探究（二）</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" title="nginx 写日志对响应速度的影响探究（一）">http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/nginx/" rel="tag"># nginx</a>
+              <a href="/tags/wrk/" rel="tag"># wrk</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/10/16/pull_history_data_from_open-falcon/" rel="prev" title="拉取小米监控(open-falcon)历史监控数据">
+      <i class="fa fa-chevron-left"></i> 拉取小米监控(open-falcon)历史监控数据
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/12/14/instability-of-cpu/" rel="next" title="CPU.IOWAIT 偏高问题">
+      CPU.IOWAIT 偏高问题 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#惯例闲聊"><span class="nav-number">1.</span> <span class="nav-text">惯例闲聊</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#问题提出"><span class="nav-number">2.</span> <span class="nav-text">问题提出</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#探究结论"><span class="nav-number">3.</span> <span class="nav-text">探究结论</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#探究过程"><span class="nav-number">4.</span> <span class="nav-text">探究过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#说明"><span class="nav-number">4.1.</span> <span class="nav-text">说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#探究方法"><span class="nav-number">4.2.</span> <span class="nav-text">探究方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#探究过程记录"><span class="nav-number">4.3.</span> <span class="nav-text">探究过程记录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#探究过程的难点"><span class="nav-number">4.4.</span> <span class="nav-text">探究过程的难点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#意外发现"><span class="nav-number">5.</span> <span class="nav-text">意外发现</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

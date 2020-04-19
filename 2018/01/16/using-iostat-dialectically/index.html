@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言经常做系统分析会接触到很多有用的工具，比如 iostat,它是用来分析磁盘性能、系统 I&#x2F;O 的利器。 本文将重点介绍 iostat 命令的使用，并分析容易引起误解的几个指标。 iostat iostat - Report Central Processing Unit (CPU) statistics and input&#x2F;output statistics for devices and p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="辩证看待 iostat">
+<meta property="og:url" content="http://www.rebootcat.com/2018/01/16/using-iostat-dialectically/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="前言经常做系统分析会接触到很多有用的工具，比如 iostat,它是用来分析磁盘性能、系统 I&#x2F;O 的利器。 本文将重点介绍 iostat 命令的使用，并分析容易引起误解的几个指标。 iostat iostat - Report Central Processing Unit (CPU) statistics and input&#x2F;output statistics for devices and p">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-01-16T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.959Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="iostat">
+<meta property="article:tag" content="diskstats">
+<meta property="article:tag" content="sysstat">
+<meta property="article:tag" content="blktrace">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://www.rebootcat.com/2018/01/16/using-iostat-dialectically/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>辩证看待 iostat | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/01/16/using-iostat-dialectically/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          辩证看待 iostat
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-16 11:23:58" itemprop="dateCreated datePublished" datetime="2018-01-16T11:23:58+08:00">2018-01-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/%E7%A3%81%E7%9B%98/" itemprop="url" rel="index"><span itemprop="name">磁盘</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>经常做系统分析会接触到很多有用的工具，比如 iostat,它是用来分析磁盘性能、系统 I/O 的利器。</p>
+<p>本文将重点<strong>介绍 iostat 命令的使用，并分析容易引起误解的几个指标</strong>。</p>
+<h1 id="iostat"><a href="#iostat" class="headerlink" title="iostat"></a>iostat</h1><blockquote>
+<p>iostat - Report Central Processing Unit (CPU) statistics and input/output statistics for devices and partitions.</p>
+</blockquote>
+<p>上面是 man 手册关于 iostat 命令的介绍，非常简单明了。iostat 是我们经常用来分析 cpu 负载和磁盘 I/O 情况的工具。</p>
+<h2 id="iostat-基本使用"><a href="#iostat-基本使用" class="headerlink" title="iostat 基本使用"></a>iostat 基本使用</h2><p>常用命令（个人习惯）：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iostat -xk <span class="number">2</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+<p>参数的解释可以查看 man 手册：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">OPTIONS</span><br><span class="line">       -c     Display the CPU utilization report.</span><br><span class="line"></span><br><span class="line">       -d     Display the device utilization report.</span><br><span class="line"></span><br><span class="line">       -g group_name &#123; device [<span class="built_in">..</span>.] | ALL &#125;</span><br><span class="line">              Display statistics <span class="keyword">for</span> a<span class="built_in"> group </span>of devices.  The iostat command reports statistics <span class="keyword">for</span> each individual device <span class="keyword">in</span> the list then a line of global statistics <span class="keyword">for</span> the<span class="built_in"> group </span>displayed as group_name <span class="keyword">and</span> made  up  of  all  the</span><br><span class="line">              devices <span class="keyword">in</span> the list. The ALL keyword means that all the block devices defined by the<span class="built_in"> system </span>shall be included <span class="keyword">in</span> the group.</span><br><span class="line"></span><br><span class="line">       -h     Make the Device Utilization Report easier <span class="keyword">to</span> read by a human.</span><br><span class="line"></span><br><span class="line">       -j &#123; ID | LABEL | PATH | UUID | <span class="built_in">..</span>. &#125; [ device [<span class="built_in">..</span>.] | ALL ]</span><br><span class="line">              Display  persistent  device  names.  Options  ID,  LABEL,  etc.  specify  the<span class="built_in"> type </span>of the persistent name. These options are <span class="keyword">not</span> limited, only prerequisite is that directory with required persistent names is present <span class="keyword">in</span></span><br><span class="line">              /dev/disk.  Optionally, multiple devices can be specified <span class="keyword">in</span> the chosen persistent name type.  Because persistent device names are usually long, option -h is enabled implicitly with this option.</span><br><span class="line"></span><br><span class="line">       -k     Display statistics <span class="keyword">in</span> kilobytes per second.</span><br><span class="line"></span><br><span class="line">       -m     Display statistics <span class="keyword">in</span> megabytes per second.</span><br><span class="line"></span><br><span class="line">       -N     Display the registered device mapper names <span class="keyword">for</span> any device mapper devices.  Useful <span class="keyword">for</span> viewing LVM2 statistics.</span><br><span class="line"></span><br><span class="line">       -p [ &#123; device [,<span class="built_in">..</span>.] | ALL &#125; ]</span><br><span class="line">              The -p option displays statistics <span class="keyword">for</span> block devices <span class="keyword">and</span> all their partitions that are used by the system.  <span class="keyword">If</span> a device name is entered on the command line, then statistics <span class="keyword">for</span> it <span class="keyword">and</span> all its partitions  are  displayed.</span><br><span class="line">              Last,  the  ALL  keyword  indicates  that  statistics  have <span class="keyword">to</span> be displayed <span class="keyword">for</span> all the block devices <span class="keyword">and</span> partitions defined by the system, including those that have never been used. <span class="keyword">If</span> option -j is defined before this</span><br><span class="line">              option, devices entered on the command line can be specified with the chosen persistent name type.</span><br><span class="line"></span><br><span class="line">       -T     This option must be used with option -g <span class="keyword">and</span> indicates that only global statistics <span class="keyword">for</span> the<span class="built_in"> group </span>are <span class="keyword">to</span> be displayed, <span class="keyword">and</span> <span class="keyword">not</span> statistics <span class="keyword">for</span> individual devices <span class="keyword">in</span> the group.</span><br><span class="line"></span><br><span class="line">       -t     <span class="builtin-name">Print</span> the time <span class="keyword">for</span> each report displayed. The timestamp format may depend on the value of the S_TIME_FORMAT environment variable (see below).</span><br><span class="line"></span><br><span class="line">       -V     <span class="builtin-name">Print</span> version number then exit.</span><br><span class="line"></span><br><span class="line">       -x     Display extended statistics.</span><br><span class="line"></span><br><span class="line">       -y     Omit first report with statistics since<span class="built_in"> system </span>boot, <span class="keyword">if</span> displaying multiple records at given interval.</span><br><span class="line"></span><br><span class="line">       -z     Tell iostat <span class="keyword">to</span> omit output <span class="keyword">for</span> any devices <span class="keyword">for</span> which there was <span class="literal">no</span> activity during the sample period.</span><br></pre></td></tr></table></figure>
+<p>简单讲，-x 参数能比较详细的给出一些指标，2 代表间隔时间为 2s，统计输出 10 次。</p>
+<a id="more"></a>
+
+<p>上面的命令可以看到如下的输出：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">avg-cpu:</span>  <span class="string">%user</span>   <span class="string">%nice</span> <span class="string">%system</span> <span class="string">%iowait</span>  <span class="string">%steal</span>   <span class="string">%idle</span></span><br><span class="line">           <span class="number">0.40</span>    <span class="number">0.00</span>    <span class="number">0.49</span>    <span class="number">0.42</span>    <span class="number">0.00</span>   <span class="number">98.69</span></span><br><span class="line"></span><br><span class="line"><span class="attr">Device:</span>         <span class="string">rrqm/s</span>   <span class="string">wrqm/s</span>     <span class="string">r/s</span>     <span class="string">w/s</span>    <span class="string">rkB/s</span>    <span class="string">wkB/s</span> <span class="string">avgrq-sz</span> <span class="string">avgqu-sz</span>   <span class="string">await</span> <span class="string">r_await</span> <span class="string">w_await</span>  <span class="string">svctm</span>  <span class="string">%util</span></span><br><span class="line"><span class="string">sda</span>               <span class="number">0.00</span>   <span class="number">253.00</span>    <span class="number">0.02</span>   <span class="number">10.26</span>     <span class="number">0.66</span>  <span class="number">2081.56</span>   <span class="number">405.05</span>     <span class="number">0.65</span>   <span class="number">62.78</span>    <span class="number">6.01</span>   <span class="number">62.92</span>   <span class="number">4.55</span>   <span class="number">4.68</span></span><br><span class="line"><span class="string">sdb</span>               <span class="number">0.00</span>     <span class="number">0.00</span>    <span class="number">0.00</span>    <span class="number">0.00</span>     <span class="number">0.00</span>     <span class="number">0.00</span>     <span class="number">8.19</span>     <span class="number">0.00</span>    <span class="number">0.23</span>    <span class="number">0.23</span>    <span class="number">0.00</span>   <span class="number">0.23</span>   <span class="number">0.00</span></span><br><span class="line"><span class="string">sdc</span>               <span class="number">0.00</span>     <span class="number">0.00</span>    <span class="number">0.00</span>    <span class="number">0.00</span>     <span class="number">0.00</span>     <span class="number">0.00</span>     <span class="number">8.19</span>     <span class="number">0.00</span>    <span class="number">0.32</span>    <span class="number">0.32</span>    <span class="number">0.00</span>   <span class="number">0.32</span>   <span class="number">0.00</span></span><br><span class="line"><span class="string">sdd</span>               <span class="number">0.00</span>     <span class="number">0.00</span>    <span class="number">0.00</span>    <span class="number">0.00</span>     <span class="number">0.00</span>     <span class="number">0.00</span>     <span class="number">8.19</span>     <span class="number">0.00</span>    <span class="number">0.34</span>    <span class="number">0.34</span>    <span class="number">0.00</span>   <span class="number">0.34</span>   <span class="number">0.00</span></span><br><span class="line"><span class="string">sde</span>               <span class="number">0.00</span>     <span class="number">0.00</span>    <span class="number">0.00</span>    <span class="number">0.00</span>     <span class="number">0.00</span>     <span class="number">0.00</span>     <span class="number">8.19</span>     <span class="number">0.00</span>    <span class="number">0.34</span>    <span class="number">0.34</span>    <span class="number">0.00</span>   <span class="number">0.34</span>   <span class="number">0.00</span></span><br></pre></td></tr></table></figure>
+<p>上面各个字段的解释如下（同样来自 man）</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">Device Utilization Report</span><br><span class="line">       rrqm/s</span><br><span class="line">              The <span class="built_in">number</span> <span class="keyword">of</span> <span class="built_in">read</span> requests merged per <span class="keyword">second</span> that were queued <span class="built_in">to</span> <span class="keyword">the</span> device.</span><br><span class="line"></span><br><span class="line">       wrqm/s</span><br><span class="line">              The <span class="built_in">number</span> <span class="keyword">of</span> <span class="built_in">write</span> requests merged per <span class="keyword">second</span> that were queued <span class="built_in">to</span> <span class="keyword">the</span> device.</span><br><span class="line"></span><br><span class="line">       r/s</span><br><span class="line">              The <span class="built_in">number</span> (<span class="keyword">after</span> merges) <span class="keyword">of</span> <span class="built_in">read</span> requests completed per <span class="keyword">second</span> <span class="keyword">for</span> <span class="keyword">the</span> device.</span><br><span class="line"></span><br><span class="line">       w/s</span><br><span class="line">              The <span class="built_in">number</span> (<span class="keyword">after</span> merges) <span class="keyword">of</span> <span class="built_in">write</span> requests completed per <span class="keyword">second</span> <span class="keyword">for</span> <span class="keyword">the</span> device.</span><br><span class="line"></span><br><span class="line">       rsec/s (rkB/s, rMB/s)</span><br><span class="line">              The <span class="built_in">number</span> <span class="keyword">of</span> sectors (kilobytes, megabytes) <span class="built_in">read</span> <span class="built_in">from</span> <span class="keyword">the</span> device per <span class="keyword">second</span>.</span><br><span class="line"></span><br><span class="line">       wsec/s (wkB/s, wMB/s)</span><br><span class="line">              The <span class="built_in">number</span> <span class="keyword">of</span> sectors (kilobytes, megabytes) written <span class="built_in">to</span> <span class="keyword">the</span> device per <span class="keyword">second</span>.</span><br><span class="line"></span><br><span class="line">       avgrq-sz</span><br><span class="line">              The <span class="built_in">average</span> size (<span class="keyword">in</span> sectors) <span class="keyword">of</span> <span class="keyword">the</span> requests that were issued <span class="built_in">to</span> <span class="keyword">the</span> device.</span><br><span class="line"></span><br><span class="line">       avgqu-sz</span><br><span class="line">              The <span class="built_in">average</span> queue <span class="built_in">length</span> <span class="keyword">of</span> <span class="keyword">the</span> requests that were issued <span class="built_in">to</span> <span class="keyword">the</span> device.</span><br><span class="line"></span><br><span class="line">       await</span><br><span class="line">              The <span class="built_in">average</span> <span class="built_in">time</span> (<span class="keyword">in</span> <span class="built_in">milliseconds</span>) <span class="keyword">for</span> I/O requests issued <span class="built_in">to</span> <span class="keyword">the</span> device <span class="built_in">to</span> be served. This includes <span class="keyword">the</span> <span class="built_in">time</span> spent <span class="keyword">by</span> <span class="keyword">the</span> requests <span class="keyword">in</span> queue <span class="keyword">and</span> <span class="keyword">the</span> <span class="built_in">time</span> spent servicing them.</span><br><span class="line"></span><br><span class="line">       r_await</span><br><span class="line">              The <span class="built_in">average</span> <span class="built_in">time</span> (<span class="keyword">in</span> <span class="built_in">milliseconds</span>) <span class="keyword">for</span> <span class="built_in">read</span> requests issued <span class="built_in">to</span> <span class="keyword">the</span> device <span class="built_in">to</span> be served. This includes <span class="keyword">the</span> <span class="built_in">time</span> spent <span class="keyword">by</span> <span class="keyword">the</span> requests <span class="keyword">in</span> queue <span class="keyword">and</span> <span class="keyword">the</span> <span class="built_in">time</span> spent servicing them.</span><br><span class="line">                            w_await</span><br><span class="line">              The <span class="built_in">average</span> <span class="built_in">time</span> (<span class="keyword">in</span> <span class="built_in">milliseconds</span>) <span class="keyword">for</span> <span class="built_in">write</span> requests issued <span class="built_in">to</span> <span class="keyword">the</span> device <span class="built_in">to</span> be served. This includes <span class="keyword">the</span> <span class="built_in">time</span> spent <span class="keyword">by</span> <span class="keyword">the</span> requests <span class="keyword">in</span> queue <span class="keyword">and</span> <span class="keyword">the</span> <span class="built_in">time</span> spent servicing them.</span><br><span class="line"></span><br><span class="line">       svctm</span><br><span class="line">              The <span class="built_in">average</span> service <span class="built_in">time</span> (<span class="keyword">in</span> <span class="built_in">milliseconds</span>) <span class="keyword">for</span> I/O requests that were issued <span class="built_in">to</span> <span class="keyword">the</span> device. Warning! Do <span class="keyword">not</span> trust this field <span class="keyword">any</span> more.  This field will be removed <span class="keyword">in</span> <span class="keyword">a</span> future sysstat <span class="built_in">version</span>.</span><br><span class="line"></span><br><span class="line">       %util</span><br><span class="line">              Percentage <span class="keyword">of</span> elapsed <span class="built_in">time</span> during which I/O requests were issued <span class="built_in">to</span> <span class="keyword">the</span> device (bandwidth utilization <span class="keyword">for</span> <span class="keyword">the</span> device). Device saturation occurs when this <span class="built_in">value</span> is <span class="built_in">close</span> <span class="built_in">to</span> <span class="number">100</span>%.</span><br></pre></td></tr></table></figure>
+<p>上面的英文应该还是挺容易明白的，其中重点需要关注的是下面几个指标：</p>
+<ul>
+<li>avgrq-sz：每个 IO 的平均扇区数，即所有请求的平均大小，以扇区（512字节）为单位</li>
+<li>avgqu-sz：平均意义上的请求队列长度</li>
+<li>await：平均每个 I/O 花费的时间，包括在队列中等待时间以及磁盘控制器中真正处理的时间</li>
+<li>svctm：每个 I/O 的服务时间。但注意上面的解释 <code>Warning! Do not trust this field any more</code>。iostat 中关于每个 I/O 的真实处理时间不可靠</li>
+<li>util：磁盘繁忙程度，单位为百分比</li>
+</ul>
+<p>分析建议：<br>当系统性能下降时，我们往往需要着重关注上面列出来的 5 个参数，比如：</p>
+<ul>
+<li><strong>I/O 请求队列是否过长？</strong></li>
+<li><strong>I/O size 是否过大或过小？</strong></li>
+<li><strong>是否造成了 I/O 等待过长？</strong></li>
+<li><strong>每个 I/O 处理时间是否过大？</strong></li>
+<li><strong>磁盘压力是否过大？</strong></li>
+</ul>
+<p>综合分析上述指标，可以得到一定的性能分析结论，但需要注意一些陷阱。</p>
+<h2 id="注意陷阱"><a href="#注意陷阱" class="headerlink" title="注意陷阱"></a>注意陷阱</h2><p>我们看到上面 iostat 的输出如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">Device:</span>         <span class="string">rrqm/s</span>   <span class="string">wrqm/s</span>     <span class="string">r/s</span>     <span class="string">w/s</span>    <span class="string">rkB/s</span>    <span class="string">wkB/s</span> <span class="string">avgrq-sz</span> <span class="string">avgqu-sz</span>   <span class="string">await</span> <span class="string">r_await</span> <span class="string">w_await</span>  <span class="string">svctm</span>  <span class="string">%util</span></span><br><span class="line"><span class="string">sda</span>               <span class="number">0.00</span>   <span class="number">253.00</span>    <span class="number">0.02</span>   <span class="number">10.26</span>     <span class="number">0.66</span>  <span class="number">2081.56</span>   <span class="number">405.05</span>     <span class="number">0.65</span>   <span class="number">62.78</span>    <span class="number">6.01</span>   <span class="number">62.92</span>   <span class="number">4.55</span>   <span class="number">4.68</span></span><br></pre></td></tr></table></figure>
+<p>svctm 为 4.55 ms，即每个 I/O 处理时间为 4.55 ms，这其实是有点偏慢了，但是 await 却高达 62.78 ms，为何？</p>
+<p>上面可以看到总的 I/O 数为『读 I/O』+ 『写 I/O』 = 0.02 + 10.26 ≈ 11 个，假设这 11 个 I/O 是同时发起，且磁盘是顺序处理的情况，那么平均等待时间计算如下：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">平均等待时间 = 单个 I/O 处理时间 * ( <span class="number">1</span> + <span class="number">2</span> + <span class="number">3</span> + ...+ I/O 请求总数 - <span class="number">1</span> ) / 请求总数 = <span class="number">4.55</span> * （ <span class="number">1</span> + <span class="number">2</span> + <span class="number">3</span> + ... + <span class="number">10</span>） / <span class="number">11</span> = <span class="number">22.75</span> ms</span><br></pre></td></tr></table></figure>
+<p>解释如下：</p>
+<blockquote>
+<p>可以把 iostat 想像成 超市付款处，有 11 个顾客排队等待付款，只有一个收银员在服务，每个顾客处理时间为 4.55 ms，第一个顾客不需要等待，第二个顾客需要等待第一个顾客的处理时间，第三个顾客需要等待前面两位的处理时间…以此类推，所有等待时间为 单个 I/O 处理时间 * ( 1 + 2 + 3 + …+ I/O 请求总数 - 1 ).</p>
+</blockquote>
+<p>计算得到的平均等待时间为 22.75 ms，再加上单个 I/O 处理时间 4.55 ms 得到 27.3 ms:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">22.75</span> + <span class="number">4.55</span> = <span class="number">27.3</span> ms</span><br></pre></td></tr></table></figure>
+<p>27.3ms 可以表征 iostat 中的 await 指标，因为 await 包括了等待时间和实际处理时间。但 iostat 的 await 为 62.78 ms，为何会比 iostat 得到的 await 值小这么多？<strong>why?</strong></p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">27.3</span> <span class="keyword">ms</span> <span class="title">&lt;  62</span>.<span class="number">78</span> ms</span><br></pre></td></tr></table></figure>
+<p>再次查看计算方法，步骤和原理都是正确的，但其中唯一不准确的变量就是单个 I/O 的处理时间 svctm！另外就是前提假定了磁盘是顺序处理 I/O 的。</p>
+<blockquote>
+<p>那么是不是 svctm 不准确呢？或者磁盘并不是顺序处理 I/O 请求的呢？</p>
+</blockquote>
+<h3 id="丢弃-svctm"><a href="#丢弃-svctm" class="headerlink" title="丢弃 svctm"></a>丢弃 svctm</h3><p>我们一直想要得到的指标是能够衡量磁盘性能的指标，也就是单个 I/O 的 service time。但是 service time 和 iostat 无关，iostat 没有任何一个参数能够提供这方面的信息。人们往往对 iostat 抱有过多的期待！</p>
+<blockquote>
+<p>Warning! Do not trust this field any more.  This field will be removed in a future sysstat version.</p>
+</blockquote>
+<p>man 手册中给出了这么一段模凌两可的警告，却没有说明原因。那么原因是什么呢？svctm  又是怎么得到的呢？</p>
+<p>iostat 命令来自 <a href="https://github.com/sysstat/sysstat" target="_blank" rel="noopener">sysstat</a> 工具包，翻阅源码可以在 <code>rd_stats.c</code> 找到 svctm 的计算方法，其实 svctm 的计算依赖于其他指标：</p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   ***************************************************************************</span></span><br><span class="line"><span class="comment">   * Compute "extended" device statistics (service time, etc.).</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * IN:</span></span><br><span class="line"><span class="comment">   * @sdc     Structure with current device statistics.</span></span><br><span class="line"><span class="comment">   * @sdp     Structure with previous device statistics.</span></span><br><span class="line"><span class="comment">   * @itv     Interval of time in 1/100th of a second.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * OUT:</span></span><br><span class="line"><span class="comment">   * @xds     Structure with extended statistics.</span></span><br><span class="line"><span class="comment">   ***************************************************************************</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  void compute_ext_disk_stats(struct stats_disk *sdc, struct stats_disk *sdp,</span><br><span class="line">               unsigned long long itv, struct ext_disk_stats *xds)</span><br><span class="line">  &#123;</span><br><span class="line">      double tput</span><br><span class="line">          = ((<span class="function"><span class="title">double</span>) (sdc-&gt;</span><span class="function"><span class="title">nr_ios</span> - sdp-&gt;</span>nr_ios)) * <span class="number">100</span> / itv;</span><br><span class="line"></span><br><span class="line">      <span class="function"><span class="title">xds</span>-&gt;</span><span class="function"><span class="title">util</span>  = S_VALUE(sdp-&gt;</span><span class="function"><span class="title">tot_ticks</span>, sdc-&gt;</span>tot_ticks, itv);</span><br><span class="line">      <span class="function"><span class="title">xds</span>-&gt;</span><span class="function"><span class="title">svctm</span> = tput ? xds-&gt;</span>util / tput : <span class="number">0.0</span>;</span><br><span class="line">      <span class="comment">/*</span></span><br><span class="line"><span class="comment">      * Kernel gives ticks already in milliseconds for all platforms</span></span><br><span class="line"><span class="comment">      * =&gt; no need for further scaling.</span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">      <span class="function"><span class="title">xds</span>-&gt;</span><span class="function"><span class="title">await</span> = (sdc-&gt;</span><span class="function"><span class="title">nr_ios</span> - sdp-&gt;</span>nr_ios) ?</span><br><span class="line">          ((<span class="function"><span class="title">sdc</span>-&gt;</span><span class="function"><span class="title">rd_ticks</span> - sdp-&gt;</span><span class="function"><span class="title">rd_ticks</span>) + (sdc-&gt;</span><span class="function"><span class="title">wr_ticks</span> - sdp-&gt;</span>wr_ticks)) /</span><br><span class="line">          ((<span class="function"><span class="title">double</span>) (sdc-&gt;</span><span class="function"><span class="title">nr_ios</span> - sdp-&gt;</span>nr_ios)) : <span class="number">0.0</span>;</span><br><span class="line">      <span class="function"><span class="title">xds</span>-&gt;</span><span class="function"><span class="title">arqsz</span> = (sdc-&gt;</span><span class="function"><span class="title">nr_ios</span> - sdp-&gt;</span>nr_ios) ?</span><br><span class="line">          ((<span class="function"><span class="title">sdc</span>-&gt;</span><span class="function"><span class="title">rd_sect</span> - sdp-&gt;</span><span class="function"><span class="title">rd_sect</span>) + (sdc-&gt;</span><span class="function"><span class="title">wr_sect</span> - sdp-&gt;</span>wr_sect)) /</span><br><span class="line">          ((<span class="function"><span class="title">double</span>) (sdc-&gt;</span><span class="function"><span class="title">nr_ios</span> - sdp-&gt;</span>nr_ios)) : <span class="number">0.0</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>其中重点关注：</p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">xds</span>-&gt;</span><span class="function"><span class="title">svctm</span> = tput ? xds-&gt;</span>util / tput : <span class="number">0.0</span>;</span><br></pre></td></tr></table></figure>
+<p>学过 C 语言的都知道这是一个三元运算符：</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A ? <span class="keyword">B </span>: C</span><br><span class="line">表示如果 A 为真，那么表达式值为 <span class="keyword">B，否则为 </span>C</span><br></pre></td></tr></table></figure>
+<p><strong>tput</strong> 可以理解为 IOPS，即当 IOPS 非零时，svctm 等于 util / tput；否则等于 0。</p>
+<blockquote>
+<p>tput 相当于 IOPS，下文会作解释。</p>
+</blockquote>
+<p>上面说的 svctm 的计算依赖的值就是 <strong>util</strong>，那么 <strong>man 手册给出的警告应该废弃 svctm 的原因是不是因为 util 的计算不准确呢</strong>？</p>
+<h3 id="util-磁盘利用率"><a href="#util-磁盘利用率" class="headerlink" title="util 磁盘利用率"></a>util 磁盘利用率</h3><blockquote>
+<p>上面说到应该废弃 svctm 指标，因为它并不能作为衡量磁盘性能的指标，svctm 的计算是不准确的。但从上面的计算公式可以看到，唯一的不确定的变量是 util 的值。</p>
+</blockquote>
+<p>util 是用来衡量磁盘利用率的指标，那么 util 是怎么计算的呢？还是上面的 <code>compute_ext_disk_stats</code> 函数：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">void compute_ext_disk_stats(<span class="class"><span class="keyword">struct</span> <span class="title">stats_disk</span></span> *sdc, <span class="class"><span class="keyword">struct</span> <span class="title">stats_disk</span></span> *sdp,</span><br><span class="line">               unsigned long long itv, <span class="class"><span class="keyword">struct</span> <span class="title">ext_disk_stats</span></span> *xds)</span><br><span class="line">  &#123;</span><br><span class="line">      double tput</span><br><span class="line">          = ((double) (sdc-&gt;nr_ios - sdp-&gt;nr_ios)) * <span class="number">100</span> / itv;</span><br><span class="line"></span><br><span class="line">      xds-&gt;util  = S_VALUE(sdp-&gt;tot_ticks, sdc-&gt;tot_ticks, itv);</span><br><span class="line">      ...</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>进一步阅读源码找到 S_VALUE 的定义：</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#define S_VALUE(<span class="name">m</span>,n,p)      (((<span class="name">double</span>) ((<span class="name">n</span>) - (<span class="name">m</span>))) / (<span class="name">p</span>) * 100)</span><br></pre></td></tr></table></figure>
+<p>且上面的注释可以看到：</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">* <span class="variable">@sdc</span>        Structure with current device statistics.</span><br><span class="line">* <span class="variable">@sdp</span>        Structure with previous device statistics.</span><br><span class="line">* <span class="variable">@itv</span>        Interval of time in <span class="number">1</span>/<span class="number">100</span>th of a second.</span><br></pre></td></tr></table></figure>
+<p>最终得到 util 的计算方法为：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">util</span> = ( current_tot_ticks - previous_tot_ticks ) /  采样周期 * <span class="number">100</span></span><br></pre></td></tr></table></figure>
+<p>那么 <code>tot_ticks</code> 是什么呢？这里需要关注 <code>stats_disk</code> 这个结构体，查阅源码在 <code>rd_stats.h</code> 文件中：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* rd_stats.h */</span></span><br><span class="line"><span class="comment">/* Structure for block devices statistics */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">stats_disk</span> &#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span> nr_ios;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span>      rd_sect  __attribute__ ((aligned (<span class="number">8</span>)));</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span>      wr_sect  __attribute__ ((aligned (<span class="number">8</span>)));</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span>       rd_ticks __attribute__ ((aligned (<span class="number">8</span>)));</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span>       wr_ticks;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span>       tot_ticks;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span>       rq_ticks;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span>       major;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span>       minor;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>这里看不出具体每个字段是什么意义，源文件也没有作注释，接着看 <code>rd_stats.c</code> 文件是怎么对结构体赋值的，源文件 <code>rd_stats.c</code> 中：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">   <span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span><span class="strong">*****</span></span><br><span class="line"><span class="bullet">   * </span>Read block devices statistics from /proc/diskstats.</span><br><span class="line">   *</span><br><span class="line">*/</span><br><span class="line">  <span class="strong">__nr_t read_diskstats_disk(struct stats_disk *st_disk, __</span>nr<span class="emphasis">_t nr_</span>alloc,int read_part)</span><br><span class="line">  &#123;</span><br><span class="line">  ...</span><br><span class="line"><span class="code">     if ((fp = fopen(DISKSTATS, "r")) == NULL)</span></span><br><span class="line"><span class="code">          return 0;</span></span><br><span class="line"></span><br><span class="line"><span class="code">      while (fgets(line, sizeof(line), fp) != NULL) &#123;</span></span><br><span class="line"></span><br><span class="line"><span class="code">          if (sscanf(line, "%u %u %s %lu %*u %lu %u %lu %*u %lu"</span></span><br><span class="line"><span class="code">                 " %u %*u %u %u",</span></span><br><span class="line"><span class="code">                 &amp;major, &amp;minor, dev_name,</span></span><br><span class="line"><span class="code">                 &amp;rd_ios, &amp;rd_sec, &amp;rd_ticks, &amp;wr_ios, &amp;wr_sec, &amp;wr_ticks,</span></span><br><span class="line"><span class="code">                 &amp;tot_ticks, &amp;rq_ticks) == 11) &#123; ... &#125;</span></span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>核心代码如上，具体来讲，iostat 的使用其实是依赖于 <code>/proc/diskstats</code> 文件，读取  <code>/proc/diskstats</code> 值，然后做进一步的分析处理。这里额外介绍下 <code>/proc/diskstats</code> 文件：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>localhost ~]# cat /proc/diskstats</span><br><span class="line">   <span class="number">1</span>       <span class="number">0</span> ram0 <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br><span class="line">   <span class="number">1</span>       <span class="number">1</span> ram1 <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br><span class="line">   <span class="number">1</span>       <span class="number">2</span> ram2 <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br><span class="line">   <span class="number">1</span>       <span class="number">3</span> ram3 <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br><span class="line">   <span class="number">1</span>       <span class="number">4</span> ram4 <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br><span class="line">   <span class="number">1</span>       <span class="number">5</span> ram5 <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br><span class="line">   <span class="number">1</span>       <span class="number">6</span> ram6 <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br><span class="line">   <span class="number">1</span>       <span class="number">7</span> ram7 <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br><span class="line">   <span class="number">1</span>       <span class="number">8</span> ram8 <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br><span class="line">   <span class="number">8</span>       <span class="number">0</span> sda <span class="number">82044583</span> <span class="number">3148</span> <span class="number">10966722840</span> <span class="number">222442157</span> <span class="number">24658460</span> <span class="number">2499170</span> <span class="number">2700969385</span> <span class="number">105371088</span> <span class="number">0</span> <span class="number">57897509</span> <span class="number">328196252</span></span><br><span class="line">   <span class="number">8</span>       <span class="number">1</span> sda1 <span class="number">4144</span> <span class="number">0</span> <span class="number">339790</span> <span class="number">2859</span> <span class="number">93359</span> <span class="number">82770</span> <span class="number">4180584</span> <span class="number">671453</span> <span class="number">0</span> <span class="number">534023</span> <span class="number">674311</span></span><br><span class="line">   <span class="number">8</span>       <span class="number">2</span> sda2 <span class="number">487</span> <span class="number">0</span> <span class="number">4114</span> <span class="number">28</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">28</span> <span class="number">28</span></span><br><span class="line">   <span class="number">8</span>       <span class="number">3</span> sda3 <span class="number">8450</span> <span class="number">0</span> <span class="number">206387</span> <span class="number">3489</span> <span class="number">598140</span> <span class="number">1719768</span> <span class="number">413807296</span> <span class="number">6739177</span> <span class="number">0</span> <span class="number">1204240</span> <span class="number">6742537</span></span><br><span class="line">   <span class="number">8</span>       <span class="number">4</span> sda4 <span class="number">82031488</span> <span class="number">3148</span> <span class="number">10966172437</span> <span class="number">222435779</span> <span class="number">23966958</span> <span class="number">696632</span> <span class="number">2282981505</span> <span class="number">97960444</span> <span class="number">0</span> <span class="number">57538914</span> <span class="number">321035535</span></span><br><span class="line">   <span class="number">8</span>      <span class="number">16</span> sdb <span class="number">6696805</span> <span class="number">672</span> <span class="number">1028622736</span> <span class="number">99268437</span> <span class="number">3479149</span> <span class="number">1095853</span> <span class="number">385460280</span> <span class="number">4357778</span> <span class="number">0</span> <span class="number">80933531</span> <span class="number">103624000</span></span><br><span class="line">   <span class="number">8</span>      <span class="number">32</span> sdc <span class="number">6535697</span> <span class="number">706</span> <span class="number">1003357408</span> <span class="number">101660311</span> <span class="number">3409287</span> <span class="number">1048913</span> <span class="number">370227528</span> <span class="number">4329287</span> <span class="number">0</span> <span class="number">82570947</span> <span class="number">105987603</span></span><br><span class="line">   <span class="number">8</span>      <span class="number">48</span> sdd <span class="number">6555170</span> <span class="number">652</span> <span class="number">1005848496</span> <span class="number">98046714</span> <span class="number">3392381</span> <span class="number">1044610</span> <span class="number">369149464</span> <span class="number">4407316</span> <span class="number">0</span> <span class="number">80348361</span> <span class="number">102451899</span></span><br><span class="line">   <span class="number">8</span>      <span class="number">64</span> sde <span class="number">6532011</span> <span class="number">671</span> <span class="number">1002703024</span> <span class="number">134576408</span> <span class="number">3406505</span> <span class="number">1054721</span> <span class="number">372497720</span> <span class="number">5792380</span> <span class="number">0</span> <span class="number">103162428</span> <span class="number">140366630</span></span><br></pre></td></tr></table></figure>
+<p>每个字段的意义解释如下：</p>
+<figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">The /<span class="keyword">proc</span>/diskstats<span class="title"> file</span> displays<span class="title"> the</span> I/O<span class="title"> statistics</span></span><br><span class="line"><span class="title"></span> <span class="title"> of</span> block<span class="title"> devices.</span> Each<span class="title"> line</span> contains<span class="title"> the</span> following 14</span><br><span class="line"><span class="title">  fields:</span></span><br><span class="line"><span class="title"></span>   1 -<span class="title"> major</span> number</span><br><span class="line">   2 -<span class="title"> minor</span> mumber</span><br><span class="line">   3 -<span class="title"> device</span> name</span><br><span class="line">   4 -<span class="title"> reads</span> completed<span class="title"> successfully</span></span><br><span class="line"><span class="title"></span>   5 -<span class="title"> reads</span> merged</span><br><span class="line">   6 -<span class="title"> sectors</span> read</span><br><span class="line">   7 -<span class="title"> time</span> spent<span class="title"> reading</span> (ms)</span><br><span class="line">   8 -<span class="title"> writes</span> completed</span><br><span class="line">   9 -<span class="title"> writes</span> merged</span><br><span class="line">  10 -<span class="title"> sectors</span> written</span><br><span class="line">  11 -<span class="title"> time</span> spent<span class="title"> writing</span> (ms)</span><br><span class="line">  12 -<span class="title"> I/Os</span> currently<span class="title"> in</span> progress</span><br><span class="line">  13 -<span class="title"> time</span> spent<span class="title"> doing</span> I/Os (ms)</span><br><span class="line">  14 -<span class="title"> weighted</span> time<span class="title"> spent</span> doing<span class="title"> I/Os</span> (ms)</span><br></pre></td></tr></table></figure>
+<p>这里英文的解释可能没有很明白很清楚，尤其是第 7 、11、13 个字段的解释，我们再用中文解释一下：</p>
+<table>
+<thead>
+<tr>
+<th>域</th>
+<th>Value</th>
+<th>Quoted</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F1</td>
+<td>8</td>
+<td>major number</td>
+<td>此块设备的主设备号</td>
+</tr>
+<tr>
+<td>F2</td>
+<td>0</td>
+<td>minor mumber</td>
+<td>此块设备的次设备号</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>sda</td>
+<td>device  name</td>
+<td>此块设备名字</td>
+</tr>
+<tr>
+<td>F4</td>
+<td>8567</td>
+<td>reads completed successfully</td>
+<td>成功完成的读请求次数</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>1560</td>
+<td>reads merged</td>
+<td>读请求的次数</td>
+</tr>
+<tr>
+<td>F6</td>
+<td>140762</td>
+<td>sectors read</td>
+<td>读请求的扇区数总和</td>
+</tr>
+<tr>
+<td>F7</td>
+<td>3460</td>
+<td>time spent reading (ms)</td>
+<td>读请求花费的时间总和</td>
+</tr>
+<tr>
+<td>F8</td>
+<td>0</td>
+<td>writes completed</td>
+<td>成功完成的写请求次数</td>
+</tr>
+<tr>
+<td>F9</td>
+<td>0</td>
+<td>writes merged</td>
+<td>写请求合并的次数</td>
+</tr>
+<tr>
+<td>F10</td>
+<td>0</td>
+<td>sectors written</td>
+<td>写请求的扇区数总和</td>
+</tr>
+<tr>
+<td>F11</td>
+<td>0</td>
+<td>time spent writing (ms)</td>
+<td>写请求花费的时间总和</td>
+</tr>
+<tr>
+<td>F12</td>
+<td>0</td>
+<td>I/Os currently in progress</td>
+<td>次块设备队列中的IO请求数</td>
+</tr>
+<tr>
+<td>F13</td>
+<td>2090</td>
+<td>time spent doing I/Os (ms)</td>
+<td>块设备队列非空时间总和</td>
+</tr>
+<tr>
+<td>F14</td>
+<td>3440</td>
+<td>weighted time spent doing I/Os (ms)</td>
+<td>块设备队列非空时间加权总和</td>
+</tr>
+</tbody></table>
+<p>这里需要特别对第 7、11、13 个字段做一点解释，<strong>第 7 个字段表示所有读请求的花费时间总和，这里把每个读 I/O 请求都计算在内；同理是第 11 个字段；那么为什么还有第 13 个字段呢？第 13 个字段不关心有多少 I/O 在处理，它只关心设备是否在做 I/O 操作，所以真实情况是第 7 个字段加上第 11 个字段的值会比第 13 个字段的值更大一点</strong>。</p>
+<p>回到 <code>rd_stats.c</code> 源码中，<code>stats_disk</code> 结构体是如何赋值的呢？</p>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="keyword">while</span> (fgets(line, sizeof(line), fp) != NULL) </span><br><span class="line">...</span><br><span class="line">sscanf(line, <span class="string">"%u %u %s %lu %*u %lu %u %lu %*u %lu"</span></span><br><span class="line">                 <span class="string">" %u %*u %u %u"</span>,</span><br><span class="line">                 &amp;major, &amp;minor, dev_name,</span><br><span class="line">                 &amp;rd_ios, &amp;rd_sec, &amp;rd_ticks, &amp;wr_ios, &amp;wr_sec, &amp;wr_ticks,</span><br><span class="line">                 &amp;tot_ticks, &amp;rq_ticks) == <span class="number">11</span>)</span><br><span class="line">  ...</span><br></pre></td></tr></table></figure>
+<p>使用 fgets 函数获得 <code>/proc/diskstats</code> 文件中的一行数据，然后使用 sscanf 函数格式化字符串到结构体 <code>stats_disk</code> 的不同成员变量中。仔细看代码，格式符号有 14 个，但接收字符串的变量只有 11 个，这里要注意的是 sscanf 的使用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sscanf</span> 中 * 表示读入的数据将被舍弃。带有*的格式指令不对应可变参数列表中的任何数据。</span><br></pre></td></tr></table></figure>
+<p>这么一来，我们要寻找的 <code>tot_ticks</code> 就是第 13 个字段，也就是表示：</p>
+<figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">13 </span>- time spent doing I/Os (ms)，即 花费在 I/O 上的时间</span><br></pre></td></tr></table></figure>
+<p>我们再回到 util 的计算：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">util</span> = ( current_tot_ticks - previous_tot_ticks ) /  采样周期 * <span class="number">100</span></span><br></pre></td></tr></table></figure>
+<p>util 的计算方法是： <strong>统计一个周期内磁盘有多少自然时间(ms) 是用来做 I/O 的，得出百分比，代表磁盘利用率</strong>。</p>
+<p><em>上文对于 svctm 的计算提到 tput 这个变量代表 IOPS，这里额外做一点解释</em>：</p>
+<figure class="highlight zephir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*rd_stats.c 中 read_diskstats_disk 函数内 */</span></span><br><span class="line"><span class="comment">/* 读 I/O + 写 I/O 数量 */</span></span><br><span class="line">st_disk_i-&gt;nr_ios  = (unsigned <span class="keyword">long</span> <span class="keyword">long</span>) rd_ios + (unsigned <span class="keyword">long</span> <span class="keyword">long</span>) wr_ios;</span><br><span class="line">...</span><br><span class="line"><span class="comment">/* rd_stats.c 中 compute_ext_disk_stats 函数内 */</span></span><br><span class="line"><span class="comment">/* 当前读写 I/O 数量 - 上一次采样时的读写 I/O 数量 */</span></span><br><span class="line"><span class="keyword">double</span> tput = ((<span class="keyword">double</span>) (sdc-&gt;nr_ios - sdp-&gt;nr_ios)) * <span class="number">100</span> / itv;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>经过对 <code>/proc/diskstats</code> 各个字段的分析，不难得出，<code>stats_disk</code> 结构体中的成员变量 <code>nr_ios</code> 代表读写 I/O 成功完成的数量，也就是 IOPS。</p>
+<p>再回过来，那么 util 的计算是准确的吗？<code>tot_ticks</code> 的计算是准确的吗？</p>
+<p>经过上面的分析，<code>tot_ticks</code> 其实表示的是 <code>/proc/diskstats</code> 文件中第 13 个字段，表示磁盘处理 I/O 操作的自然时间，不考虑并行性。那么由此得到的 util 就失去了最原本的意义。</p>
+<p>举个简单的例子，假设磁盘处理单个 I/O 的能力为 0.01ms，依次有 200 个请求提交，需要 2s 处理完所有的请求，如果采样周期为 1s，在 1s 的采样周期里 util 就达到了 100%；但是如果这 200 个请求分批次的并发提交，比如每次并发提交 2 个请求，即每次同时过来 2 个请求，那么需要 1s 即可完成所有请求，采样周期为 1s，util 也是 100%。</p>
+<p>两种场景下 util 均是 100%，那一种磁盘压力更大？当然是第二种，但仅仅通过 util 并不能得出这个结论。</p>
+<p>再回到 svctm 的计算：</p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">double</span> tput  = ((double) (sdc-&gt;</span><span class="function"><span class="title">nr_ios</span> - sdp-&gt;</span>nr_ios)) * <span class="number">100</span> / itv;</span><br><span class="line"><span class="function"><span class="title">xds</span>-&gt;</span><span class="function"><span class="title">util</span>  = S_VALUE(sdp-&gt;</span><span class="function"><span class="title">tot_ticks</span>, sdc-&gt;</span>tot_ticks, itv);</span><br><span class="line"><span class="function"><span class="title">xds</span>-&gt;</span><span class="function"><span class="title">svctm</span> = tput ? xds-&gt;</span>util / tput : <span class="number">0.0</span>;</span><br></pre></td></tr></table></figure>
+<p>转换上述两个式子可以得到：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">svctm = ( current_tot_ticks - previous_tot_ticks ) <span class="regexp">/ (current_ios - previous_ios ) = 采样周期内设备进行 I/</span>O 的自然时间  <span class="regexp">/  采样周期内读写 I/</span>O 次数</span><br></pre></td></tr></table></figure>
+
+<p>故通过此表达式计算得到的 svctm 其实并不能准确衡量单个 I/O 的处理能力。如果磁盘没有并行处理的能力，那么采样周期内读写 I/O 次数必然减少，相应的，svctm 的计算就会偏大。</p>
+<p>那回到开头提出的疑问，假定顺序请求情况下得到的平均等待时间 27.3ms 小于 iostat 看到的 await 62.78ms:</p>
+<pre><code>27.3 ms &lt;  62.78 ms</code></pre><p>现在可以解释了：<strong>27.3 ms 的计算其实使用了偏小的 svctm 值，故得到的平均等待时间较 62.78ms 小很多</strong>。</p>
+<h2 id="iostat-辩证看待"><a href="#iostat-辩证看待" class="headerlink" title="iostat 辩证看待"></a>iostat 辩证看待</h2><p>分析到这里，原理已经很明白了，<strong>util 并不能衡量磁盘的利用率，svctm 的值失去了意义。期望通过这两个指标获得一个磁盘性能的衡量恐怕不行了！</strong></p>
+<p>但平常的分析，我们可以参考 iostat 的输出，再结合其他的一些工具，进行多方面多方位的性能分析，才能得到比较接近真理的结论！</p>
+<h1 id="延伸"><a href="#延伸" class="headerlink" title="延伸"></a>延伸</h1><p>上文分析了 iostat 容易引起误解的几个指标，在使用 iostat 时我们需要辩证的看待 iostat 的结果。</p>
+<p>但我们往往更希望获得一个能够衡量磁盘性能的指标，iostat 可能帮不上太多忙了，这时可能需要借助其他的工具了，比如 blktrace 这个工具，这才是分析 I/O 的利器！</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="http://bean-li.github.io/dive-into-iostat/" target="_blank" rel="noopener">深入理解iostat</a></li>
+<li><a href="http://linuxperf.com/?p=156" target="_blank" rel="noopener">容易被误读的IOSTAT</a></li>
+<li><a href="http://ykrocku.github.io/blog/2014/04/11/diskstats/" target="_blank" rel="noopener">深入分析diskstats</a></li>
+<li><a href="https://www.cnblogs.com/zk47/p/4733143.html" target="_blank" rel="noopener">[Linux 运维 – 存储] /proc/diskstats详解</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/01/04/analyze-of-high-iowait/" rel="bookmark">CPU.IOWAIT 偏高问题《二》</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/12/14/instability-of-cpu/" rel="bookmark">CPU.IOWAIT 偏高问题</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2018/01/16/using-iostat-dialectically/" title="辩证看待 iostat">http://www.rebootcat.com/2018/01/16/using-iostat-dialectically/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/iostat/" rel="tag"># iostat</a>
+              <a href="/tags/diskstats/" rel="tag"># diskstats</a>
+              <a href="/tags/sysstat/" rel="tag"># sysstat</a>
+              <a href="/tags/blktrace/" rel="tag"># blktrace</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/01/08/wechat_jump_hack/" rel="prev" title="微信跳一跳高分辅助踩坑">
+      <i class="fa fa-chevron-left"></i> 微信跳一跳高分辅助踩坑
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/02/13/new_picture_bed_github/" rel="next" title="博客图床切换 Github + jsDelivr + PicGo">
+      博客图床切换 Github + jsDelivr + PicGo <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#iostat"><span class="nav-number">2.</span> <span class="nav-text">iostat</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#iostat-基本使用"><span class="nav-number">2.1.</span> <span class="nav-text">iostat 基本使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意陷阱"><span class="nav-number">2.2.</span> <span class="nav-text">注意陷阱</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#丢弃-svctm"><span class="nav-number">2.2.1.</span> <span class="nav-text">丢弃 svctm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#util-磁盘利用率"><span class="nav-number">2.2.2.</span> <span class="nav-text">util 磁盘利用率</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iostat-辩证看待"><span class="nav-number">2.3.</span> <span class="nav-text">iostat 辩证看待</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#延伸"><span class="nav-number">3.</span> <span class="nav-text">延伸</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

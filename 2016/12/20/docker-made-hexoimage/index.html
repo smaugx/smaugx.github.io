@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="背景这段时间一直在折腾我的博客，由于之前出现过一次电脑硬盘完全挂掉的情况，为了避免重新搭建博客系统，一直打算搞一个方便点的环境，能进行多机迁移之类的。正好，Docker完全满足我的要求。 之前一直只是听说过Docker，听说过容器，听说过镜像，但并没有正真的了解接触过Docker。这次借助于博客的折腾，正好有了这个研究折腾Docker的机会。 What is Docker?正如Docker官网介绍">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用docker制作hexo镜像">
+<meta property="og:url" content="http://www.rebootcat.com/2016/12/20/docker-made-hexoimage/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="背景这段时间一直在折腾我的博客，由于之前出现过一次电脑硬盘完全挂掉的情况，为了避免重新搭建博客系统，一直打算搞一个方便点的环境，能进行多机迁移之类的。正好，Docker完全满足我的要求。 之前一直只是听说过Docker，听说过容器，听说过镜像，但并没有正真的了解接触过Docker。这次借助于博客的折腾，正好有了这个研究折腾Docker的机会。 What is Docker?正如Docker官网介绍">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-12-20T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.956Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="hexo">
+<meta property="article:tag" content="docker">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://www.rebootcat.com/2016/12/20/docker-made-hexoimage/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>使用docker制作hexo镜像 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2016/12/20/docker-made-hexoimage/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用docker制作hexo镜像
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-12-20 11:23:58" itemprop="dateCreated datePublished" datetime="2016-12-20T11:23:58+08:00">2016-12-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index"><span itemprop="name">docker</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>这段时间一直在折腾我的博客，由于之前出现过一次电脑硬盘完全挂掉的情况，为了避免重新搭建博客系统，一直打算搞一个方便点的环境，能进行多机迁移之类的。正好，Docker完全满足我的要求。</p>
+<p>之前一直只是听说过Docker，听说过容器，听说过镜像，但并没有正真的了解接触过Docker。这次借助于博客的折腾，正好有了这个研究折腾Docker的机会。</p>
+<h1 id="What-is-Docker"><a href="#What-is-Docker" class="headerlink" title="What is Docker?"></a>What is Docker?</h1><p>正如<a href="https://docs.docker.com/" target="_blank" rel="noopener">Docker官网</a>介绍的那样：</p>
+<blockquote>
+<p>Docker is the world’s leading software containerization platform.</p>
+</blockquote>
+<p>关于了解Docker不是本文的重点，这里可以推荐我之前收藏的关于Docker的几个链接：</p>
+<ul>
+<li><a href="http://www.widuu.com/docker/index.html" target="_blank" rel="noopener">Docker中文指南</a></li>
+<li><a href="http://zone.gaospot.com/2016/05/11/Docker%E9%95%9C%E5%83%8F%E5%88%9B%E5%BB%BA/" target="_blank" rel="noopener">Docker镜像创建</a></li>
+<li><a href="https://yeasy.gitbooks.io/docker_practice" target="_blank" rel="noopener">Docker从入门到实战</a></li>
+<li><a href="https://blog.tankywoo.com/docker/2014/05/08/docker-4-summary.html" target="_blank" rel="noopener">Docker 4 – 总结</a></li>
+</ul>
+<p>看完上面的内容基本还是对Docker有了一个比较基础的认识，关于docker的安装，docker命令的使用,docker的设计原理等。</p>
+<h1 id="构建hexo镜像"><a href="#构建hexo镜像" class="headerlink" title="构建hexo镜像"></a>构建hexo镜像</h1><a id="more"></a>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p><em>这个地方我当时刚接触的时候没有理清，以为docker是把我windows上的本地环境打包构建成一个镜像，相当于克隆一个我在windows上的博客系统，这个想法还是有点太天真了看来。后来了解了Docker的原理以及使用后，才理清了这些问题。</em></p>
+<p><strong>其实可以很简单的理解，docker是一个软件，运行的是容器，容器里面是各种应用，运行一个容器需要一个镜像，这个镜像可以是一个基础镜像，也可以是一个你自己基于基础镜像构建好的镜像，镜像的内容可以粗略的理解为一个系统，比如各种版本的Linux等。所以关于构建hexo的镜像，就是首先拉取一个基础镜像，比如我选择了Ubuntu系统，然后当容器跑起来后，就相当于一个虚拟机了，这个时候你可以安装你的hexo环境，node环境，git环境等，最后可以把整个构建好的环境整体打包生成一个最终的镜像，这个镜像就是最终需要的镜像。</strong></p>
+<p>上面的理解，可能有偏差，因为只是我自己的理解。好了，废话不多说，开始了！(我的linux机器是centos7）</p>
+<figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># yum  <span class="meta">update</span>  <span class="variable">&amp;&amp;</span> yum install docker-engine</span><br></pre></td></tr></table></figure>
+<p>启动docker:</p>
+<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># systemctl start docker</span></span><br></pre></td></tr></table></figure>
+<p>运行测试:</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker run --rm hello-world</span></span><br><span class="line">Unable <span class="built_in">to</span> find image <span class="string">'hello-world:latest'</span> locally</span><br><span class="line"> latest: Pulling <span class="built_in">from</span> library/hello-world</span><br><span class="line"> c04b14da8d14: Pull complete</span><br><span class="line"> Digest: sha256:<span class="number">0256e8</span>a36e2070f7bf2d0b0763dbabdd67798512411de4cdcf9431a1feb60fd9</span><br><span class="line"> Status: Downloaded newer image <span class="keyword">for</span> hello-world:latest</span><br><span class="line"></span><br><span class="line"> Hello <span class="built_in">from</span> Docker!</span><br><span class="line"> This message shows that your installation appears <span class="built_in">to</span> be working correctly.</span><br><span class="line"></span><br><span class="line"> To generate this message, Docker took <span class="keyword">the</span> following steps:</span><br><span class="line">  <span class="number">1.</span> The Docker client contacted <span class="keyword">the</span> Docker daemon.</span><br><span class="line">  <span class="number">2.</span> The Docker daemon pulled <span class="keyword">the</span> <span class="string">"hello-world"</span> image <span class="built_in">from</span> <span class="keyword">the</span> Docker Hub.</span><br><span class="line">  <span class="number">3.</span> The Docker daemon created <span class="keyword">a</span> <span class="built_in">new</span> container <span class="built_in">from</span> that image which runs <span class="keyword">the</span></span><br><span class="line">     executable that produces <span class="keyword">the</span> output you are currently reading.</span><br><span class="line">  <span class="number">4.</span> The Docker daemon streamed that output <span class="built_in">to</span> <span class="keyword">the</span> Docker client, which sent <span class="keyword">it</span></span><br><span class="line">     <span class="built_in">to</span> your terminal.</span><br><span class="line"></span><br><span class="line"> To <span class="keyword">try</span> something more ambitious, you can run <span class="keyword">an</span> Ubuntu container <span class="keyword">with</span>:</span><br><span class="line">  $ docker run -<span class="keyword">it</span> ubuntu bash</span><br><span class="line"></span><br><span class="line"> Share images, automate workflows, <span class="keyword">and</span> more <span class="keyword">with</span> <span class="keyword">a</span> free Docker Hub account:</span><br><span class="line">  <span class="keyword">https</span>://hub.docker.com</span><br><span class="line"></span><br><span class="line"> For more examples <span class="keyword">and</span> ideas, visit:</span><br><span class="line">  <span class="keyword">https</span>://docs.docker.com/engine/userguide/</span><br></pre></td></tr></table></figure>
+
+<h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">FROM ubuntu:<span class="number">14.04</span></span><br><span class="line"></span><br><span class="line">MAINTAINER nick,&lt;linuxcode2niki@gmail.com&gt;</span><br><span class="line"></span><br><span class="line">RUN <span class="string">\</span></span><br><span class="line">    cp /etc/apt/sources.<span class="keyword">list</span> /etc/apt/sources.<span class="keyword">list</span>.bak &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb http://mirrors.aliyun.com/ubuntu/ trusty main restricted universe multiverse"</span> &gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb http://mirrors.aliyun.com/ubuntu/ trusty-security main restricted universe multiverse"</span>  &gt;&gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb http://mirrors.aliyun.com/ubuntu/ trusty-updates main restricted universe multiverse "</span>  &gt;&gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb http://mirrors.aliyun.com/ubuntu/ trusty-proposed main restricted universe multiverse "</span>  &gt;&gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multiverse "</span>  &gt;&gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb-src http://mirrors.aliyun.com/ubuntu/ trusty main restricted universe multiverse "</span>  &gt;&gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb-src http://mirrors.aliyun.com/ubuntu/ trusty-security main restricted universe multiverse "</span>  &gt;&gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb-src http://mirrors.aliyun.com/ubuntu/ trusty-updates main restricted universe multiverse "</span>  &gt;&gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb-src http://mirrors.aliyun.com/ubuntu/ trusty-proposed main restricted universe multiverse "</span>  &gt;&gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    echo <span class="string">"deb-src http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multiverse "</span> &gt;&gt; /etc/apt/sources.<span class="keyword">list</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    apt-get update &amp;&amp; <span class="string">\</span></span><br><span class="line">    apt-get install -y git &amp;&amp; <span class="string">\</span></span><br><span class="line">    apt-get install -y nodejs <span class="built_in">npm</span> &amp;&amp; <span class="string">\</span></span><br><span class="line">    apt-get clean  &amp;&amp; <span class="string">\</span></span><br><span class="line">    rm -rf <span class="regexp">/var/lib/apt/lists/</span>*  &amp;&amp; <span class="string">\</span></span><br><span class="line">    ln -s /usr/bin/nodejs  /usr/bin/node  &amp;&amp; <span class="string">\</span></span><br><span class="line">    alias cnpm=<span class="string">"npm --registry=https://registry.npm.taobao.org --cache=$HOME/.npm/.cache/cnpm --disturl=https://npm.taobao.org/dist \</span></span><br><span class="line"><span class="string">    --userconfig=$HOME/.cnpmrc"</span>  &amp;&amp; <span class="string">\</span></span><br><span class="line">    <span class="built_in">npm</span> install hexo-cli -g</span><br><span class="line"></span><br><span class="line">WORKDIR /Hexo</span><br><span class="line"><span class="comment">#VOLUME ["/Hexo/source", "/Hexo/themes", "/root/.ssh"]</span></span><br><span class="line">EXPOSE <span class="number">4000</span></span><br><span class="line">CMD [<span class="string">'/bin/bash'</span>]</span><br></pre></td></tr></table></figure>
+<p>Dockerfile是用来构建一个镜像的命令的集合，docker可以根据里面的命令自动化的构建一个用户所期望的镜像。关于上面Dockerfile的内容，我做一点简单的解释。</p>
+<p>前面的echo命令是更换ubuntu的apt-get源为阿里云的源，加快访问下载速度。然后安装git,nodejs,npm,然后更换淘宝的cnmp：</p>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">alias <span class="attr">cnpm="npm</span> <span class="attr">--registry=https://registry.npm.taobao.org</span> <span class="attr">--cache=$HOME/.npm/.cache/cnpm</span> <span class="attr">--disturl=https://npm.taobao.org/dist</span> \</span><br><span class="line">    <span class="attr">--userconfig=$HOME/.cnpmrc"</span></span><br></pre></td></tr></table></figure>
+<p>后面就是安装hexo（<em>注意此处的命令可以更换成cnmp install hexo-cli -g,我当时好像是碰到了问题，就采用原来的npm方式了</em>)。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /Hexo</span></span><br></pre></td></tr></table></figure>
+<p>指明工作路径，启动容器后会自动切换到这个目录下。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-id">#VOLUME</span> <span class="selector-attr">[<span class="string">"/Hexo/source"</span>, <span class="string">"/Hexo/themes"</span>, <span class="string">"/root/.ssh"</span>]</span></span><br></pre></td></tr></table></figure>
+<p>指定挂载目录，宿主机的/Heo/source,/Hexo/themes ,/root/.ssh 被挂载到容器里的相应位置，如果没有该目录，则创建该目录，提供一种宿主机和容器的访问策略。此处我前面加了#注释掉了，因为实际情况我不需要，可以在启动容器的命令中手工指定。<br>最后，</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">EXPOSE <span class="number">4000</span></span><br></pre></td></tr></table></figure>
+<p>就是暴露端口4000，映射到宿主机的4000端口，提供另外一种宿主机和容器的访问策略。<br>关于Dockerfile中这些命令的详细解释，可以参考下面的链接：<br><a href="http://zone.gaospot.com/2016/05/11/Docker%E9%95%9C%E5%83%8F%E5%88%9B%E5%BB%BA/" target="_blank" rel="noopener">Docker镜像创建</a></p>
+<p><strong>解释一下，按照上面的Dockerfile构建出来的镜像，安装了hexo的博客环境所依赖的工具或命令，包括git,node,npm,hexo本身，到此处，其实已经搭建好了一个hexo环境，只不过这个环境在一个容器中，接下来正常的操作就是新建一个目录作为hexo的博客根目录，然后执行‘hexo init . &amp;&amp; npm install &amp;&amp; …’,但是其实我不会这么做，后面解释。</strong></p>
+<h2 id="运行docker-构建镜像"><a href="#运行docker-构建镜像" class="headerlink" title="运行docker,构建镜像"></a>运行docker,构建镜像</h2><p>检查docker是否在运行:</p>
+<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># systemctl status docker</span></span><br></pre></td></tr></table></figure>
+<p>如果是”inactive”，那么启动docker:</p>
+<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># systemctl start  docker</span></span><br></pre></td></tr></table></figure>
+<p>依据Dockerfile构建hexo镜像：</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">#docker</span> <span class="keyword">build </span>-t  hexo:<span class="built_in">v1</span>  .</span><br></pre></td></tr></table></figure>
+<p><strong>注意：</strong>此命令是必须在Dockerfile的目录下执行，hexo:v1可以自行命名，就是镜像的名字，v1应该类似于一个tag之类的东西。</p>
+<p>如果正常的话，是会看到后面的输出正好对应着Dockerfile中的每条命令。构建成功后大致会看到类似“successful build”之类的提示。查看镜像:</p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker images</span></span><br><span class="line">REPOSITORY       <span class="keyword">TAG</span>              <span class="title">IMAGE</span> ID         CREATED             SIZE</span><br><span class="line">hexo             v1               <span class="number">522</span>f7cfc7a31     <span class="number">8</span> seconds ago         <span class="number">405M</span>B</span><br></pre></td></tr></table></figure>
+<p>关于405MB可能不准确，因为当时的数据我现在不太记得，不过大致在这个量级，还是挺大的。</p>
+<h2 id="测试容器hexo"><a href="#测试容器hexo" class="headerlink" title="测试容器hexo"></a>测试容器hexo</h2><p>执行命令：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># docker run -i -t <span class="number">522f</span>7cfc7a31 -p <span class="number">4000</span>:<span class="number">4000</span> /bin/bash</span><br></pre></td></tr></table></figure>
+<p>会启动容器，这个时候切换到容器里的系统的终端，如：</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root<span class="variable">@abfc3a0ec1f0</span><span class="symbol">:/Hexo</span><span class="comment">#</span></span><br></pre></td></tr></table></figure>
+<p>紧接着敲入命令：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">root@abfc3a0ec1f0:~#</span> <span class="string">hexo</span>  <span class="string">-v</span></span><br><span class="line"><span class="attr">hexo-cli:</span> <span class="number">1.0</span><span class="number">.2</span></span><br><span class="line"><span class="attr">os:</span> <span class="string">Linux</span> <span class="number">3.10</span><span class="number">.0</span><span class="number">-327.36</span><span class="number">.3</span><span class="string">.el7.x86_64</span> <span class="string">linux</span> <span class="string">x64</span></span><br><span class="line"><span class="attr">http_parser:</span> <span class="number">2.5</span><span class="number">.2</span></span><br><span class="line"><span class="attr">node:</span> <span class="number">4.4</span><span class="number">.5</span></span><br><span class="line"><span class="attr">v8:</span> <span class="number">4.5</span><span class="number">.103</span><span class="number">.35</span></span><br><span class="line"><span class="attr">uv:</span> <span class="number">1.8</span><span class="number">.0</span></span><br><span class="line"><span class="attr">zlib:</span> <span class="number">1.2</span><span class="number">.8</span></span><br><span class="line"><span class="attr">ares:</span> <span class="number">1.10</span><span class="number">.1</span><span class="string">-DEV</span></span><br><span class="line"><span class="attr">icu:</span> <span class="number">56.1</span></span><br><span class="line"><span class="attr">modules:</span> <span class="number">46</span></span><br><span class="line"><span class="attr">openssl:</span> <span class="number">1.0</span><span class="string">.2h</span></span><br></pre></td></tr></table></figure>
+<p>证明hexo容器启动正常，hexo环境安装成功。</p>
+<h2 id="克隆hexo博客仓库源码，尝试提交"><a href="#克隆hexo博客仓库源码，尝试提交" class="headerlink" title="克隆hexo博客仓库源码，尝试提交"></a>克隆hexo博客仓库源码，尝试提交</h2><p><strong><em>这一步就是上面提到的在后面解释的那一步。</em></strong></p>
+<p>上面说到，安装好hexo的环境后，接下来就是执行创建博客源码的步骤，但是由于前一篇博文<a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端编写博客</a>中已经把博客源码放到了coding的私有仓库中，所以接下的步骤将会有些许不一样的地方。</p>
+<h3 id="配置ssh"><a href="#配置ssh" class="headerlink" title="配置ssh"></a>配置ssh</h3><p>配置ssh，目的是为了通过ssh通道克隆我的博客仓库源码，免去http方式的用户名密码验证。配置方式可以参照我之前的博文<a href="http://rebootcat.com/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" target="_blank" rel="noopener">我的个人博客搭建记录</a>中”配置SSH”一节。这里我把所有命令一起写下来：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">root@abfc3a0ec1f0<span class="symbol">:~</span><span class="comment">#  cd ~/.ssl &amp;&amp; ls -al ./*</span></span><br><span class="line">root@abfc3a0ec1f0<span class="symbol">:~</span><span class="comment">#  rm -rf ./*</span></span><br><span class="line">root@abfc3a0ec1f0<span class="symbol">:~</span><span class="comment"># git config --global user.name "yourname" &amp;&amp; git config --global user.email "youremail" &amp;&amp; ssh-keygen -t rsa -C "yourmail<span class="doctag">@gmail</span>.com"  &amp;&amp; cat ~/.ssh/id_rsa.pub</span></span><br></pre></td></tr></table></figure>
+<p>实际情况实际替换。然后在coding上添加上面产生的密匙。</p>
+<h3 id="克隆博客源码"><a href="#克隆博客源码" class="headerlink" title="克隆博客源码"></a>克隆博客源码</h3><p>执行命令：</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root<span class="variable">@abfc3a0ec1f0</span><span class="symbol">:~</span><span class="comment"># git clone  &lt;server&gt;</span></span><br></pre></td></tr></table></figure>
+<p>这一步完成后我们就把整个博客的源码克隆下来了，参照前一篇博文<a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端同步编写博客</a>中”在另外的PC上”一节，只需要在博客目录下执行命令：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm  <span class="keyword">install</span></span><br></pre></td></tr></table></figure>
+<p>接下来就可以编写博客了：</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">hexo d -g</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>到这里其实完成了博客的所有依赖，也即此刻就不用再配置博客的系统了，接下来就是如何把这个容器保存下来的问题</strong></p>
+<h2 id="构建最终hexo镜像"><a href="#构建最终hexo镜像" class="headerlink" title="构建最终hexo镜像"></a>构建最终hexo镜像</h2><p>简要阐述下上面的过程，首先依赖ubuntu的基础镜像安装好了hexo的环境，导出了一个hexo的第一个版本v1镜像，此时还没有博客源码，然后运行容器，在容器里边操作，配置ssh，克隆博客，完成后，就是再次生成镜像。<br>执行命令：</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root<span class="variable">@abfc3a0ec1f0</span><span class="symbol">:~</span><span class="comment"># exit</span></span><br></pre></td></tr></table></figure>
+<p>记住容器的id abfc3a0ec1f0，然后执行命令：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># docker commit -m <span class="meta-string">"finally hexo"</span> -a <span class="meta-string">"Author"</span> abfc3a0ec1f0 hexo:v2</span></span><br></pre></td></tr></table></figure>
+<p>完成后执行docker images后会看到现在构建好的镜像hexo:v2版本。这个版本就是我们最终需要的镜像。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># <span class="selector-tag">docker</span> <span class="selector-tag">save</span> <span class="selector-tag">-o</span> <span class="selector-tag">hexo_finally</span><span class="selector-class">.tar</span> <span class="selector-tag">hexo</span><span class="selector-pseudo">:v2</span></span><br></pre></td></tr></table></figure>
+<p>上面把镜像导出到本地。</p>
+<p>到此处，已经完成了这篇博客的目的，构建了一个hexo的docker镜像，这个镜像可以运行在任何安装了docker的机器上，达到了之前我预期的多终端同步编写博客的目的。也不再害怕那天我的电脑硬盘又悲剧了，当然这个hexo_finally.tar是要备份的，不然说啥也没用。</p>
+<p>但是，为了测试下这个镜像有没有正确，接下来我做点测试。</p>
+<h2 id="验证hexo镜像"><a href="#验证hexo镜像" class="headerlink" title="验证hexo镜像"></a>验证hexo镜像</h2><p>首先执行命令删除所有镜像:</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># docker rmi <span class="constructor">$(<span class="params">docker</span> <span class="params">images</span> -<span class="params">q</span>)</span></span><br></pre></td></tr></table></figure>
+<p>然后装载镜像：</p>
+<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># docker load &lt; hexo_finally.tar</span></span><br></pre></td></tr></table></figure>
+<p>执行docker images即可查看到装载进来的镜像。然后运行容器：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># docker run -i -t <span class="meta-string">&lt;id&gt;  /bin/bash</span></span></span><br></pre></td></tr></table></figure>
+<p>然后（blog是我自己的博客根目录）:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span>  blog</span><br></pre></td></tr></table></figure>
+<p>尝试执行:</p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git pull origin <span class="keyword">master</span> <span class="title">&amp;&amp; hexo</span> d -g</span><br></pre></td></tr></table></figure>
+<p><strong>这一步多半凶多吉少，我在此处浪费了很多时间。我发现每次运行容器后root用户下的.ssh文件夹会不见了，这个文件下可是我之前生成的密匙所在地啊。反复试了好多次，发现都一样，只要重新运行，.ssh文件夹就会消失。后来我采取了一个折中的办法，把id_rsa和id_rsa.pub两个文件复制到root的$HOME下，然后在重新生成镜像导出，下次再运行容器的时候重新把这两个文件复制到.ssh文件夹下可以解决此问题</strong></p>
+<h1 id="END"><a href="#END" class="headerlink" title="END"></a>END</h1><p>好了，到此处，基本完成了hexo的镜像制作，只要备份了这个hexo_finally.tar包，就可以不惧怕任何宕机问题了，欧耶。其实我如果写好博客后，是不需要执行hexo d -g命令的，由于我后来采用了daocloud自动集成，所以只需要把博客源码提交到coding就可以了，然后daocloud会自动集成构建。(关于这种采用daocloud自动集成的方式，我后面的博文会记录到，这里先占个坑，写好了重新更新到这里。<a href="null">点我</a>)</p>
+<p>总体过程还是有点复杂的，我由于是回忆的状态写，可能会有疏漏，如果碰到问题，你可以联系我或者自己探索解决。总之，首先要了解docker，然后学会使用docker，然后做起这些来就比较轻松多了。</p>
+<p>至于docker嘛，使用感觉并没有想象中那么如丝般柔滑，加载一个镜像，运行一个容器还是挺慢的。恩，对的。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#111;&#x64;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#x2e;&#99;&#111;&#x6d;">&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#111;&#x64;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#x2e;&#99;&#111;&#x6d;</a></p>
+</li>
+</ul>
+<p>2016-12-20 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/12/06/daocloud-hexo/" rel="bookmark">daocloud测试</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/12/01/docker-test/" rel="bookmark">docker-hexo镜像测试</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/12/21/use-daocloud-buildhexo/" rel="bookmark">使用daocloud持续化构建hexo博客</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/02/13/new_picture_bed_github/" rel="bookmark">博客图床切换 Github + jsDelivr + PicGo</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/03/22/rebuild_hexoblog_in_mac/" rel="bookmark">切换博客从win到mac</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2016/12/20/docker-made-hexoimage/" title="使用docker制作hexo镜像">http://www.rebootcat.com/2016/12/20/docker-made-hexoimage/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hexo/" rel="tag"># hexo</a>
+              <a href="/tags/docker/" rel="tag"># docker</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/12/13/use-coding-update-blog/" rel="prev" title="使用coding私有仓库多终端同步编写博客">
+      <i class="fa fa-chevron-left"></i> 使用coding私有仓库多终端同步编写博客
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/12/21/use-daocloud-buildhexo/" rel="next" title="使用daocloud持续化构建hexo博客">
+      使用daocloud持续化构建hexo博客 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#What-is-Docker"><span class="nav-number">2.</span> <span class="nav-text">What is Docker?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#构建hexo镜像"><span class="nav-number">3.</span> <span class="nav-text">构建hexo镜像</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Docker"><span class="nav-number">3.1.</span> <span class="nav-text">安装Docker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dockerfile"><span class="nav-number">3.2.</span> <span class="nav-text">Dockerfile</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行docker-构建镜像"><span class="nav-number">3.3.</span> <span class="nav-text">运行docker,构建镜像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试容器hexo"><span class="nav-number">3.4.</span> <span class="nav-text">测试容器hexo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#克隆hexo博客仓库源码，尝试提交"><span class="nav-number">3.5.</span> <span class="nav-text">克隆hexo博客仓库源码，尝试提交</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置ssh"><span class="nav-number">3.5.1.</span> <span class="nav-text">配置ssh</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#克隆博客源码"><span class="nav-number">3.5.2.</span> <span class="nav-text">克隆博客源码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#构建最终hexo镜像"><span class="nav-number">3.6.</span> <span class="nav-text">构建最终hexo镜像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#验证hexo镜像"><span class="nav-number">3.7.</span> <span class="nav-text">验证hexo镜像</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#END"><span class="nav-number">4.</span> <span class="nav-text">END</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

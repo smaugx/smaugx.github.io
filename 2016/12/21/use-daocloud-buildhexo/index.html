@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前面的话前面几篇博客陆续记录了我使用coding仓库备份博客网站源码，以及构建了hexo的docker镜像，也提到了使用daocloud进行自动化构建hexo博客的功能。这篇博文就是记录使用daocloud持续化构建hexo博客的折腾。前面的折腾如下：  使用coding私有仓库多终端编写博客 使用docker制作hexo镜像  daocloud其实我是很喜欢简单粗暴的，直接，爽快，干净，利落。我">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用daocloud持续化构建hexo博客">
+<meta property="og:url" content="http://www.rebootcat.com/2016/12/21/use-daocloud-buildhexo/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="前面的话前面几篇博客陆续记录了我使用coding仓库备份博客网站源码，以及构建了hexo的docker镜像，也提到了使用daocloud进行自动化构建hexo博客的功能。这篇博文就是记录使用daocloud持续化构建hexo博客的折腾。前面的折腾如下：  使用coding私有仓库多终端编写博客 使用docker制作hexo镜像  daocloud其实我是很喜欢简单粗暴的，直接，爽快，干净，利落。我">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/daocloud1.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/dao2.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/dao%E6%9E%84%E5%BB%BA%E8%AE%BE%E7%BD%AE.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/dao4.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/dao%E6%B5%81%E7%A8%8B%E5%AE%9A%E4%B9%89.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/dao%E6%97%A5%E5%BF%97.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/daoimages1.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/daoimage2.png">
+<meta property="article:published_time" content="2016-12-21T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.947Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="hexo">
+<meta property="article:tag" content="docker">
+<meta property="article:tag" content="daocloud">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://o8fj2jbwb.bkt.clouddn.com/daocloud1.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2016/12/21/use-daocloud-buildhexo/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>使用daocloud持续化构建hexo博客 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2016/12/21/use-daocloud-buildhexo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用daocloud持续化构建hexo博客
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-12-21 11:23:58" itemprop="dateCreated datePublished" datetime="2016-12-21T11:23:58+08:00">2016-12-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index"><span itemprop="name">docker</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前面的话"><a href="#前面的话" class="headerlink" title="前面的话"></a>前面的话</h1><p>前面几篇博客陆续记录了我使用coding仓库备份博客网站源码，以及构建了hexo的docker镜像，也提到了使用daocloud进行自动化构建hexo博客的功能。这篇博文就是记录使用daocloud持续化构建hexo博客的折腾。前面的折腾如下：</p>
+<ul>
+<li><a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端编写博客</a></li>
+<li><a href="http://rebootcat.com/2016/12/20/docker-made-hexoimage/" target="_blank" rel="noopener">使用docker制作hexo镜像</a></li>
+</ul>
+<h1 id="daocloud"><a href="#daocloud" class="headerlink" title="daocloud"></a>daocloud</h1><p>其实我是很喜欢简单粗暴的，直接，爽快，干净，利落。我可以直接记录我搭建的过程，中间可以略去对daocloud的介绍，对碰到的问题的介绍，但是，博客的目的不只是记录啊，更多的还是分享自己碰到的问题，或者自己的理解。所以，对于daocloud的介绍还是打算来一下下。</p>
+<h2 id="什么是daocloud？"><a href="#什么是daocloud？" class="headerlink" title="什么是daocloud？"></a>什么是daocloud？</h2><blockquote>
+<p>官网: <a href="https://www.daocloud.io/" target="_blank" rel="noopener"><strong>www.daocloud.io</strong></a></p>
+</blockquote>
+<p>什么是daocloud?daocloud有什么用？正如官网的主页介绍的：</p>
+<blockquote>
+<p>重新定义计算的边界</p>
+<p>业界领先的企业级容器云及解决方案</p>
+</blockquote>
+<a id="more"></a>
+<p>直观的理解就是一个docker容器，只不过被搬到了云上。那么使用daocloud后我发布博客会有什么区别呢？</p>
+<p>原来的方式是写好博客后执行hexo clean  &amp;&amp;hexo d -g一系列的操作手工发布博客，而且必须是在安装好了hexo的环境上执行；<strong>那么使用daocloud之后呢?现在我只需要编写好博客，不用限制在hexo的环境中，在任何环境下，只要有博客源码存在，然后git push到博客源码的仓库，就会触发daocloud的自动集成，博客就发布好了。</strong>是不是方便了很多呢？O(∩_∩)O。</p>
+<h2 id="daocloud与docker"><a href="#daocloud与docker" class="headerlink" title="daocloud与docker"></a>daocloud与docker</h2><p>既然理解了daocloud其实就是一个云容器(当然可能还有其他的部分)，那么与docker就脱不了干系。那么构建的过程原理是如何的呢?</p>
+<p>daocloud使用daocloud.yml文件脚本进行持续构建，daocloud.yml是一系列的命令的集合，自动集成前需要一个docker镜像，这个docker镜像可以是公有的docker镜像，也可以是自己构建的镜像。然后daocloud执行daocloud.yml中一系列的命令就是基于这个镜像，直至最后的博客自动发布。那么如果是自己构建的镜像，如之前的文章<a href="http://rebootcat.com/2016/12/20/docker-made-hexoimage/" target="_blank" rel="noopener">使用docker制作hexo镜像</a>中讲的一样，需要自己编写Dockerfile，然后构建镜像。</p>
+<p>下面是详细的步骤。</p>
+<h1 id="使用daocloud详细步骤"><a href="#使用daocloud详细步骤" class="headerlink" title="使用daocloud详细步骤"></a>使用daocloud详细步骤</h1><h2 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h2><p>在博客根目录新建Dockerfile,内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:slim</span><br><span class="line"><span class="keyword">MAINTAINER</span> nick &lt;linuxcode2niki@gmail.com&gt;</span><br><span class="line"><span class="comment"># instal basic tool </span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apt-get update &amp;&amp; apt-get install -y git ssh-client ca-certificates --no-install-recommends &amp;&amp; rm -r /var/lib/apt/lists/*</span></span><br><span class="line"><span class="comment"># set time zone</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> <span class="string">"Asia/Shanghai"</span> &gt; /etc/timezone &amp;&amp; dpkg-reconfigure -f noninteractive tzdata</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> npm install</span></span><br><span class="line"><span class="comment"># install hexo</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> npm install hexo-cli -g</span></span><br><span class="line"><span class="comment"># install hexo server</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> npm install hexo-server</span></span><br><span class="line"><span class="comment"># set base dir</span></span><br><span class="line"><span class="comment">#RUN mkdir /hexo</span></span><br><span class="line"><span class="comment">#WORKDIR /hexo</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">4000</span></span><br><span class="line"><span class="comment">#CMD ["/bin/bash"]</span></span><br></pre></td></tr></table></figure>
+<p>Dockerfile用来构建hexo环境，可以缩短每次自动集成的时间。</p>
+<h2 id="编写daocloud-yml"><a href="#编写daocloud-yml" class="headerlink" title="编写daocloud.yml"></a>编写daocloud.yml</h2><p>在博客根目录新建daocloud.yml，内容如下:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">version</span>: 2.0</span><br><span class="line"></span><br><span class="line"><span class="attribute">test:</span></span><br><span class="line">    image:</span><br><span class="line">        daocloud.io/rebootcaty/hexo:latest</span><br><span class="line"></span><br><span class="line">    services:</span><br><span class="line">        #- redis</span><br><span class="line"></span><br><span class="line">    # using default docker-link env</span><br><span class="line">    env:</span><br><span class="line">        #- REDIS_PORT_6379_TCP_PROTO = "tcp"</span><br><span class="line">        #- REDIS_PASSWORD = ""</span><br><span class="line"></span><br><span class="line">    install:</span><br><span class="line">      # - npm install</span><br><span class="line"></span><br><span class="line">    before_script:</span><br><span class="line">        - mkdir ~/.ssh</span><br><span class="line">        # 将ssh配置文件放入目录</span><br><span class="line">        - mv .daocloud/id_rsa ~/.ssh/id_rsa</span><br><span class="line">        # 将ssh配置文件放入目录</span><br><span class="line">        - mv .daocloud/ssh_config ~/.ssh/config</span><br><span class="line">        # 修改私钥和配置文件为可读权限</span><br><span class="line">        - chmod 600 ~/.ssh/id_rsa</span><br><span class="line">        - chmod 600 ~/.ssh/config</span><br><span class="line">        # 启动ssh-agent</span><br><span class="line">        - eval $(ssh-agent)</span><br><span class="line">        # 添加私钥 </span><br><span class="line">        - ssh-add ~/.ssh/id_rsa</span><br><span class="line">        # 删除存放私钥和配置的目录及文件</span><br><span class="line">        - rm -rf .daocloud</span><br><span class="line">        # 配置git全局的用户名和邮件，没有配置不能clone</span><br><span class="line">        - git config --global user.name "nick"</span><br><span class="line">        - git config --global user.email "linuxcode2niki@gmail.com"</span><br><span class="line"></span><br><span class="line">    script:</span><br><span class="line">        - hexo clean</span><br><span class="line">        - hexo g</span><br><span class="line">        - hexo d</span><br><span class="line">        - rm -rf ~/.ssh/</span><br><span class="line"></span><br><span class="line"><span class="attribute">build:</span></span><br><span class="line">    lite_image:</span><br><span class="line">        compile:</span><br><span class="line">            dockerfile_path: Dockerfile</span><br><span class="line">            build_dir: /</span><br><span class="line">            cache: true</span><br><span class="line"></span><br><span class="line">        extract:</span><br><span class="line">           #  - /go/bin/app</span><br><span class="line"></span><br><span class="line">        #package:</span><br><span class="line">            #  dockerfile_path: Dockerfile.sec</span><br><span class="line">            #  build_dir: /</span><br><span class="line">            #  cache: true</span><br></pre></td></tr></table></figure>
+<p>daocloud.yml中拉取镜像 daocloud.io/rebootcaty/hexo:latest，这个到时候可以改成你自己的镜像。这一步不明白没关系，可以先暂时放一放，不影响。</p>
+<h2 id="新建-daocloud文件夹"><a href="#新建-daocloud文件夹" class="headerlink" title="新建.daocloud文件夹"></a>新建.daocloud文件夹</h2><p>在博客根目录新建.daocloud文件夹:</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">mkdir</span>  .daocloud</span><br></pre></td></tr></table></figure>
+<p>然后把之前生成的ssh key(一般在~/.ssh/下)复制一份到这个文件夹下：</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>cp  ~<span class="regexp">/.ssh/id</span>_rsa*   .daocloud/</span><br></pre></td></tr></table></figure>
+<p>接着在.daocloud文件夹下新建文件ssh_config:</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>touch ssh_config</span><br></pre></td></tr></table></figure>
+<p>然后写入内容:</p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">StrictHostKeyChecking <span class="literal">no</span></span><br><span class="line">UserKnownHostsFile /dev/<span class="literal">null</span></span><br></pre></td></tr></table></figure>
+
+<p><strong><em>到此，准备工作还有最后一步，就是提交到博客源码仓库:</em></strong></p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>git add .</span><br><span class="line"><span class="variable">$ </span>git commit -m <span class="string">"first commit hexo"</span></span><br><span class="line"><span class="variable">$ </span>git push origin master</span><br></pre></td></tr></table></figure>
+
+<p><strong><em>接下来才是真正的开始！</em></strong></p>
+<h2 id="daocloud-io上注册用户新建项目"><a href="#daocloud-io上注册用户新建项目" class="headerlink" title="daocloud.io上注册用户新建项目"></a>daocloud.io上注册用户新建项目</h2><p>去daocloud官网<a href="https://www.daocloud.io/" target="_blank" rel="noopener">www.daocloud.io</a>注册账号<br><img src="http://o8fj2jbwb.bkt.clouddn.com/daocloud1.png" alt=""><br>点击项目，新建新项目，填入名称，绑定你的博客源码仓库(比如我的是coding的私有仓库),选择持续集成：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/dao2.png" alt=""><br>然后点击开始创建,然后到”构建设置”里边：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/dao%E6%9E%84%E5%BB%BA%E8%AE%BE%E7%BD%AE.png" alt=""><br>然后是”触发规则”里边：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/dao4.png" alt=""><br>可以注意到上面选择了<strong>成功构建后设置latest为镜像标签</strong>，这就是daocloud.yml中拉取的镜像。</p>
+<p>然后到”流程定义”里：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/dao%E6%B5%81%E7%A8%8B%E5%AE%9A%E4%B9%89.png" alt=""><br>点击保存后点击右上角的手动构建。然后你就会看到一个终端窗口打开了，开始记录构建日志了，嘻嘻。<br><img src="http://o8fj2jbwb.bkt.clouddn.com/dao%E6%97%A5%E5%BF%97.png" alt=""><br>静静等待完成<del>~</del></p>
+<p>如果成功构建，完成后是这样的：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/daoimages1.png" alt=""><br><img src="http://o8fj2jbwb.bkt.clouddn.com/daoimage2.png" alt=""></p>
+<p>至此，当每次写完博客，只需要执行下面这几条命令就不用管了，daocloud会自动构建发布。</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">git</span>  <span class="keyword">add </span>.</span><br><span class="line"><span class="symbol">git</span> commit -m <span class="string">"update"</span></span><br><span class="line"><span class="symbol">git</span> <span class="keyword">push </span>origin master</span><br></pre></td></tr></table></figure>
+
+<h1 id="END"><a href="#END" class="headerlink" title="END"></a>END</h1><p>关于daocloud，不要觉得太欣喜，毕竟“免费的是最贵的”，写这篇博文的时候我是重新又创建了一个项目，重新操作了一遍，但是在它自动构建的时候，执行了很长时间，上面的最后这两张图是我之前的项目的构建结果(我实在等不了刚刚新创建的这个项目的构建了，好慢好慢)。不过你也可以付费购买更好的服务。</p>
+<p>到目前为止，博客的环境迁移，自动发布折腾的差不多了，以后就是坚持写博客，记录知识，分享知识。好吧，坚持不容易，加油！</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#x69;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#x65;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#x67;&#109;&#97;&#x69;&#108;&#46;&#x63;&#111;&#x6d;">&#108;&#x69;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#x65;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#x67;&#109;&#97;&#x69;&#108;&#46;&#x63;&#111;&#x6d;</a></p>
+</li>
+</ul>
+<p>2016-12-21 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/12/06/daocloud-hexo/" rel="bookmark">daocloud测试</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/12/20/docker-made-hexoimage/" rel="bookmark">使用docker制作hexo镜像</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/12/01/docker-test/" rel="bookmark">docker-hexo镜像测试</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/02/13/new_picture_bed_github/" rel="bookmark">博客图床切换 Github + jsDelivr + PicGo</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/03/22/rebuild_hexoblog_in_mac/" rel="bookmark">切换博客从win到mac</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2016/12/21/use-daocloud-buildhexo/" title="使用daocloud持续化构建hexo博客">http://www.rebootcat.com/2016/12/21/use-daocloud-buildhexo/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hexo/" rel="tag"># hexo</a>
+              <a href="/tags/docker/" rel="tag"># docker</a>
+              <a href="/tags/daocloud/" rel="tag"># daocloud</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/12/20/docker-made-hexoimage/" rel="prev" title="使用docker制作hexo镜像">
+      <i class="fa fa-chevron-left"></i> 使用docker制作hexo镜像
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/02/09/FIX-protocol-introduce/" rel="next" title="FIX协议介绍">
+      FIX协议介绍 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前面的话"><span class="nav-number">1.</span> <span class="nav-text">前面的话</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#daocloud"><span class="nav-number">2.</span> <span class="nav-text">daocloud</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是daocloud？"><span class="nav-number">2.1.</span> <span class="nav-text">什么是daocloud？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#daocloud与docker"><span class="nav-number">2.2.</span> <span class="nav-text">daocloud与docker</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用daocloud详细步骤"><span class="nav-number">3.</span> <span class="nav-text">使用daocloud详细步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编写Dockerfile"><span class="nav-number">3.1.</span> <span class="nav-text">编写Dockerfile</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编写daocloud-yml"><span class="nav-number">3.2.</span> <span class="nav-text">编写daocloud.yml</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#新建-daocloud文件夹"><span class="nav-number">3.3.</span> <span class="nav-text">新建.daocloud文件夹</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#daocloud-io上注册用户新建项目"><span class="nav-number">3.4.</span> <span class="nav-text">daocloud.io上注册用户新建项目</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#END"><span class="nav-number">4.</span> <span class="nav-text">END</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

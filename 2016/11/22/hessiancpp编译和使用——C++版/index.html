@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="许下的承诺前两篇博客Hessian通信案例(java)和Hessian源码分析(java)介绍了Java版的hessian的使用以及源码分析。当时也说过打算写一下C++版的hessian的使用和源码分析，现在就是兑现承诺的时候了。其实我项目中实际用到的是C++版的hessian，java版的hessian是我最初接触用来理解hessian，并进行联调测试的部分。 hessian的官网上也提供了C+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hessiancpp编译和使用(C++版)">
+<meta property="og:url" content="http://www.rebootcat.com/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="许下的承诺前两篇博客Hessian通信案例(java)和Hessian源码分析(java)介绍了Java版的hessian的使用以及源码分析。当时也说过打算写一下C++版的hessian的使用和源码分析，现在就是兑现承诺的时候了。其实我项目中实际用到的是C++版的hessian，java版的hessian是我最初接触用来理解hessian，并进行联调测试的部分。 hessian的官网上也提供了C+">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/Ibasic.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/hessiancpp%E7%BB%93%E6%9E%9C.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/hello2.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/serback.png">
+<meta property="article:published_time" content="2016-11-22T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.944Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="hessian">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="ssl">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://o8fj2jbwb.bkt.clouddn.com/Ibasic.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>hessiancpp编译和使用(C++版) | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          hessiancpp编译和使用(C++版)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-22 11:23:58" itemprop="dateCreated datePublished" datetime="2016-11-22T11:23:58+08:00">2016-11-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/hessian/" itemprop="url" rel="index"><span itemprop="name">hessian</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="许下的承诺"><a href="#许下的承诺" class="headerlink" title="许下的承诺"></a>许下的承诺</h1><p>前两篇博客<a href="http://rebootcat.com/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/" target="_blank" rel="noopener">Hessian通信案例(java)</a>和<a href="http://rebootcat.com/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/" target="_blank" rel="noopener">Hessian源码分析(java)</a>介绍了Java版的hessian的使用以及源码分析。当时也说过打算写一下C++版的hessian的使用和源码分析，现在就是兑现承诺的时候了。其实我项目中实际用到的是C++版的hessian，java版的hessian是我最初接触用来理解hessian，并进行联调测试的部分。</p>
+<p>hessian的<a href="http://hessian.caucho.com/#C" target="_blank" rel="noopener">官网</a>上也提供了C++版的hessian的实现。只不过当时在网上找到的说法是hessiancpp的活跃度比较低，而且编译出问题很多，但是还是决定自己亲自一试，毕竟”绝知此事要躬行”嘛，嘿嘿！当然也有其他版本的C++实现，比如<a href="https://github.com/pukkaone/hessianorb" target="_blank" rel="noopener">hessianorb项目</a>。</p>
+<h1 id="Hessiancpp编译"><a href="#Hessiancpp编译" class="headerlink" title="Hessiancpp编译"></a>Hessiancpp编译</h1><p>现在是回过头来写，故早先编译碰到的问题我已经没办法复现，此处就只记录正确的编译步骤和方法。</p>
+<h2 id="下载hessiancpp"><a href="#下载hessiancpp" class="headerlink" title="下载hessiancpp"></a>下载hessiancpp</h2><p>到官网下载源码包：<a href="https://sourceforge.net/projects/hessiancpp/" target="_blank" rel="noopener">https://sourceforge.net/projects/hessiancpp/</a>,我自己当时的版本是hessiancpp-hessaincpp-1.1.0.tar.gz。</p>
+<h2 id="解压编译"><a href="#解压编译" class="headerlink" title="解压编译"></a>解压编译</h2><p>解压上面下载的tar.gz压缩包</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">tar</span>  <span class="selector-tag">zxvf</span>  <span class="selector-tag">hessiancpp-hessaincpp-1</span><span class="selector-class">.1</span><span class="selector-class">.0</span><span class="selector-class">.tar</span><span class="selector-class">.gz</span></span><br></pre></td></tr></table></figure>
+<p>然后进入顶层目录hessiancpp:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> hessaincpp</span><br></pre></td></tr></table></figure>
+
+<p>你可以先查看此目录下的Makefile文件，然后试着执行:</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">make</span> <span class="keyword">all</span></span><br></pre></td></tr></table></figure>
+
+<p>结果，不出所料，编译出错，错误如下：</p>
+<blockquote>
+<p>In file included from hessian_proxy.cpp:19:0:<br>hessian_proxy.h:31:19: 致命错误：ssl++.h：没有那个文件或目录<br>编译中断。<br>make: *** [hessian_proxy.o] 错误 1</p>
+</blockquote>
+<p>可见缺少了一个叫做ssl++.h的头文件，我们再仔细查看Makefile文件，可以看到第一行代码是：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">SSLPP</span>=../sslpp</span><br></pre></td></tr></table></figure>
+
+<p>显然需要另外一个库。这个库就是提供http代理的功能。网上有人碰到这个问题后，选择了libcurl重写一个http代理，据说还可行。</p>
+<p>言归正传，我们需要一个叫做sslpp的库。</p>
+<h2 id="下载hessian-sslpp"><a href="#下载hessian-sslpp" class="headerlink" title="下载hessian-sslpp"></a>下载hessian-sslpp</h2><a id="more"></a>
+<p>去github下载: <a href="https://github.com/ksturner/hessian/tree/master/sslpp" target="_blank" rel="noopener">https://github.com/ksturner/hessian/tree/master/sslpp</a></p>
+<p>常规操作，解压，然后进入顶层目录，然后查看Makefile文件，然后尝试执行make all编译。果然又出错了。</p>
+<p>查看INSTALL文件:</p>
+<blockquote>
+<p>SSLPP was developed on a Fedora Core 2 x86_64 system, using</p>
+<ul>
+<li>GCC 3.3.3</li>
+<li>OpenSSL 0.9.7a</li>
+<li>BOOST 1.31.0</li>
+<li>shared library</li>
+</ul>
+</blockquote>
+<p>可以看到编译SSLPP需要的依赖。我碰到的编译错误是没有安装BOOST库。那么就去安装吧：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum <span class="keyword">install </span><span class="keyword">boost </span><span class="keyword">boost-devel </span> <span class="keyword">boost-doc</span></span><br></pre></td></tr></table></figure>
+<p>完事之后再试着执行make  all ,make install看看。如果没有错误，那么基本就是可以了，如果碰到了错误，那么没办法，只能一步步解决。</p>
+<p>这里主要是需要编译生成的<strong>libsslpp.so</strong>这个动态库。</p>
+<h2 id="继续编译hessiancpp"><a href="#继续编译hessiancpp" class="headerlink" title="继续编译hessiancpp"></a>继续编译hessiancpp</h2><p>回到之前对hessiancpp的编译，修改下Makefile文件中SSLPP这个宏的值，根据sslpp的编译修改。然后执行:</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">make</span> <span class="keyword">all</span></span><br></pre></td></tr></table></figure>
+
+<p>正常情况就不会有问题了，编译成功。<strong>在当前目录下生成了一个libhessian.so和一个main可执行程序和main_dyn可执行程序。</strong></p>
+<p><strong><em>大功告成！！！</em></strong></p>
+<h1 id="使用hessiancpp"><a href="#使用hessiancpp" class="headerlink" title="使用hessiancpp"></a>使用hessiancpp</h1><p>首先要明白，hessiancpp只是实现了hessian的客户端，具体就是实现了hessian的序列化和反序列算法以及使用sslpp作为一个http代理客户端。故如果要使用hessiancpp，还需要配合一个hessian服务端，这里就用之前博文中介绍过的java 版hessian server作为服务端。</p>
+<h2 id="启动hessian-server"><a href="#启动hessian-server" class="headerlink" title="启动hessian server"></a>启动hessian server</h2><p>假设服务端提供了两个接口函数，具体请看下图：<img src="http://o8fj2jbwb.bkt.clouddn.com/Ibasic.png" alt=""><br>函数功能都是返回”Hello, world,my name is nick!”。</p>
+<p>需要注意的是，此时这个服务端的地址为：* http://[IP]:8080/hessian_server/ServerMachineTest *</p>
+<p><strong>然后，启动服务端。</strong></p>
+<h2 id="修改客户端代码"><a href="#修改客户端代码" class="headerlink" title="修改客户端代码"></a>修改客户端代码</h2><p>回到hessiancpp目录下，修改main.cpp。主要修改的代码是:</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">......</span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; <span class="string">"starting"</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"><span class="function">hessian_proxy <span class="title">proxy</span><span class="params">(<span class="string">"192.168.242.188:8080"</span>, <span class="string">"/hessian_server/ServerMachineTest"</span>, <span class="literal">false</span>)</span></span>;</span><br><span class="line"><span class="keyword">try</span></span><br><span class="line">&#123; </span><br><span class="line">  </span><br><span class="line">  Object* hello_ret = proxy.call(<span class="string">"hello"</span>,<span class="number">0</span>);</span><br><span class="line">  dump(hello_ret);</span><br><span class="line">  </span><br><span class="line">  <span class="function">Integer <span class="title">arg1</span><span class="params">(<span class="number">42</span>)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">String</span>  <span class="title">arg2</span><span class="params">(<span class="string">"hahaha"</span>)</span></span>;</span><br><span class="line">  Object* hello2_ret = proxy.call(<span class="string">"hello_2"</span>,<span class="number">2</span>,&amp;arg1,&amp;arg2);</span><br><span class="line">  dump(hello2_ret);</span><br><span class="line"></span><br><span class="line">.....</span><br></pre></td></tr></table></figure>
+
+<p>此处稍微对上面的代码做一点解释，具体解释在后面的代码分析。首先根据url构造一个http代理proxy，然后执行call函数，类似java版hessain里边的invoke函数，call函数的参数就是接口方法名以及接口函数的参数个数，以及参数本身。 dump()函数是已经实现好的，主要功能是打印输出。</p>
+<p>编译，执行，可以看到结果如下：<img src="http://o8fj2jbwb.bkt.clouddn.com/hessiancpp%E7%BB%93%E6%9E%9C.png" alt=""></p>
+<p><strong>至此，完成了c++版的hessian客户端和java版的hessian服务端的通信。</strong></p>
+<h1 id="hessiancpp源码分析"><a href="#hessiancpp源码分析" class="headerlink" title="hessiancpp源码分析"></a>hessiancpp源码分析</h1><p>hessiancpp目录下可以看到的文件有hessian_input.*  hessian_output.*  hessain_proxy.*  wrappers.*  zlibdec.* 等，大概可以猜测到hessian_input.cpp和hessian_output.cpp分别是接收处理和发送处理的代码，也即反序列化和序列化的代码，hessian_proxy.cpp是http代理的代码，负责发送和接收hessian报文。剩下的cpp文件具体再研究。</p>
+<h2 id="单步调试"><a href="#单步调试" class="headerlink" title="单步调试"></a>单步调试</h2><p>为了进行代码分析，最好的办法是单步跟踪:</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gdb <span class="string">./main</span></span><br></pre></td></tr></table></figure>
+
+<p>进入到call函数中：</p>
+<figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">Object* hessian_proxy::call(<span class="keyword">const</span> string&amp; <span class="function"><span class="keyword">method</span>, <span class="title">int</span> <span class="title">argc</span>, ...) <span class="title">throw</span><span class="params">(io_exception, http_exception)</span> <span class="comment">&#123;</span></span></span><br><span class="line"><span class="function"><span class="comment">va_list ap; </span></span></span><br><span class="line"><span class="function"><span class="comment">int narg = 0;</span></span></span><br><span class="line"><span class="function"><span class="comment"></span></span></span><br><span class="line"><span class="function"><span class="comment">// result, connection, hessian output</span></span></span><br><span class="line"><span class="function"><span class="comment">Object* result = NULL;</span></span></span><br><span class="line"><span class="function"><span class="comment">sslpp::http_connection con(_hostspec, _use_ssl);</span></span></span><br><span class="line"><span class="function"><span class="comment">hessian_output hout;</span></span></span><br><span class="line"><span class="function"><span class="comment"></span></span></span><br><span class="line"><span class="function"><span class="comment">// create method call</span></span></span><br><span class="line"><span class="function"><span class="comment">string mc = hout.start_call(method);</span></span></span><br><span class="line"><span class="function"><span class="comment"></span></span></span><br><span class="line"><span class="function"><span class="comment">// add parameters</span></span></span><br><span class="line"><span class="function"><span class="comment">va_start(ap, argc);</span></span></span><br><span class="line"><span class="function"><span class="comment">while (narg++ &lt; argc) &#123;</span></span></span><br><span class="line"><span class="function"><span class="comment">  Object* param = va_arg(ap, Object*);</span></span></span><br><span class="line"><span class="function"><span class="comment">  hout.set_parameter(mc, param);</span></span></span><br><span class="line"><span class="function"><span class="comment">&#125;</span>   </span></span><br><span class="line"><span class="function">// <span class="title">clean</span> <span class="title">up</span> <span class="title">vararg</span></span></span><br><span class="line"><span class="function"><span class="title">va_end</span><span class="params">(ap)</span>;</span></span><br><span class="line"><span class="comment">// finish method call</span></span><br><span class="line">hout.complete_call(mc);</span><br><span class="line"></span><br><span class="line"><span class="comment">// call</span></span><br><span class="line">_num_calls++;</span><br><span class="line">_bytes_out += mc.length();</span><br><span class="line">string raw_reply = con.POST(_url, mc, HESSIAN_HTTP_CONTENT_TYPE, HESSIAN_HTTP_USER_AGENT);</span><br><span class="line">string hessian_reply = con.parse_reply(raw_reply);</span><br><span class="line">_bytes_in += hessian_reply.length();</span><br><span class="line">_call_size_map.insert(std::make_pair(<span class="function"><span class="keyword">method</span>, <span class="title">hessian_reply</span>.<span class="title">length</span><span class="params">()</span>));</span></span><br><span class="line"><span class="comment">// test for compressed answer</span></span><br><span class="line">unsigned short header = ((unsigned short)hessian_reply[<span class="number">1</span>]) &lt;&lt; <span class="number">8</span>;</span><br><span class="line">header += ((unsigned short)hessian_reply[<span class="number">0</span>]);</span><br><span class="line"><span class="keyword">if</span> (header == GZIP_MAGICK) <span class="comment">&#123;</span></span><br><span class="line"><span class="comment">// decompress</span></span><br><span class="line"><span class="comment">  zlibdec zdec;</span></span><br><span class="line"><span class="comment">  try &#123;</span></span><br><span class="line"><span class="comment">    hessian_reply = zdec.decompress(hessian_reply);</span></span><br><span class="line"><span class="comment">  &#125;</span></span><br><span class="line">  catch (zlib_exception&amp; e) <span class="comment">&#123;</span></span><br><span class="line"><span class="comment">    throw io_exception(e.what());</span></span><br><span class="line"><span class="comment">  &#125;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// create a string_input_stream around the reply; note use of auto_ptr</span></span><br><span class="line">auto_ptr&lt;input_stream&gt; sis(<span class="keyword">new</span> string_input_stream(hessian_reply));</span><br><span class="line"><span class="comment">// read reply</span></span><br><span class="line">hessian_input hin(sis);</span><br><span class="line">hin.start_reply();</span><br><span class="line"><span class="keyword">result</span> = hin.get_result();</span><br><span class="line">hin.complete_reply();</span><br><span class="line">return <span class="keyword">result</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中关于序列化的代码为：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">.....	</span><br><span class="line"><span class="comment">// create method call</span></span><br><span class="line"><span class="built_in">string</span> mc = hout.start<span class="constructor">_call(<span class="params">method</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// add parameters</span></span><br><span class="line">va<span class="constructor">_start(<span class="params">ap</span>, <span class="params">argc</span>)</span>;</span><br><span class="line"><span class="keyword">while</span> (narg++ &lt; argc) &#123;</span><br><span class="line">  Object* param = va<span class="constructor">_arg(<span class="params">ap</span>, Object<span class="operator">*</span>)</span>;</span><br><span class="line">  hout.set<span class="constructor">_parameter(<span class="params">mc</span>, <span class="params">param</span>)</span>;</span><br><span class="line">&#125;   </span><br><span class="line"><span class="comment">// clean up vararg</span></span><br><span class="line">va<span class="constructor">_end(<span class="params">ap</span>)</span>;</span><br><span class="line"><span class="comment">// finish method call</span></span><br><span class="line">hout.complete<span class="constructor">_call(<span class="params">mc</span>)</span>;</span><br></pre></td></tr></table></figure>
+<p>start_call(),set_parameter(),complete_call()三个函数完成了hessian的序列化。具体序列化的过程如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">string</span> hessian_output::start<span class="constructor">_call(<span class="params">const</span> <span class="params">string</span>&amp; <span class="params">method_name</span>)</span> &#123;</span><br><span class="line"><span class="built_in">string</span> mc(<span class="string">"c"</span>);</span><br><span class="line">mc.append(<span class="number">1</span>, (<span class="built_in">char</span>)<span class="number">1</span>);</span><br><span class="line">mc.append(<span class="number">1</span>, (<span class="built_in">char</span>)<span class="number">0</span>);</span><br><span class="line">return write<span class="constructor">_ascii_string(<span class="params">mc</span>, <span class="params">method_name</span>, '<span class="params">m</span>')</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实比较简单，字符’c’可能代表”call”或者”client”，然后是版本号’1’,然后追加了一个字符’0’，然后利用write_ascii_string()函数序列化接口函数名,如上面的”hello”。</p>
+<p>然后：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">string</span>&amp; hessian_output::set<span class="constructor">_parameter(<span class="params">string</span>&amp; <span class="params">call</span>, Object<span class="operator">*</span> <span class="params">object</span>)</span> &#123;</span><br><span class="line">  return write<span class="constructor">_object(<span class="params">call</span>, <span class="params">object</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后进入write_object函数：</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="built_in">string</span>&amp; <span class="title">hessian_output::write_object</span><span class="params">(<span class="built_in">string</span>&amp; call, Object* object)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">char</span>* cls = object-&gt;classname2();</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Binary"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_binary(call, <span class="keyword">dynamic_cast</span>&lt;Binary*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Boolean"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_boolean(call, <span class="keyword">dynamic_cast</span>&lt;Boolean*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Date"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_date(call, <span class="keyword">dynamic_cast</span>&lt;Date*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Double"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_double(call, <span class="keyword">dynamic_cast</span>&lt;Double*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Fault"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_fault(call, <span class="keyword">dynamic_cast</span>&lt;Fault*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Integer"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_integer(call, <span class="keyword">dynamic_cast</span>&lt;Integer*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"List"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_list(call, <span class="keyword">dynamic_cast</span>&lt;List*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Long"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_long(call, <span class="keyword">dynamic_cast</span>&lt;Long*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Map"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_map(call, <span class="keyword">dynamic_cast</span>&lt;Map*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Null"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_null(call, <span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Ref"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_ref(call, <span class="keyword">dynamic_cast</span>&lt;Ref*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Remote"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_remote(call, <span class="keyword">dynamic_cast</span>&lt;Remote*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"String"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_string(call, <span class="keyword">dynamic_cast</span>&lt;<span class="keyword">String</span>*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">strcmp</span>(cls, <span class="string">"Xml"</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> write_xml(call, <span class="keyword">dynamic_cast</span>&lt;Xml*&gt;(object));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// throw exception, should not get here, really</span></span><br><span class="line">  <span class="keyword">throw</span> io_exception(<span class="built_in">string</span>(<span class="string">"hessian_output::write_object(): unknown object class "</span>).append(object-&gt;classname()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>这是这一步的核心代码。可见，hessian支持基本的几种序列化类型,根据不同的对象类型，调用不同的序列化函数。</strong><br>此处关键的就是Object这个类，定义在wrappers.h头文件中，Object是基类，后面派生了几种基本的子类:Binary,Boolean,Date,Double,Integer,Long,Map,String…,各个子类里有关于这种类型的对象的具体序列化和反序列化方法。</p>
+<p>回到call()函数，通过：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">string</span> raw_reply = con.<span class="constructor">POST(<span class="params">_url</span>, <span class="params">mc</span>, HESSIAN_HTTP_CONTENT_TYPE, HESSIAN_HTTP_USER_AGENT)</span>;</span><br></pre></td></tr></table></figure>
+<p>客户端把序列化后的hessian报文通过http发送给服务端，然后等待服务端的应答。</p>
+<figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">string hessian_reply = con.parse_reply(raw_reply);</span><br><span class="line">_bytes_in += hessian_reply.length();</span><br><span class="line">_call_size_map.insert(std::make_pair(<span class="function"><span class="keyword">method</span>, <span class="title">hessian_reply</span>.<span class="title">length</span><span class="params">()</span>));</span></span><br></pre></td></tr></table></figure>
+
+<p>服务端的应答就保存在hessian_reply这个string中，接下来就是反序列化:</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">hessian_input hin(sis)<span class="comment">;</span></span><br><span class="line">hin.start_reply()<span class="comment">;</span></span><br><span class="line"><span class="attribute">result</span> = hin.get_result()<span class="comment">;</span></span><br><span class="line">hin.complete_reply()<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>同理，单步跟踪后核心函数式get_result()函数：</p>
+<figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">Object* hessian_input<span class="type">::get_result</span>() throw(io_exception) &#123;</span><br><span class="line">  <span class="keyword">return</span> read_object();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Object* hessian_input<span class="type">::read_object</span>() throw(io_exception) &#123;</span><br><span class="line">  int <span class="built_in">tag</span> = read();</span><br><span class="line">  <span class="keyword">return</span> read_object(<span class="built_in">tag</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Object* hessian_input<span class="type">::read_object</span>(int <span class="built_in">tag</span>) throw(io_exception) &#123;</span><br><span class="line">  switch (<span class="built_in">tag</span>) &#123;</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'b'</span>:</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'B'</span>: <span class="keyword">return</span> <span class="literal">new</span> Binary(read_bytes(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'T'</span>:</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'F'</span>: <span class="keyword">return</span> <span class="literal">new</span> <span class="built_in">Boolean</span>(read_boolean(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'d'</span>: <span class="keyword">return</span> <span class="literal">new</span> <span class="built_in">Date</span>(read_date(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'D'</span>: <span class="keyword">return</span> <span class="literal">new</span> Double(read_double(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'f'</span>: <span class="keyword">return</span> <span class="literal">new</span> Fault(read_fault(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'I'</span>: <span class="keyword">return</span> <span class="literal">new</span> <span class="built_in">Integer</span>(read_int(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'V'</span>: <span class="keyword">return</span> <span class="literal">new</span> <span class="built_in">List</span>(read_list(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'L'</span>: <span class="keyword">return</span> <span class="literal">new</span> Long(read_long(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'M'</span>: <span class="keyword">return</span> <span class="literal">new</span> <span class="built_in">Map</span>(read_map(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'N'</span>: <span class="keyword">return</span> <span class="literal">new</span> <span class="built_in">Null</span>();</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'R'</span>: <span class="keyword">return</span> <span class="literal">new</span> Ref(read_ref(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'s'</span>:</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'S'</span>: <span class="keyword">return</span> <span class="literal">new</span> <span class="built_in">String</span>(read_string(<span class="built_in">tag</span>));</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'x'</span>:</span><br><span class="line">  <span class="keyword">case</span> <span class="string">'X'</span>: <span class="keyword">return</span> <span class="literal">new</span> <span class="built_in">Xml</span>(read_xml(<span class="built_in">tag</span>));</span><br><span class="line">  default:</span><br><span class="line">    throw io_exception(<span class="built_in">string</span>(<span class="string">"hessian_input::readObject(): tag "</span>).append(<span class="number">1</span>, (char) <span class="built_in">tag</span>).append(<span class="string">" cannot be handled"</span>));      &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>反序列化的原理是根据不同的tag值调用相应的类型的反序列函数。</p>
+<h2 id="hessian报文"><a href="#hessian报文" class="headerlink" title="hessian报文"></a>hessian报文</h2><p>上述c++客户端序列化接口函数和其参数的结果如下：<img src="http://o8fj2jbwb.bkt.clouddn.com/hello2.png" alt=""></p>
+<p>从服务端返回来的hessian报文如下：<img src="http://o8fj2jbwb.bkt.clouddn.com/serback.png" alt=""></p>
+<p>可见，hessian报文有很多不可见的二进制字符！</p>
+<h1 id="完了"><a href="#完了" class="headerlink" title="完了"></a>完了</h1><p>上面就把c++版的hessaincpp的编译以及使用，以及源码分析都介绍了一遍，由于我现在是回过头来写这篇博客，会觉得很多地方简单，然后可能会觉得某些步骤或者代码分析不重要，就忽略了一部分。实际过程中，如果你碰到hessian，我的博客仅当参考，还需你自己探索。毕竟“绝知此事要躬行！”O(∩_∩)O</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
+</li>
+<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#x78;&#99;&#111;&#100;&#x65;&#50;&#x6e;&#105;&#x6b;&#x69;&#64;&#103;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;">&#x6c;&#105;&#x6e;&#x75;&#x78;&#99;&#111;&#100;&#x65;&#50;&#x6e;&#105;&#x6b;&#x69;&#64;&#103;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
+</li>
+</ul>
+<p>2016-11-22 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/17/Hessian案例——java/" rel="bookmark">Hessian通信案例(java)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/18/Hessian源码分析——java/" rel="bookmark">Hessian源码分析(java)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/02/10/sourcecode-of-quickfix/" rel="bookmark">Quickfix源代码分析</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/" title="hessiancpp编译和使用(C++版)">http://www.rebootcat.com/2016/11/22/hessiancpp编译和使用——C++版/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hessian/" rel="tag"># hessian</a>
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/ssl/" rel="tag"># ssl</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/" rel="prev" title="Hessian源码分析(java)">
+      <i class="fa fa-chevron-left"></i> Hessian源码分析(java)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/12/01/docker-test/" rel="next" title="docker-hexo镜像测试">
+      docker-hexo镜像测试 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#许下的承诺"><span class="nav-number">1.</span> <span class="nav-text">许下的承诺</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hessiancpp编译"><span class="nav-number">2.</span> <span class="nav-text">Hessiancpp编译</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#下载hessiancpp"><span class="nav-number">2.1.</span> <span class="nav-text">下载hessiancpp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解压编译"><span class="nav-number">2.2.</span> <span class="nav-text">解压编译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#下载hessian-sslpp"><span class="nav-number">2.3.</span> <span class="nav-text">下载hessian-sslpp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#继续编译hessiancpp"><span class="nav-number">2.4.</span> <span class="nav-text">继续编译hessiancpp</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用hessiancpp"><span class="nav-number">3.</span> <span class="nav-text">使用hessiancpp</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#启动hessian-server"><span class="nav-number">3.1.</span> <span class="nav-text">启动hessian server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改客户端代码"><span class="nav-number">3.2.</span> <span class="nav-text">修改客户端代码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#hessiancpp源码分析"><span class="nav-number">4.</span> <span class="nav-text">hessiancpp源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#单步调试"><span class="nav-number">4.1.</span> <span class="nav-text">单步调试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hessian报文"><span class="nav-number">4.2.</span> <span class="nav-text">hessian报文</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#完了"><span class="nav-number">5.</span> <span class="nav-text">完了</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

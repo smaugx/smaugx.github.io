@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="写在前面的话自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。 本文就谈一下目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈几种区块链网络攻击以及防御方案之其它网络攻击">
+<meta property="og:url" content="http://www.rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="写在前面的话自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。 本文就谈一下目">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_other_attack/1.png">
+<meta property="article:published_time" content="2020-04-16T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-18T12:51:50.317Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="blockchain">
+<meta property="article:tag" content="attack">
+<meta property="article:tag" content="bitcoin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_other_attack/1.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>浅谈几种区块链网络攻击以及防御方案之其它网络攻击 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          浅谈几种区块链网络攻击以及防御方案之其它网络攻击
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-16 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-16T11:23:58+08:00">2020-04-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 20:51:50" itemprop="dateModified" datetime="2020-04-18T20:51:50+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a> </li>
+</ul>
+<h1 id="异形攻击"><a href="#异形攻击" class="headerlink" title="异形攻击"></a>异形攻击</h1><p>异形攻击又称地址污染攻击，是指诱使同类链的节点之间互相发现、互联、侵入的一种攻击手法。同类链的意思是底层 P2P 网络使用了相同或者相似的 P2P 通信协议。这尤其针对比特币和以太坊系列的公链。</p>
+<p>众所周知，最近几年区块链行业蓬勃发展，又过于浮躁。其中很多劣质公链大量 COPY 以太坊、比特币的源码，甚至不做修改，仅仅修改下名字成为一条新的公链，这就导致大量的公链的底层是相同的或者兼容的。</p>
+<p>那么如果攻击者执行了异形攻击，就有可能导致同类链的节点之间互相缠绕在一起，影响公链节点内部的通信和路由，进而影响到交易、共识和安全。从而让攻击者有机会施行其他的攻击，比如 DDoS 攻击，网络分裂攻击。</p>
+<p>本质上还是由于伸手党的存在，并且不加以修饰和对节点的检测造成了异形攻击。应对办法也很简单，首先是拒绝做伸手党，即便伸手党，起码也要研究下别人的代码，做点创新和原创的东西；其次加强对本公链的节点类型的检测，比如节点地址不符合的一切拒绝，通信协议不一致的一切拒绝，通信报文头特殊字段不一致的一切拒绝等等。</p>
+<img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_other_attack/1.png" style="zoom:100%;margin:auto;"/>
+
+<center>配图与本文无关</center>
+
+
+<a id="more"></a>
+
+<h1 id="窃听攻击"><a href="#窃听攻击" class="headerlink" title="窃听攻击"></a>窃听攻击</h1><p>这不是区块链特有的攻击手法，本质上就是流量行为分析，通过分析流量，甚至可以把 IP 和家庭地址关联起来，从而知道某笔交易时来自某一个特定的客户端或者某个人。</p>
+<p>区块链的去中心化带来的一个好处就是匿名，或者说相对匿名，但是攻击者通过追踪某笔交易，分析流量等措施，锁定现实世界的具体某个人，然后执行一些违法犯罪的事情。</p>
+<h1 id="交易延展性攻击"><a href="#交易延展性攻击" class="headerlink" title="交易延展性攻击"></a>交易延展性攻击</h1><p>延展性攻击者侦听P2P网络中的交易，利用交易签名算法的特征修改原交易中的input 签名, 生成拥有一样input和output的新交易，然后广播到网络中形成双花，这样原来的交易就可能有一定的概率不能被确认，在虚拟货币交易的情况下，它可以被用来进行二次存款或双重提现。</p>
+<p>案例</p>
+<ol>
+<li><p>2014年8月，在线黑市Silk Road 2遭遇交易延展性攻击，部分比特币被盗，损失约260万美元</p>
+</li>
+<li><p>2013年11月，GHash.io矿池对赌博网站BetCoin Dice进行多次付款欺诈，实施双重支出攻击</p>
+</li>
+</ol>
+<h1 id="BGP劫持攻击"><a href="#BGP劫持攻击" class="headerlink" title="BGP劫持攻击"></a>BGP劫持攻击</h1><p>边界网关协议(BGP)是因特网的关键组成部分，用于确定路由路径。BGP劫持,即利用BGP操纵因特网路由路径，最近几年中已经变得越来越频繁。 无论是网络犯罪分子还是政府,都可以利用这种技术来达到自己的目的，如误导和拦截流量等，目前在区块链网络中节点的流量一但被接管又能对整个网络造成巨大的影响，如破坏共识机制，交易等各种信息。</p>
+<p>而对于BGP劫持攻击中，目前有安全研究者已经证明该攻击的概念可行性，从2015年11月5日至2016年11月15日通过对节点网络的分析统计目前大多数比特币节点都托管在少数特定的几个互联网服务提供商(ISPs)，而60%的比特币连接都是在这几个ISP。所以这几个ISP可以看到60%的比特币流量，所以也能够做到对目前比特币网络的流量控制权，研究者通过劫持的场景验证了至少如下两个攻击概念是可行的，同时给出了验证的代码[8]。</p>
+<p>分割攻击</p>
+<p>攻击者可以利用BGP劫持来讲区块链网络划分成两个或多个不相交的网络，此时的区块链会分叉为两条或多条并行链。攻击停止后，区块链会重新统一为一条链，以最长的链为主链，其他的链将被废弃，其上的交易、奖励等全部无效。</p>
+<p>攻击场景举例：</p>
+<p>1) 首先，攻击者发动BGP劫持，将网络分割为两部分，一个大网络、一个小网络。</p>
+<p>2) 在小网络中，攻击者发布交易卖出自己全部的加密货币，并兑换为法币。</p>
+<p>3) 经过小网络的“全网确认”，这笔交易生效，攻击者获得等值的法币。</p>
+<p>4) 攻击者释放BGP劫持，大网络与小网络互通，小网络上的一切交易被大网络否定，攻击者的加密货币全部回归到账户，而交易得来的法币，依然还在攻击者手中，完成获利。</p>
+<h1 id="路由攻击"><a href="#路由攻击" class="headerlink" title="路由攻击"></a>路由攻击</h1><p>路由攻击往往配合其他的攻击来施行，攻击者可以先利用女巫攻击或者日蚀攻击把网络分裂，然后篡改消息发送到网络当中。最终效果是影响了网络中的通信和路由。</p>
+<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>其实关于区块链系统的攻击方式还有很多，本系列主要偏重于网络层面的攻击。针对不同的攻击，需要采用不同的防御方案，并且很多攻击手法并非区块链特有。随着区块链的发展，黑客的攻击也不会停止，对于公链来说，还有很多挑战。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://www.leiphone.com/news/201805/wujKxkTTleb6kBef.html" target="_blank" rel="noopener">疯狂“搬运”币的黑客如何攻击区块链｜干货（一）</a></p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#120;&#99;&#x6f;&#100;&#x65;&#50;&#x6e;&#105;&#107;&#105;&#x40;&#x67;&#109;&#x61;&#105;&#x6c;&#46;&#99;&#111;&#109;">&#108;&#105;&#110;&#117;&#120;&#99;&#x6f;&#100;&#x65;&#50;&#x6e;&#105;&#107;&#105;&#x40;&#x67;&#109;&#x61;&#105;&#x6c;&#46;&#99;&#111;&#109;</a></p>
+</li>
+</ul>
+<p>2020-04-16 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/11/network_attack_of_blockchain_51_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之51&#37攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/14/network_attack_of_blockchain_ddos_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/12/network_attack_of_blockchain_eclipse_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/13/network_attack_of_blockchain_sybil_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" title="浅谈几种区块链网络攻击以及防御方案之其它网络攻击">http://www.rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/blockchain/" rel="tag"># blockchain</a>
+              <a href="/tags/attack/" rel="tag"># attack</a>
+              <a href="/tags/bitcoin/" rel="tag"># bitcoin</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/14/network_attack_of_blockchain_ddos_attack/" rel="prev" title="浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击">
+      <i class="fa fa-chevron-left"></i> 浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#写在前面的话"><span class="nav-number">1.</span> <span class="nav-text">写在前面的话</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异形攻击"><span class="nav-number">2.</span> <span class="nav-text">异形攻击</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#窃听攻击"><span class="nav-number">3.</span> <span class="nav-text">窃听攻击</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#交易延展性攻击"><span class="nav-number">4.</span> <span class="nav-text">交易延展性攻击</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#BGP劫持攻击"><span class="nav-number">5.</span> <span class="nav-text">BGP劫持攻击</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#路由攻击"><span class="nav-number">6.</span> <span class="nav-text">路由攻击</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#写在最后"><span class="nav-number">7.</span> <span class="nav-text">写在最后</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

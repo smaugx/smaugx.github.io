@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《nginx写日志对于响应速度的影响探究（一）》中其实提出了两个问题还有待研究：  log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ? requ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nginx 写⽇志对响应速度的影响探究（二）">
+<meta property="og:url" content="http://www.rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="前言问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《nginx写日志对于响应速度的影响探究（一）》中其实提出了两个问题还有待研究：  log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ? requ">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://www.rebootcat.com/images/requesttimebodong.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/4k.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/32k.png">
+<meta property="og:image" content="http://www.rebootcat.com/images/64_128k.png">
+<meta property="article:published_time" content="2018-01-04T08:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.948Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="cpu">
+<meta property="article:tag" content="nginx">
+<meta property="article:tag" content="wrk">
+<meta property="article:tag" content="ab">
+<meta property="article:tag" content="lua">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://www.rebootcat.com/images/requesttimebodong.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>nginx 写⽇志对响应速度的影响探究（二） | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          nginx 写⽇志对响应速度的影响探究（二）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-04 16:23:58" itemprop="dateCreated datePublished" datetime="2018-01-04T16:23:58+08:00">2018-01-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/nginx/lua/" itemprop="url" rel="index"><span itemprop="name">lua</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《<a href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" target="_blank" rel="noopener">nginx写日志对于响应速度的影响探究（一）</a>》中其实提出了两个问题还有待研究：</p>
+<ul>
+<li>log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ?</li>
+<li>request time 成周期性波动，周期为 60s，即大概每 60s request time 会出现一个突峰，如下图。so why ？<br><img src="/images/requesttimebodong.png" alt=""></li>
+</ul>
+<a id="more"></a>
+
+<h1 id="过程"><a href="#过程" class="headerlink" title="过程"></a>过程</h1><p>这里的记录将会比较简陋，因为完成之后发现实在没什么更好的干货，不过可以学习下探究的过程方法。</p>
+<h2 id="问题一"><a href="#问题一" class="headerlink" title="问题一"></a>问题一</h2><blockquote>
+<p>log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ?</p>
+</blockquote>
+<h3 id="猜想"><a href="#猜想" class="headerlink" title="猜想"></a>猜想</h3><p>发现这个问题后，有个直观的感觉就是 nginx 每次根据 log buffer 的大小 dump log，即每次写磁盘的大小分别为 4k、64k、128k，写磁盘的大小较小就会导致写的次数过多，写的大小过大就会导致每次耗时较多，在 dump log 的次数与 dump log 的大小之间需要做一个平衡，故相对来看 64k 时表现较优。</p>
+<p>这里有点类似 iostat -x 命令看到的 avgrq-sz，表示设备读写块大小（扇区数）。</p>
+<p>那么是不是这样呢？</p>
+<h3 id="简单探究"><a href="#简单探究" class="headerlink" title="简单探究"></a>简单探究</h3><p>探究过程略，基本方法就是固定其他条件，改变某一个变量（log buffer 大小），然后分别测试 nginx 性能，收集数据，然后绘制曲线图，进行对比分析。</p>
+<ul>
+<li><p>log buffer = 4k<br><img src="/images/4k.png" alt=""></p>
+</li>
+<li><p>log buffer = 32k<br><img src="/images/32k.png" alt=""></p>
+</li>
+<li><p>log buffer = 64k/128k<br><img src="/images/64_128k.png" alt=""></p>
+</li>
+</ul>
+<p>简单对比了小米监控收集的曲线图，还是能看到 log buffer 从 4k 到 32k，再到 64k/128k ，qps是增加了的。只是在 64k/128k 的时候比较不是很明显。</p>
+<h3 id="初步结论"><a href="#初步结论" class="headerlink" title="初步结论"></a>初步结论</h3><p>通过上述对比，<strong>确实发现 log buffer 调整对 nginx 性能有影响，大致为 log buffer 64k 时性能最优！</strong></p>
+<h2 id="问题二"><a href="#问题二" class="headerlink" title="问题二"></a>问题二</h2><blockquote>
+<p>request time 成周期性波动，周期为 60s，即大概每 60s request time 会出现一个突峰，如下图。so why ？</p>
+</blockquote>
+<h3 id="猜想-1"><a href="#猜想-1" class="headerlink" title="猜想"></a>猜想</h3><p>一般周期性波动的可能考虑到周期性的一些命令，比如 crontab 的任务，故可能是由于这些定时脚本执行引发了系统的抖动。</p>
+<h3 id="简单探究-1"><a href="#简单探究-1" class="headerlink" title="简单探究"></a>简单探究</h3><p>探究方法很简单，多次测试，对比。测试的时候也是固定其他条件不变，改变某一个变量进行研究。这里的变量可能需要考虑很多，比如最终这次研究考虑到的一些变量有：</p>
+<ul>
+<li>定时脚本影响</li>
+<li>log on / log off 影响</li>
+<li>压测客户端的请求稳定度</li>
+<li>nginx 一些配置参数，比如 keep_alive影响</li>
+<li>不同机器的影响</li>
+<li>压测客户端与 nginx 是否位于同一台机器的影响</li>
+</ul>
+<p>可以看到上面考虑了很多，也是由于探究过程一步步深入，一步步考虑更多的。这里可以对每次探究的变量进行下解释：</p>
+<h4 id="定时脚本"><a href="#定时脚本" class="headerlink" title="定时脚本"></a>定时脚本</h4><p>关闭这台机器所有定时任务，对比之前的曲线图。</p>
+<h4 id="log-on-log-off"><a href="#log-on-log-off" class="headerlink" title="log on /log off"></a>log on /log off</h4><p>关闭日志与否也可能是导致 request time 周期性突峰的原因，故分别对两种情况进行对比压测。</p>
+<h4 id="压测客户端请求稳定度"><a href="#压测客户端请求稳定度" class="headerlink" title="压测客户端请求稳定度"></a>压测客户端请求稳定度</h4><p>压测客户端能不能以均匀的速率稳定发出请求也可能导致 request time 周期性波动，这里的压测客户端先后使用了 wrk 和 ab 进行压测。</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nohup wrk -c <span class="number">100</span> -t <span class="number">8</span> -d20m http:<span class="comment">//127.0.0.1:8088 -s /disk/ssd1/ngx/benchngx_logof</span></span><br><span class="line">f.lua &gt; /dev/<span class="literal">null</span> &amp; <span class="number">2</span>&gt;&amp;<span class="number">1</span></span><br><span class="line"></span><br><span class="line">ab -n <span class="number">5000000</span> -c <span class="number">8</span> -v <span class="number">3</span> -k http:<span class="comment">//127.0.0.1:8088/ |grep 'X-Time' |cut -d ' '</span></span><br><span class="line"> -f <span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span> &gt;&gt; off8jv13.a</span><br></pre></td></tr></table></figure>
+<p>其中 wrk -s 参数后面的是 lua 脚本：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Copyright 2017 smaug</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="built_in">write</span> = <span class="built_in">io</span>.<span class="built_in">write</span></span><br><span class="line"><span class="keyword">local</span> unique_id = <span class="built_in">tostring</span>( &#123;&#125; ):<span class="built_in">sub</span>(<span class="number">8</span>)</span><br><span class="line">filename = <span class="built_in">string</span>.<span class="built_in">format</span>(<span class="string">"/disk/ssd1/ngx/donev2/off8j_%s.a"</span>,unique_id)</span><br><span class="line">file = <span class="built_in">io</span>.<span class="built_in">open</span>(filename,<span class="string">"a"</span>)</span><br><span class="line"><span class="built_in">io</span>.<span class="built_in">output</span>(file)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">response = <span class="function"><span class="keyword">function</span><span class="params">(status, headers, body)</span></span></span><br><span class="line">   rtime = headers[<span class="string">"X-RTime"</span>]</span><br><span class="line">   ltime = headers[<span class="string">"X-LTime"</span>]</span><br><span class="line">   <span class="built_in">io</span>.<span class="built_in">write</span>(<span class="built_in">string</span>.<span class="built_in">format</span>(<span class="string">"[%s] %s\n"</span>,ltime ,rtime))</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>每次请求后会执行函数，获取 header 中的某些字段，目的是<strong>在关闭日志后收集request time，由于 response body 很小，body 发送时间几乎可以忽略</strong>。此处 nginx 配置如下：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">8088</span>;</span><br><span class="line"></span><br><span class="line">   <span class="attribute">location</span> / &#123;</span><br><span class="line">        <span class="attribute">return</span> <span class="number">200</span> <span class="string">"hello world xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</span>;</span><br><span class="line">        <span class="comment">#proxy_pass http://127.0.0.1:8089;</span></span><br><span class="line">       <span class="comment">#access_log /disk/ssd1/jmh/access.log simple buffer=32k;</span></span><br><span class="line">       <span class="attribute">access_log</span> <span class="literal">off</span>;</span><br><span class="line">       <span class="attribute">error_log</span>  <span class="literal">off</span>;</span><br><span class="line">       <span class="attribute">add_header</span>  X-RTime <span class="variable">$request_time</span>;</span><br><span class="line">       <span class="attribute">add_header</span>  X-LTime <span class="variable">$time_local</span>;</span><br><span class="line">       <span class="attribute">add_header</span>  X-Time <span class="string">'[<span class="variable">$time_local</span>] <span class="variable">$request_time</span>'</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后过滤日志文件得到 request time，当然这是关闭日志的情况下，如果没有关闭日志，自然只需要分析 access.log 文件即可。</p>
+<p>ab -v 参数可以获取 response header ，使用 linux 管道等命令收集 request time，也是在关闭日志的情况下。</p>
+<h4 id="keep-alive"><a href="#keep-alive" class="headerlink" title="keep_alive"></a>keep_alive</h4><p>改变这个参数的值，进行对比压测。</p>
+<h4 id="不同机器"><a href="#不同机器" class="headerlink" title="不同机器"></a>不同机器</h4><p>request time 波动的情况是否只是出现在这一台机器还是其他机器也会出现，故需要对比其他机器，对其他机器进行压测对比。</p>
+<h4 id="压测客户端（wrk-ab）与-nginx-是否位于同一台机器"><a href="#压测客户端（wrk-ab）与-nginx-是否位于同一台机器" class="headerlink" title="压测客户端（wrk/ab）与 nginx 是否位于同一台机器"></a>压测客户端（wrk/ab）与 nginx 是否位于同一台机器</h4><p>压测客户端也是需要需要大量 cpu 资源的，甚至 I/O 资源，如果与 nginx 两者位于同一台机器，是否也可能对 nginx 产生影响呢？故让压测客户端从另外一台机器发起请求，然后对比分析。</p>
+<h3 id="初步结论-1"><a href="#初步结论-1" class="headerlink" title="初步结论"></a>初步结论</h3><p><strong>很遗憾，经过上述的探究，没有得出很确切的结论，request time 波动情况一直存在，不过可以注意到的是对不同机器进行压测的时候，我选择了好几台机器，其中包括我自己本地的一台虚拟机，就没有出现 request time 波动的情况，初步可以怀疑是那批机器本身的一些问题，可能是内核方面的问题，因为那批机器内核是经过了裁剪的。但不能确定，依然是模凌两可的结论。</strong></p>
+<h2 id="末了"><a href="#末了" class="headerlink" title="末了"></a>末了</h2><p>探究过程是一个比较无聊的过程，改变某个变量，重复的进行研究，想起了高中做的一些化学实验，确实比较无趣。</p>
+<p><strong>但是很多问题不可能是暴露在表面的，而且埋的很深，甚至最后都没法找到确切的根源，这些就需要很细心的分析，考虑的也要很周全，要根据当前的情况考虑更多的可能性，要排除一切可能导致的原因。这种分析过程，这种全面考虑问题的能力能得到提高和锻炼！</strong></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" rel="bookmark">nginx 写日志对响应速度的影响探究（一）</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/01/04/analyze-of-high-iowait/" rel="bookmark">CPU.IOWAIT 偏高问题《二》</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/12/14/instability-of-cpu/" rel="bookmark">CPU.IOWAIT 偏高问题</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" title="nginx 写⽇志对响应速度的影响探究（二）">http://www.rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cpu/" rel="tag"># cpu</a>
+              <a href="/tags/nginx/" rel="tag"># nginx</a>
+              <a href="/tags/wrk/" rel="tag"># wrk</a>
+              <a href="/tags/ab/" rel="tag"># ab</a>
+              <a href="/tags/lua/" rel="tag"># lua</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/01/04/analyze-of-high-iowait/" rel="prev" title="CPU.IOWAIT 偏高问题《二》">
+      <i class="fa fa-chevron-left"></i> CPU.IOWAIT 偏高问题《二》
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/01/08/wechat_jump_hack/" rel="next" title="微信跳一跳高分辅助踩坑">
+      微信跳一跳高分辅助踩坑 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#过程"><span class="nav-number">2.</span> <span class="nav-text">过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#问题一"><span class="nav-number">2.1.</span> <span class="nav-text">问题一</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#猜想"><span class="nav-number">2.1.1.</span> <span class="nav-text">猜想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简单探究"><span class="nav-number">2.1.2.</span> <span class="nav-text">简单探究</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初步结论"><span class="nav-number">2.1.3.</span> <span class="nav-text">初步结论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题二"><span class="nav-number">2.2.</span> <span class="nav-text">问题二</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#猜想-1"><span class="nav-number">2.2.1.</span> <span class="nav-text">猜想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简单探究-1"><span class="nav-number">2.2.2.</span> <span class="nav-text">简单探究</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#定时脚本"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">定时脚本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#log-on-log-off"><span class="nav-number">2.2.2.2.</span> <span class="nav-text">log on &#x2F;log off</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#压测客户端请求稳定度"><span class="nav-number">2.2.2.3.</span> <span class="nav-text">压测客户端请求稳定度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#keep-alive"><span class="nav-number">2.2.2.4.</span> <span class="nav-text">keep_alive</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#不同机器"><span class="nav-number">2.2.2.5.</span> <span class="nav-text">不同机器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#压测客户端（wrk-ab）与-nginx-是否位于同一台机器"><span class="nav-number">2.2.2.6.</span> <span class="nav-text">压测客户端（wrk&#x2F;ab）与 nginx 是否位于同一台机器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初步结论-1"><span class="nav-number">2.2.3.</span> <span class="nav-text">初步结论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#末了"><span class="nav-number">2.3.</span> <span class="nav-text">末了</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

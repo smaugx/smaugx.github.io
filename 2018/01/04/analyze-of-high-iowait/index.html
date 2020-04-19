@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="写在前面今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！ 这几天好好的写一篇总结！2018年对我来说，很重要！ 回顾一下上一篇文章 CPU.IOWA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CPU.IOWAIT 偏高问题《二》">
+<meta property="og:url" content="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="写在前面今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！ 这几天好好的写一篇总结！2018年对我来说，很重要！ 回顾一下上一篇文章 CPU.IOWA">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://www.rebootcat.com/images/problem.png">
+<meta property="article:published_time" content="2018-01-04T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.952Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="cpu">
+<meta property="article:tag" content="iowait">
+<meta property="article:tag" content="iotop">
+<meta property="article:tag" content="iostat">
+<meta property="article:tag" content="perl">
+<meta property="article:tag" content="kernel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://www.rebootcat.com/images/problem.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>CPU.IOWAIT 偏高问题《二》 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CPU.IOWAIT 偏高问题《二》
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-04 11:23:58" itemprop="dateCreated datePublished" datetime="2018-01-04T11:23:58+08:00">2018-01-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！</p>
+<p>这几天好好的写一篇总结！2018年对我来说，很重要！</p>
+<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><p>上一篇文章 <a href="http://rebootcat.com/2017/12/14/instability-of-cpu/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中其实已经大致分析出了问题所在。</p>
+<p>文中『Find The Murderer』章节也指出了可能造成 IOWAIT% 偏高的进程，但不够有说服力。故此文尝试进一步的分析造成 IOWAIT% 偏高的原因！</p>
+<p><img src="/images/problem.png" alt=""></p>
+<a id="more"></a>
+
+<h1 id="查找最耗-IOWAIT-的进程"><a href="#查找最耗-IOWAIT-的进程" class="headerlink" title="查找最耗 IOWAIT 的进程"></a>查找最耗 IOWAIT 的进程</h1><p>造成 IOWAIT% 偏高的进程一定也是 I/O 操作比较频繁的进程，<a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中使用了两种方法，第一种是使用 ps 命令查找状态码为 ‘D’ 的进程，这种方式找到的结果不够准确；第二种是使用 iotop 工具，这种方式可能存在的问题是机器内核版本定制过，部分模块可能没有，而 iotop 这个工具要求内核版本相对较高，虽然我做了一点修改，骗过了 iotop，让 iotop 能正常运行，但总之得到的结果可能不够准确。</p>
+<p>基于以上的分析，有必要用另外的方法。那么如何统计每个进程的 I/O 数呢，进而找到 I/O 数最高的进程？下面是查找过程。</p>
+<p>首先，关闭syslog:</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dmesg -<span class="built_in">c</span></span><br><span class="line">/etc/<span class="keyword">init</span>.d/klogd stop</span><br></pre></td></tr></table></figure>
+
+<p>接着下载一个 perl 脚本:</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https:<span class="regexp">//gi</span>thub.com<span class="regexp">/true/</span>aspersa-mirror<span class="regexp">/blob/m</span>aster<span class="regexp">/iodump</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，打开 block_dump，这是内核关于 I/O 信息的一些日志：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo <span class="number">1</span> &gt; <span class="regexp">/proc/</span>sys<span class="regexp">/vm/</span>block_dump</span><br></pre></td></tr></table></figure>
+<p>block_dump中设置非零值能够打开内核关于每一个 I/O 操作进行记录的开关，这时候可以看到内核已经收集到了 I/O 的日志：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>localhost]# dmesg</span><br><span class="line">someprocess(<span class="number">1880</span>): READ block <span class="number">3830529728</span> on bcache1 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1877</span>): READ block <span class="number">2492278208</span> on bcache2 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1878</span>): READ block <span class="number">1407266528</span> on bcache3 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1877</span>): WRITE block <span class="number">2671126368</span> on bcache2 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1877</span>): WRITE block <span class="number">2671126528</span> on bcache2 (<span class="number">160</span> sectors)</span><br></pre></td></tr></table></figure>
+
+<p>接下来就是对这些日志进行分析，这时就用到了 iodump 脚本：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">while</span> <span class="literal">true</span>; <span class="attribute">do</span> sleep <span class="number">1</span>; <span class="attribute">dmesg</span> -c; <span class="attribute">done</span> | perl iodump</span><br></pre></td></tr></table></figure>
+<p>这时候可能会出错：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-<span class="string">bash:</span> <span class="string">perl:</span> command not found</span><br></pre></td></tr></table></figure>
+<p>oho,这台机器没有 perl 环境，好吧，接着装一个好了:</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget http://www.cpan.org/src/<span class="number">5.0</span>/<span class="keyword">perl</span>-<span class="number">5.26</span>.<span class="number">1</span>.tar.gz</span><br><span class="line">tar zxvf <span class="keyword">perl</span>-<span class="number">5.26</span>.<span class="number">1</span>.tar.gz</span><br><span class="line"><span class="keyword">cd</span> <span class="keyword">perl</span>-<span class="number">5.26</span>.<span class="number">1</span></span><br><span class="line"></span><br><span class="line">./Configure -des -Dprefix=./localperl</span><br><span class="line"><span class="keyword">make</span> test</span><br><span class="line"><span class="keyword">make</span> install</span><br></pre></td></tr></table></figure>
+<p>然后添加环境变量：</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=<span class="variable">$PATH</span><span class="symbol">:/root/mydir/localperl/bin</span></span><br></pre></td></tr></table></figure>
+<p>重新执行命令:</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">while</span> <span class="literal">true</span>; <span class="attribute">do</span> sleep <span class="number">1</span>; <span class="attribute">dmesg</span> -c; <span class="attribute">done</span> | perl iodump</span><br></pre></td></tr></table></figure>
+<p>又抛错了？纳尼？</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Can't <span class="keyword">locate</span> strict.pm in <span class="comment">@INC (you may need to install the strict module) (@</span>INC contains: /root/mydir/localperl/<span class="keyword">lib</span>/site_perl/<span class="number">5.20</span><span class="number">.1</span>/x86_64-linux /root/mydir/localperl/<span class="keyword">lib</span>/site_perl/<span class="number">5.20</span><span class="number">.1</span> /root/mydir/localperl/<span class="keyword">lib</span>/<span class="number">5.20</span><span class="number">.1</span>/x86_64-linux /root/mydir/localperl/<span class="keyword">lib</span>/<span class="number">5.20</span><span class="number">.1</span> .) at iodump <span class="keyword">line</span> <span class="number">34.</span></span><br></pre></td></tr></table></figure>
+<p>好吧，设置下库路径:</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PERL5LIB=$<span class="symbol">PERL5LIB:</span>/root/mydir/localperl/<span class="class"><span class="keyword">lib</span></span></span><br></pre></td></tr></table></figure>
+<p>重新运行命令，正常的话可以看到下面的输出：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>localhost]# <span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span> sleep <span class="number">1</span>; dmesg -c; done | ./localperl/bin/perl iodump</span><br><span class="line">TASK                   PID      TOTAL       READ      WRITE      DIRTY DEVICES</span><br><span class="line">someproce             <span class="number">1877</span>       <span class="number">7236</span>       <span class="number">5923</span>       <span class="number">1313</span>          <span class="number">0</span> sda3</span><br><span class="line">someproce             <span class="number">1879</span>       <span class="number">7206</span>       <span class="number">5877</span>       <span class="number">1329</span>          <span class="number">0</span> sda3</span><br><span class="line">jbd2/sda3<span class="number">-8</span>           <span class="number">1241</span>        <span class="number">235</span>          <span class="number">0</span>        <span class="number">235</span>          <span class="number">0</span> sda3</span><br><span class="line">kworker/u16:<span class="number">2</span>       <span class="number">949469</span>         <span class="number">84</span>          <span class="number">0</span>         <span class="number">84</span>          <span class="number">0</span> sda3, sda1</span><br><span class="line">jbd2/sda1<span class="number">-8</span>            <span class="number">509</span>         <span class="number">82</span>          <span class="number">0</span>         <span class="number">82</span>          <span class="number">0</span> sda1</span><br><span class="line">edge-speeds-ale    <span class="number">1265169</span>          <span class="number">3</span>          <span class="number">0</span>          <span class="number">3</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">4144</span>          <span class="number">2</span>          <span class="number">0</span>          <span class="number">2</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">1831</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266086</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">curl               <span class="number">1266655</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">curl               <span class="number">1265033</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266089</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent        <span class="number">116709</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">bash               <span class="number">1264583</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda1</span><br><span class="line">falcon-agent          <span class="number">4142</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266083</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">4150</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent        <span class="number">116710</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br></pre></td></tr></table></figure>
+
+<p>统计结果很明白了，I/O 频繁的进程自然是导致 IOWAIT% 偏高的原因，那么根本原因还是硬件性能不足，磁盘 SSD 性能退化问题。</p>
+<h1 id="告一段落"><a href="#告一段落" class="headerlink" title="告一段落"></a>告一段落</h1><p><a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>以及本篇文章，做了很多关于 I/O、CPU、磁盘的比较细的研究，这些手段和方法值得以后排查其他问题借鉴！</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="https://www.xaprb.com/blog/2009/08/23/how-to-find-per-process-io-statistics-on-linux/" target="_blank" rel="noopener">How to find per-process I/O statistics on Linux</a></li>
+<li><a href="http://www.opensoce.com/2302.html" target="_blank" rel="noopener">linux iowait过高的分析</a></li>
+<li><a href="https://lenciel.com/2014/02/hunting-the-iowait-problem-maker/" target="_blank" rel="noopener">解决iowait过高的告警</a></li>
+<li><a href="https://stackoverflow.com/questions/249570/how-can-i-record-what-process-or-kernel-activity-is-using-the-disk-in-gnu-linux" target="_blank" rel="noopener">How can I record what process or kernel activity is using the disk in GNU/Linux?
+</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/12/14/instability-of-cpu/" rel="bookmark">CPU.IOWAIT 偏高问题</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" rel="bookmark">nginx 写⽇志对响应速度的影响探究（二）</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/01/16/using-iostat-dialectically/" rel="bookmark">辩证看待 iostat</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/" title="CPU.IOWAIT 偏高问题《二》">http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cpu/" rel="tag"># cpu</a>
+              <a href="/tags/iowait/" rel="tag"># iowait</a>
+              <a href="/tags/iotop/" rel="tag"># iotop</a>
+              <a href="/tags/iostat/" rel="tag"># iostat</a>
+              <a href="/tags/perl/" rel="tag"># perl</a>
+              <a href="/tags/kernel/" rel="tag"># kernel</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/12/14/instability-of-cpu/" rel="prev" title="CPU.IOWAIT 偏高问题">
+      <i class="fa fa-chevron-left"></i> CPU.IOWAIT 偏高问题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" rel="next" title="nginx 写⽇志对响应速度的影响探究（二）">
+      nginx 写⽇志对响应速度的影响探究（二） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#写在前面"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#回顾一下"><span class="nav-number">2.</span> <span class="nav-text">回顾一下</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#查找最耗-IOWAIT-的进程"><span class="nav-number">3.</span> <span class="nav-text">查找最耗 IOWAIT 的进程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#告一段落"><span class="nav-number">4.</span> <span class="nav-text">告一段落</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

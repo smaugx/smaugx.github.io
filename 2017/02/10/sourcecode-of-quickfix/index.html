@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="先扯一扯&amp;emsp;上一篇博文FIX协议介绍中对FIX协议背景，语法格式等做了介绍。文中也提到我是由于工作中某个模块需要实现fix报文和xml报文之间的转换对FIX协议进行的接触和了解。文末也给出了一个实现fix协议的开源或闭源的一些代码库的列表。而我采用的是Quickfix引擎。目前国内开发用的多的还是Quickfix,它是一个C++实现的fix引擎。&amp;emsp;这篇博文我打算对Quickfix">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Quickfix源代码分析">
+<meta property="og:url" content="http://www.rebootcat.com/2017/02/10/sourcecode-of-quickfix/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="先扯一扯&amp;emsp;上一篇博文FIX协议介绍中对FIX协议背景，语法格式等做了介绍。文中也提到我是由于工作中某个模块需要实现fix报文和xml报文之间的转换对FIX协议进行的接触和了解。文末也给出了一个实现fix协议的开源或闭源的一些代码库的列表。而我采用的是Quickfix引擎。目前国内开发用的多的还是Quickfix,它是一个C++实现的fix引擎。&amp;emsp;这篇博文我打算对Quickfix">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/quickfixmulu.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/%E9%A6%96%E8%A1%8C%E7%BC%A9%E8%BF%9B.png">
+<meta property="article:published_time" content="2017-02-10T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.958Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="fix">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="quickfix">
+<meta property="article:tag" content="xml">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://o8fj2jbwb.bkt.clouddn.com/quickfixmulu.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2017/02/10/sourcecode-of-quickfix/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Quickfix源代码分析 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/02/10/sourcecode-of-quickfix/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Quickfix源代码分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-02-10 11:23:58" itemprop="dateCreated datePublished" datetime="2017-02-10T11:23:58+08:00">2017-02-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/fix/" itemprop="url" rel="index"><span itemprop="name">fix</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="先扯一扯"><a href="#先扯一扯" class="headerlink" title="先扯一扯"></a>先扯一扯</h1><p>&emsp;上一篇博文<a href="http://rebootcat.com/2017/02/09/FIX-protocol-introduce/" target="_blank" rel="noopener">FIX协议介绍</a>中对FIX协议背景，语法格式等做了介绍。文中也提到我是由于工作中某个模块需要实现fix报文和xml报文之间的转换对FIX协议进行的接触和了解。文末也给出了一个实现fix协议的开源或闭源的一些代码库的列表。而我采用的是Quickfix引擎。目前国内开发用的多的还是Quickfix,它是一个C++实现的fix引擎。<br>&emsp;<strong>这篇博文我打算对Quickfix源代码进行一些分析！</strong></p>
+<h1 id="Quickfix下载（安装）"><a href="#Quickfix下载（安装）" class="headerlink" title="Quickfix下载（安装）"></a>Quickfix下载（安装）</h1><p>两个途径：<br>&emsp;&emsp;Quickfix官网:<a href="http://www.quickfixengine.org/" target="_blank" rel="noopener">http://www.quickfixengine.org/</a><br>&emsp;&emsp;Github上：<a href="https://github.com/quickfix/quickfix" target="_blank" rel="noopener">https://github.com/quickfix/quickfix</a><br>&emsp;下载好Quickfix的源代码后（或许不需要编译安装？）。我自己是直接把quickfix的源代码刨去部分后直接拉进我自己的项目中。如果选择编译安装或许也可以，直接在makefile里链fix的库。</p>
+<h1 id="代码目录介绍"><a href="#代码目录介绍" class="headerlink" title="代码目录介绍"></a>代码目录介绍</h1><a id="more"></a>
+<p>&emsp;下载好quickfix的源代码并解压后，得到诸如下图的目录结构：<img src="http://o8fj2jbwb.bkt.clouddn.com/quickfixmulu.png" alt=""><br><em>include/*：一些头文件<br>*doc/</em>:一些关于quickfix说明和使用的简要html文件<br><em>example/</em>:实现了简要的交易客户端tradeclien程序<br><em>spec/</em>:数据字典<br><em>src/</em>:源代码，其中c++实现的代码在子目录”c++/“下面  </p>
+<p><strong>下面着重介绍下C++这个子目录下的一些源代码文件:</strong>  </p>
+<p>DataDictionary<em>.cpp:解析诸如FIX42.xml的数据字典<br>Field</em>.cpp:数据字典中解析预定义的field<br>Message<em>.cpp:数据字典中解析处理message节点<br>Http</em>.cpp: 实现http引擎的部分（我没用到）<br>Socket<em>.cpp:会话层的通信（当然我没用到）<br>Sessian</em>.cpp: 会话层的东西(没用到)<br>还有一些其他的文件，略去不说。这里还要注意还有几个子文件夹：fix40/,fix41/,fix42/,fix43/,fix44/,fix50/,fix50sp1。这几个文件夹下是具体实现了该版本的一些头文件。</p>
+<h1 id="数据字典载入、处理"><a href="#数据字典载入、处理" class="headerlink" title="数据字典载入、处理"></a>数据字典载入、处理</h1><p>&emsp;Quickfix中进行数据字典的载入，解析本质是对几个xml文件的解析，所以需要一个xml引擎，早期的quickfix好像是采用libxml作为xml引擎的(不太确定),现在是采用pugixml parser,官方网站：<a href="http://pugixml.org/" target="_blank" rel="noopener">http://pugixml.org/</a>。正如官网介绍的那样：</p>
+<blockquote>
+<p>Light-weight, simple and fast XML parser for C++ with XPath support  </p>
+</blockquote>
+<p>然后Quickfix中在之上进行了一层自己的封装，形成PUGIXML_DOMAttributes类，PUGIXML_DOMNode类，PUGIXML_DOMDocument类。在头文件”PUGIXML_DOMDocument.h”中进行了定义，如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"> <span class="class"><span class="keyword">class</span> <span class="title">PUGIXML_DOMAttributes</span> :</span> <span class="keyword">public</span> DOMAttributes</span><br><span class="line">  &#123;</span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    PUGIXML_DOMAttributes( pugi::xml_node pNode )</span><br><span class="line">    : m_pNode(pNode) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">get</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp;, <span class="built_in">std</span>::<span class="built_in">string</span>&amp; )</span></span>;</span><br><span class="line">    <span class="function">DOMAttributes::<span class="built_in">map</span> <span class="title">toMap</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    pugi::xml_node m_pNode;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/// XML node as represented by pugixml.</span></span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">PUGIXML_DOMNode</span> :</span> <span class="keyword">public</span> DOMNode</span><br><span class="line">  &#123;</span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    PUGIXML_DOMNode( pugi::xml_node pNode )</span><br><span class="line">    : m_pNode(pNode) &#123;&#125;</span><br><span class="line">    ~PUGIXML_DOMNode() &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">DOMNodePtr <span class="title">getFirstChildNode</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function">DOMNodePtr <span class="title">getNextSiblingNode</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function">DOMAttributesPtr <span class="title">getAttributes</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">getName</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">getText</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    pugi::xml_node m_pNode;</span><br><span class="line">  &#125;;</span><br><span class="line">   <span class="comment">/// XML document as represented by pugixml.</span></span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">PUGIXML_DOMDocument</span> :</span> <span class="keyword">public</span> DOMDocument</span><br><span class="line">  &#123;</span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    PUGIXML_DOMDocument() <span class="keyword">throw</span>( ConfigError );</span><br><span class="line">    ~PUGIXML_DOMDocument();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">load</span><span class="params">( <span class="built_in">std</span>::istream&amp; )</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">load</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; )</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">xml</span><span class="params">( <span class="built_in">std</span>::ostream&amp; )</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">DOMNodePtr <span class="title">getNode</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; )</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    pugi::xml_document m_pDoc;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&emsp;其中大多数函数不需要特别关心，我们只需要重点关心PUGIXML_DOMDocument类中的load()函数。  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">PUGIXML_DOMDocument::load</span><span class="params">( <span class="built_in">std</span>::istream&amp; stream )</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> </span><br><span class="line">      &#123; </span><br><span class="line">        <span class="keyword">return</span> m_pDoc.load(stream);</span><br><span class="line">      &#125; </span><br><span class="line">      <span class="keyword">catch</span>( ... ) &#123; <span class="keyword">return</span> <span class="literal">false</span>; &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">PUGIXML_DOMDocument::load</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; url )</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> </span><br><span class="line">      &#123; </span><br><span class="line">        <span class="keyword">return</span> m_pDoc.load_file(url.c_str());</span><br><span class="line">      &#125; </span><br><span class="line">      <span class="keyword">catch</span>( ... ) &#123; <span class="keyword">return</span> <span class="literal">false</span>; &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>这个函数就是对给定一个xml路径然后装载后返回一个pugi::xml_document的对象。</p>
+<h1 id="数据字典解析"><a href="#数据字典解析" class="headerlink" title="数据字典解析"></a>数据字典解析</h1><p>&emsp;上面的类实现了诸如FIX44.xml的载入处理，通过上一篇博文<a href="http://rebootcat.com/2017/02/09/FIX-protocol-introduce/" target="_blank" rel="noopener">FIX协议介绍</a>中的介绍，数据字典中定义了很多结构节点，比如fields,messages,groups等，DataDictionary*.cpp是真正对这些xml文件进行解析的源文件。DataDictionary.h中部分源代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataDictionary</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">set</span> &lt; <span class="keyword">int</span> &gt; MsgFields;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="built_in">std</span>::<span class="built_in">string</span>, MsgFields &gt; MsgTypeToField;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">set</span> &lt; <span class="built_in">std</span>::<span class="built_in">string</span> &gt; MsgTypes;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">set</span> &lt; <span class="keyword">int</span> &gt; Fields;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="keyword">int</span>, <span class="keyword">bool</span> &gt; NonBodyFields;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt; <span class="keyword">int</span> &gt; OrderedFields;</span><br><span class="line">  <span class="keyword">typedef</span> message_order OrderedFieldsArray;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="keyword">int</span>, TYPE::Type &gt; FieldTypes;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">set</span> &lt; <span class="built_in">std</span>::<span class="built_in">string</span> &gt; Values;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="keyword">int</span>, Values &gt; FieldToValue;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="keyword">int</span>, <span class="built_in">std</span>::<span class="built_in">string</span> &gt; FieldToName;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="built_in">std</span>::<span class="built_in">string</span>, <span class="keyword">int</span> &gt; NameToField;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="built_in">std</span>::pair &lt; <span class="keyword">int</span>, <span class="built_in">std</span>::<span class="built_in">string</span> &gt; , <span class="built_in">std</span>::<span class="built_in">string</span>  &gt; ValueToName;</span><br><span class="line">  <span class="comment">// while FieldToGroup structure seems to be overcomplicated</span></span><br><span class="line">  <span class="comment">// in reality it yields a lot of performance because:</span></span><br><span class="line">  <span class="comment">// 1) avoids memory copying;</span></span><br><span class="line">  <span class="comment">// 2) first lookup is done by comparing integers and not string objects</span></span><br><span class="line">  <span class="comment">// <span class="doctag">TODO:</span> use hash_map with good hashing algorithm</span></span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="built_in">std</span>::<span class="built_in">string</span>, <span class="built_in">std</span>::pair &lt; <span class="keyword">int</span>, DataDictionary* &gt; &gt; FieldPresenceMap;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="keyword">int</span>, FieldPresenceMap &gt; FieldToGroup;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  DataDictionary();</span><br><span class="line">  DataDictionary( <span class="keyword">const</span> DataDictionary&amp; copy );</span><br><span class="line">  DataDictionary( <span class="built_in">std</span>::istream&amp; stream ) <span class="keyword">throw</span>( ConfigError );</span><br><span class="line">  DataDictionary( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; url ) <span class="keyword">throw</span>( ConfigError );</span><br><span class="line">  <span class="keyword">virtual</span> ~DataDictionary();</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">readFromURL</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; url )</span> <span class="title">throw</span><span class="params">( ConfigError )</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">readFromDocument</span><span class="params">( DOMDocumentPtr pDoc )</span> <span class="title">throw</span><span class="params">( ConfigError )</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">readFromStream</span><span class="params">( <span class="built_in">std</span>::istream&amp; stream )</span> <span class="title">throw</span><span class="params">( ConfigError )</span></span>;</span><br><span class="line"></span><br><span class="line">......</span><br><span class="line">&#125;;</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+<p>&emsp;可以看到DataDictionary类中定义了很多的std::map和std::vector,这些容器都是用来存储从FIX4X.xml文件中解析来的内容，一些映射。比如:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="keyword">int</span>, <span class="built_in">std</span>::<span class="built_in">string</span> &gt; FieldToName;</span><br></pre></td></tr></table></figure>
+<p>表示存储field和实际的字段名的映射，比如8对应<strong>BeginString</strong>;</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="keyword">int</span>, Values &gt; FieldToValue;</span><br></pre></td></tr></table></figure>
+<p>表示枚举当中的int值跟实际的字段名的映射，比如下面的：</p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;field number=<span class="string">'13'</span> name=<span class="string">'CommType'</span> type=<span class="string">'CHAR'</span>&gt;</span><br><span class="line">   &lt;<span class="keyword">value</span> <span class="keyword">enum</span>=<span class="string">'1'</span> description=<span class="string">'PER_UNIT'</span> /&gt;</span><br><span class="line">   &lt;<span class="keyword">value</span> <span class="keyword">enum</span>=<span class="string">'2'</span> description=<span class="string">'PERCENTAGE'</span> /&gt;</span><br><span class="line">   &lt;<span class="keyword">value</span> <span class="keyword">enum</span>=<span class="string">'3'</span> description=<span class="string">'ABSOLUTE'</span> /&gt;</span><br><span class="line">   &lt;<span class="keyword">value</span> <span class="keyword">enum</span>=<span class="string">'4'</span> description=<span class="string">'4'</span> /&gt;</span><br><span class="line">   &lt;<span class="keyword">value</span> <span class="keyword">enum</span>=<span class="string">'5'</span> description=<span class="string">'5'</span> /&gt;</span><br><span class="line">   &lt;<span class="keyword">value</span> <span class="keyword">enum</span>=<span class="string">'6'</span> description=<span class="string">'POINTS_PER_BOND_OR_CONTRACT_SUPPLY_CONTRACTMULTIPLIER'</span> /&gt;</span><br><span class="line">  &lt;/field&gt;</span><br></pre></td></tr></table></figure>
+<p>3代表<strong>ABSOLUTE</strong>；1代表<strong>PER_UNIT</strong>。  </p>
+<p>&emsp;另外需要注意的成员函数readFrom*()系列，底层就是上一节中的类，进行xml的载入。</p>
+<figure class="highlight isbl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">void</span> <span class="variable">DataDictionary</span>::<span class="function"><span class="title">readFromURL</span>( <span class="variable">const</span> <span class="variable">std</span>::<span class="variable">string</span>&amp; <span class="variable">url</span> )</span></span><br><span class="line">  <span class="function"><span class="title">throw</span>( <span class="variable">ConfigError</span> )</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="variable">DOMDocumentPtr</span> <span class="variable">pDoc</span> = <span class="function"><span class="title">DOMDocumentPtr</span>(<span class="variable">new</span> <span class="title">PUGIXML_DOMDocument</span>());</span></span><br><span class="line"><span class="function">  </span></span><br><span class="line"><span class="function">    <span class="title">if</span>(<span class="variable">!pDoc</span>-&gt;<span class="title">load</span>(<span class="variable">url</span>))</span></span><br><span class="line">    ¦ <span class="variable">throw</span> <span class="function"><span class="title">ConfigError</span>(<span class="variable">url</span> + <span class="string">": Could not parse data dictionary file"</span>);</span></span><br><span class="line"><span class="function">  </span></span><br><span class="line"><span class="function">    <span class="variable"><span class="keyword">try</span></span> </span></span><br><span class="line"><span class="function">    &#123;</span></span><br><span class="line"><span class="function">    ¦ <span class="title">readFromDocument</span>( <span class="variable">pDoc</span> );</span></span><br><span class="line"><span class="function">    &#125;</span></span><br><span class="line"><span class="function">    <span class="title">catch</span>( <span class="variable">ConfigError</span>&amp; <span class="variable">e</span> ) </span></span><br><span class="line"><span class="function">    &#123;</span></span><br><span class="line"><span class="function">    ¦ <span class="variable">throw</span> <span class="title">ConfigError</span>( <span class="variable">url</span> + <span class="string">": "</span> + <span class="variable">e.what</span>() );</span></span><br><span class="line"><span class="function">    &#125;</span></span><br><span class="line"><span class="function">  &#125;</span></span><br><span class="line"><span class="function">  </span></span><br><span class="line"><span class="function">  <span class="variable">void</span> <span class="variable">DataDictionary</span>::<span class="title">readFromStream</span>( <span class="variable">std</span>::<span class="variable">istream</span>&amp; <span class="variable">stream</span> )</span></span><br><span class="line">  <span class="function"><span class="title">throw</span>( <span class="variable">ConfigError</span> )</span></span><br><span class="line">  &#123;</span><br><span class="line">&gt;*  <span class="variable">DOMDocumentPtr</span> <span class="variable">pDoc</span> = <span class="function"><span class="title">DOMDocumentPtr</span>(<span class="variable">new</span> <span class="title">PUGIXML_DOMDocument</span>());</span></span><br><span class="line"><span class="function">  </span></span><br><span class="line"><span class="function">    <span class="title">if</span>(<span class="variable">!pDoc</span>-&gt;<span class="title">load</span>(<span class="variable">stream</span>))</span></span><br><span class="line">    ¦ <span class="variable">throw</span> <span class="function"><span class="title">ConfigError</span>(<span class="string">"Could not parse data dictionary stream"</span>);</span></span><br><span class="line"><span class="function">  </span></span><br><span class="line"><span class="function">    <span class="title">readFromDocument</span>( <span class="variable">pDoc</span> );</span></span><br><span class="line"><span class="function">  &#125;</span></span><br><span class="line"><span class="function">  </span></span><br><span class="line"><span class="function">&gt;*<span class="variable">void</span> <span class="variable">DataDictionary</span>::<span class="title">readFromDocument</span>( <span class="variable">DOMDocumentPtr</span> <span class="variable">pDoc</span> )</span></span><br><span class="line">  <span class="function"><span class="title">throw</span>( <span class="variable">ConfigError</span> )</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="comment">// VERSION</span></span><br><span class="line">    <span class="variable">DOMNodePtr</span> <span class="variable">pFixNode</span> = <span class="variable">pDoc</span>-&gt;<span class="function"><span class="title">getNode</span>(<span class="string">"/fix"</span>);</span></span><br><span class="line"><span class="function">    <span class="title">if</span>(<span class="variable">!pFixNode.get</span>())</span></span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>到这里，数据字典的解析就完成了。简单的理解就是，读入xml文件，然后针对xml文件里的内容，把内容做成映射用map和vector存储。</p>
+<h1 id="FIX报文处理"><a href="#FIX报文处理" class="headerlink" title="FIX报文处理"></a>FIX报文处理</h1><p>&emsp;上面的类只是对数据字典的解析和处理，还没有涉及到真正的fix报文的解析，现在开始！</p>
+<h2 id="Message类"><a href="#Message类" class="headerlink" title="Message类"></a>Message类</h2><p>&emsp;针对fix报文的处理类是Message。在Message.h文件中部分代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Base class for all %FIX messages.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * A message consists of three field maps.  One for the header, the body,</span></span><br><span class="line"><span class="comment"> * and the trailer.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Message</span> :</span> <span class="keyword">public</span> FieldMap</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">friend</span> <span class="class"><span class="keyword">class</span> <span class="title">DataDictionary</span>;</span></span><br><span class="line"><span class="comment">//  friend class Session;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">enum</span> field_type &#123; header, body, trailer &#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  Message();</span><br><span class="line"></span><br><span class="line">  <span class="comment">/// Construct a message from a string</span></span><br><span class="line">  Message( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>, <span class="keyword">bool</span> validate = <span class="literal">true</span> )</span><br><span class="line">  <span class="keyword">throw</span>( InvalidMessage );</span><br><span class="line"></span><br><span class="line">  <span class="comment">/// Construct a message from a string using a data dictionary</span></span><br><span class="line">  Message( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>, <span class="keyword">const</span> FIX::DataDictionary&amp; dataDictionary,</span><br><span class="line">           <span class="keyword">bool</span> validate = <span class="literal">true</span> )</span><br><span class="line">  <span class="keyword">throw</span>( InvalidMessage );</span><br><span class="line"></span><br><span class="line">  <span class="comment">/// Construct a message from a string using a session and application data dictionary</span></span><br><span class="line">  Message( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>, <span class="keyword">const</span> FIX::DataDictionary&amp; sessionDataDictionary,</span><br><span class="line">           <span class="keyword">const</span> FIX::DataDictionary&amp; applicationDataDictionary, <span class="keyword">bool</span> validate = <span class="literal">true</span> )</span><br><span class="line">  <span class="keyword">throw</span>( InvalidMessage );</span><br><span class="line"></span><br><span class="line">  Message( <span class="keyword">const</span> Message&amp; copy )</span><br><span class="line">  : FieldMap( copy )</span><br><span class="line">  &#123;</span><br><span class="line">    m_header = copy.m_header;</span><br><span class="line">    m_trailer = copy.m_trailer;</span><br><span class="line">    m_validStructure = copy.m_validStructure;</span><br><span class="line">    m_tag = copy.m_tag;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/// Set global data dictionary for encoding messages into XML</span></span><br><span class="line">  <span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">InitializeXML</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span> )</span></span>;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line"> <span class="function"><span class="keyword">void</span> <span class="title">setString</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span> )</span></span></span><br><span class="line"><span class="function">  <span class="title">throw</span><span class="params">( InvalidMessage )</span></span></span><br><span class="line"><span class="function">  </span>&#123; setString(<span class="built_in">string</span>, <span class="literal">true</span>); &#125;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">setString</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>, <span class="keyword">bool</span> validate )</span></span></span><br><span class="line"><span class="function">  <span class="title">throw</span><span class="params">( InvalidMessage )</span></span></span><br><span class="line"><span class="function">  </span>&#123; setString(<span class="built_in">string</span>, validate, <span class="number">0</span>); &#125;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">setString</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">                  <span class="keyword">bool</span> validate,</span></span></span><br><span class="line"><span class="function"><span class="params">                  <span class="keyword">const</span> FIX::DataDictionary* pDataDictionary )</span></span></span><br><span class="line"><span class="function">  <span class="title">throw</span><span class="params">( InvalidMessage )</span></span></span><br><span class="line"><span class="function">  </span>&#123; setString(<span class="built_in">string</span>, validate, pDataDictionary, pDataDictionary); &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">setString</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">                  <span class="keyword">bool</span> validate,</span></span></span><br><span class="line"><span class="function"><span class="params">                  <span class="keyword">const</span> FIX::DataDictionary* pSessionDataDictionary,</span></span></span><br><span class="line"><span class="function"><span class="params">                  <span class="keyword">const</span> FIX::DataDictionary* pApplicationDataDictionary )</span></span></span><br><span class="line"><span class="function">  <span class="title">throw</span><span class="params">( InvalidMessage )</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">setGroup</span><span class="params">( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; msg, <span class="keyword">const</span> FieldBase&amp; field,</span></span></span><br><span class="line"><span class="function"><span class="params">                 <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>, <span class="built_in">std</span>::<span class="built_in">string</span>::size_type&amp; pos,</span></span></span><br><span class="line"><span class="function"><span class="params">                 FieldMap&amp; <span class="built_in">map</span>, <span class="keyword">const</span> DataDictionary&amp; dataDictionary )</span></span>;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>正如Message类的注释那样，Message类是各种FIX messages的基类，并且包含3个field maps，分别为header,body,trailer。Message类继承自类FieldMap,关于FiledMap待会再谈。先来看看Message类的构造函数：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">Message::Message()</span><br><span class="line">    : m_validStructure( <span class="literal">true</span> ) &#123;&#125;</span><br><span class="line">  </span><br><span class="line">  Message::Message( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>, <span class="keyword">bool</span> validate )</span><br><span class="line">  <span class="keyword">throw</span>( InvalidMessage )</span><br><span class="line">    : m_validStructure( <span class="literal">true</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    setString( <span class="built_in">string</span>, validate );</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  Message::Message( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>,</span><br><span class="line">                    <span class="keyword">const</span> DataDictionary&amp; dataDictionary,</span><br><span class="line">                    <span class="keyword">bool</span> validate )</span><br><span class="line">  <span class="keyword">throw</span>( InvalidMessage )</span><br><span class="line">    : m_validStructure( <span class="literal">true</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    setString( <span class="built_in">string</span>, validate, &amp;dataDictionary, &amp;dataDictionary );</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  Message::Message( <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="built_in">string</span>,</span><br><span class="line">                    <span class="keyword">const</span> DataDictionary&amp; sessionDataDictionary,</span><br><span class="line">                    <span class="keyword">const</span> DataDictionary&amp; applicationDataDictionary,</span><br><span class="line">                    <span class="keyword">bool</span> validate )</span><br><span class="line">  <span class="keyword">throw</span>( InvalidMessage )</span><br><span class="line">    : m_validStructure( <span class="literal">true</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    setStringHeader( <span class="built_in">string</span> );</span><br><span class="line">    <span class="keyword">if</span>( isAdmin() )</span><br><span class="line">      setString( <span class="built_in">string</span>, validate, &amp;sessionDataDictionary, &amp;sessionDataDictionary );</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      setString( <span class="built_in">string</span>, validate, &amp;sessionDataDictionary, &amp;applicationDataDictionary );</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>根据不同的初始化参数调用不同的构造函数，不过最终调用到成员函数setString()。那么setString(）函数究竟做了什么呢?</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">void Message::setString( const std::string&amp; string,</span><br><span class="line">                           bool doValidation,</span><br><span class="line">                           const DataDictionary* pSessionDataDictionary,</span><br><span class="line">                           const DataDictionary* pApplicationDataDictionary )</span><br><span class="line">  throw( InvalidMessage )</span><br><span class="line">  &#123;</span><br><span class="line">    clear();</span><br><span class="line">  </span><br><span class="line">    std::string::size_type pos = 0;</span><br><span class="line">    int count = 0;</span><br><span class="line">    std::string msg;</span><br><span class="line">  </span><br><span class="line">    static int const headerOrder[] =</span><br><span class="line">    &#123;</span><br><span class="line">      FIELD::BeginString,</span><br><span class="line">      FIELD::BodyLength,</span><br><span class="line">      FIELD::MsgType</span><br><span class="line">    &#125;;</span><br><span class="line">  </span><br><span class="line">    field_type<span class="built_in"> type </span>= header;</span><br><span class="line">  </span><br><span class="line">    <span class="keyword">while</span> ( pos &lt; string.size() )</span><br><span class="line">    &#123;</span><br><span class="line">      FieldBase field = extractField( string, pos, pSessionDataDictionary, pApplicationDataDictionary );</span><br><span class="line">      <span class="keyword">if</span> ( count &lt; 3 &amp;&amp; headerOrder[ count++ ] != field.getTag() )</span><br><span class="line">        <span class="keyword">if</span> ( doValidation ) throw InvalidMessage(<span class="string">"Header fields out of order"</span>);</span><br><span class="line">  </span><br><span class="line">      <span class="keyword">if</span> ( isHeaderField( field, pSessionDataDictionary ) )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in"> type </span>!= header )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="keyword">if</span>(m_tag == 0) m_tag = field.getTag();</span><br><span class="line">          m_validStructure = <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> ( field.getTag() == FIELD::MsgType )</span><br><span class="line">          msg = field.getString();</span><br><span class="line">  </span><br><span class="line">        m_header.setField( field, <span class="literal">false</span> );</span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> ( pSessionDataDictionary )</span><br><span class="line">          setGroup( <span class="string">"_header_"</span>, field, string, pos, getHeader(), *pSessionDataDictionary );</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> ( isTrailerField( field, pSessionDataDictionary ) )</span><br><span class="line">      &#123;</span><br><span class="line">       <span class="built_in"> type </span>= trailer;</span><br><span class="line">        m_trailer.setField( field, <span class="literal">false</span> );</span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> ( pSessionDataDictionary )</span><br><span class="line">          setGroup( <span class="string">"_trailer_"</span>, field, string, pos, getTrailer(), *pSessionDataDictionary );</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in"> type </span>== trailer )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="keyword">if</span>(m_tag == 0) m_tag = field.getTag();</span><br><span class="line">          m_validStructure = <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">  </span><br><span class="line">       <span class="built_in"> type </span>= body;</span><br><span class="line">        setField( field, <span class="literal">false</span> );</span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> ( pApplicationDataDictionary )</span><br><span class="line">          setGroup( msg, field, string, pos, *this, *pApplicationDataDictionary );</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    <span class="keyword">if</span> ( doValidation )</span><br><span class="line">      validate();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数应该比较容易读懂，第一个参数string保存了fix的真实报文，比如：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">8</span>=FIX<span class="number">.4</span><span class="number">.2</span>\<span class="number">0019</span>=<span class="number">272</span>\<span class="number">00135</span>=E\<span class="number">00134</span>=<span class="number">126</span>\<span class="number">00166666</span>=<span class="number">1095350459</span>\<span class="number">00150</span>=<span class="number">00303</span>\<span class="number">00149</span>=BUYSIDE\<span class="number">00152</span>=<span class="number">20040916</span><span class="number">-16</span>:<span class="number">19</span>:<span class="number">18.328</span>\<span class="number">00168</span>=<span class="number">2</span>\<span class="number">00156</span>=SELLSIDE\<span class="number">00173</span>=<span class="number">2</span>\<span class="number">00111</span>=<span class="number">1095350459</span>\<span class="number">00155</span>=fred\<span class="number">00140</span>=<span class="number">1</span>\<span class="number">00167</span>=<span class="number">1</span>\<span class="number">0011</span>=<span class="number">00303</span>\<span class="number">00178</span>=<span class="number">3</span>\<span class="number">00179</span>=<span class="built_in">string</span>\<span class="number">00179</span>=<span class="built_in">string</span>\<span class="number">00179</span>=<span class="built_in">string</span>\<span class="number">00154</span>=<span class="number">1</span>\<span class="number">001</span>  <span class="number">59</span>=<span class="number">3</span>\<span class="number">00111</span>=<span class="number">1095350460</span>\<span class="number">00167</span>=<span class="number">2</span>\<span class="number">00140</span>=<span class="number">1</span>\<span class="number">00159</span>=<span class="number">3</span>\<span class="number">0011</span>=<span class="number">00303</span>\<span class="number">00178</span>=<span class="number">3</span>\<span class="number">00179</span>=<span class="built_in">string</span>\<span class="number">00179</span>=<span class="built_in">string</span>\<span class="number">00179</span>=<span class="built_in">string</span>\<span class="number">00155</span>=feed\<span class="number">0</span>  <span class="number">0154</span>=<span class="number">5</span>\<span class="number">001394</span>=<span class="number">3</span>\<span class="number">00110</span>=<span class="number">120</span>\<span class="number">001</span></span><br></pre></td></tr></table></figure>
+
+<p>然后从这个字符串开始一直往后解析，参照一个DataDictionary类的指针pSessianDataDictionary，进行解析，比如从fix报文中读到了8这个tag,那么需要从这个指针中找到对应的字段名值为<strong>BeginString</strong>。最终还原成实际的报文。<br>&emsp;那么读到的这些tag和value存到哪里呢?这就是刚才卖的关子，可以直接跳到FieldMap类那小节来了解FieldMap类的实现。<br>&emsp;setString()函数负责解包，那么组包呢？<br>组包实现的成员函数是toString()函数：</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">Message::toString</span><span class="params">( <span class="keyword">int</span> beginStringField, </span></span></span><br><span class="line"><span class="function"><span class="params">                                 <span class="keyword">int</span> bodyLengthField, </span></span></span><br><span class="line"><span class="function"><span class="params">                                 <span class="keyword">int</span> checkSumField )</span> <span class="keyword">const</span></span></span><br><span class="line"><span class="function">  </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> str;</span><br><span class="line">    <span class="keyword">return</span> toString( str, beginStringField, bodyLengthField, checkSumField );</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="built_in">std</span>::<span class="built_in">string</span>&amp; <span class="title">Message::toString</span><span class="params">( <span class="built_in">std</span>::<span class="built_in">string</span>&amp; str, </span></span></span><br><span class="line"><span class="function"><span class="params">                                  <span class="keyword">int</span> beginStringField,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  <span class="keyword">int</span> bodyLengthField, </span></span></span><br><span class="line"><span class="function"><span class="params">                                  <span class="keyword">int</span> checkSumField )</span> <span class="keyword">const</span></span></span><br><span class="line"><span class="function">  </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> length = bodyLength( beginStringField, bodyLengthField, checkSumField );</span><br><span class="line">    m_header.setField( IntField(bodyLengthField, length) );</span><br><span class="line">    m_trailer.setField( CheckSumField(checkSumField, checkSum(checkSumField)) );</span><br><span class="line">  </span><br><span class="line">  <span class="meta">#<span class="meta-keyword">if</span> defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300</span></span><br><span class="line">    str = <span class="string">""</span>; </span><br><span class="line">  <span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">&gt;&gt;  str.<span class="built_in">clear</span>();</span><br><span class="line">  <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">  </span><br><span class="line">    <span class="comment">/*small speculation about the space needed for FIX string*/</span>    str.reserve( length + <span class="number">64</span> );</span><br><span class="line">  </span><br><span class="line">    m_header.calculateString( str );    FieldMap::calculateString( str );</span><br><span class="line">    m_trailer.calculateString( str );  </span><br><span class="line">    <span class="keyword">return</span> str;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>函数也比较容易读懂，一个fix报文包含三个部分，header,body,trailer。</p>
+<h2 id="FieldMap类"><a href="#FieldMap类" class="headerlink" title="FieldMap类"></a>FieldMap类</h2><p>&emsp;FieldMap类是Message类的基类。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Stores and organizes a collection of Fields.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * This is the basis for a message, header, and trailer.  This collection</span></span><br><span class="line"><span class="comment">   * class uses a sorter to keep the fields in a particular order.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">FieldMap</span></span></span><br><span class="line"><span class="class">  &#123;</span></span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">  <span class="meta">#<span class="meta-keyword">if</span> defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300</span></span><br><span class="line">    <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">multimap</span> &lt; <span class="keyword">int</span>, FieldBase, message_order &gt; Fields;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="keyword">int</span>, <span class="built_in">std</span>::<span class="built_in">vector</span> &lt; FieldMap* &gt;, <span class="built_in">std</span>::less&lt;<span class="keyword">int</span>&gt; &gt; Groups;</span><br><span class="line">  <span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">    <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">multimap</span> &lt; <span class="keyword">int</span>, FieldBase, message_order, </span><br><span class="line">                            ALLOCATOR&lt;<span class="built_in">std</span>::pair&lt;<span class="keyword">const</span> <span class="keyword">int</span>,FieldBase&gt; &gt; &gt; Fields;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">map</span> &lt; <span class="keyword">int</span>, <span class="built_in">std</span>::<span class="built_in">vector</span> &lt; FieldMap* &gt;, <span class="built_in">std</span>::less&lt;<span class="keyword">int</span>&gt;, </span><br><span class="line">                       ALLOCATOR&lt;<span class="built_in">std</span>::pair&lt;<span class="keyword">const</span> <span class="keyword">int</span>, <span class="built_in">std</span>::<span class="built_in">vector</span>&lt; FieldMap* &gt; &gt; &gt; &gt; Groups;</span><br><span class="line">  <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">typedef</span> Fields::const_iterator iterator;</span><br><span class="line">    <span class="keyword">typedef</span> iterator const_iterator;</span><br><span class="line">    <span class="keyword">typedef</span> Groups::const_iterator g_iterator;</span><br><span class="line">    <span class="keyword">typedef</span> Groups::const_iterator g_const_iterator;</span><br><span class="line">  </span><br><span class="line">    FieldMap( <span class="keyword">const</span> message_order&amp; order =</span><br><span class="line">              message_order( message_order::normal ) ) </span><br><span class="line">    : m_fields( order ) &#123;&#125;</span><br><span class="line">  </span><br><span class="line">    FieldMap( <span class="keyword">const</span> <span class="keyword">int</span> order[] )</span><br><span class="line">    : m_fields( message_order(order) ) &#123;&#125;</span><br><span class="line">  </span><br><span class="line">    FieldMap( <span class="keyword">const</span> FieldMap&amp; copy )</span><br><span class="line">    &#123; *<span class="keyword">this</span> = copy; &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个类好像没什么好解释的。</p>
+<h1 id="好像介绍完了"><a href="#好像介绍完了" class="headerlink" title="好像介绍完了"></a>好像介绍完了</h1><p>&emsp;其实回过头来看这些代码，也比较容易，不过当时还是花了点时间琢磨的。如果想要实现自己的Message类可以从Message类进行派生，然后实现自己的特定组包解包函数。<br>&emsp;这还是算一个比较大的开源库了，阅读这样的开源代码确实收获不少，可以学习到别的优秀的C++者的书写习惯，可以学习到别人运用这些库的熟练程度等，收获不少。<br>&emsp;由于是回过头来记录当时的项目，可能会遗漏部分或者忽略了部分，因为现在看是比较简单的。多看，多学，多写！</p>
+<p>(小插曲：原来markdown换行是两个空格，以前都是直接一个空行。另外行首缩进是<img src="http://o8fj2jbwb.bkt.clouddn.com/%E9%A6%96%E8%A1%8C%E7%BC%A9%E8%BF%9B.png" alt="">)分别表示一个空格和两个空格。这篇博文就是采用了新的方式，不知道效果如何，先试试看)</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#x75;&#x78;&#x63;&#x6f;&#100;&#x65;&#50;&#110;&#105;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#111;&#109;">&#108;&#105;&#x6e;&#x75;&#x78;&#x63;&#x6f;&#100;&#x65;&#50;&#110;&#105;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#111;&#109;</a></p>
+</li>
+</ul>
+<p>2017-02-10 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/02/09/FIX-protocol-introduce/" rel="bookmark">FIX协议介绍</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/22/hessiancpp编译和使用——C++版/" rel="bookmark">hessiancpp编译和使用(C++版)</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2017/02/10/sourcecode-of-quickfix/" title="Quickfix源代码分析">http://www.rebootcat.com/2017/02/10/sourcecode-of-quickfix/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/fix/" rel="tag"># fix</a>
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/quickfix/" rel="tag"># quickfix</a>
+              <a href="/tags/xml/" rel="tag"># xml</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/02/09/FIX-protocol-introduce/" rel="prev" title="FIX协议介绍">
+      <i class="fa fa-chevron-left"></i> FIX协议介绍
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/03/17/use-gcov-in-hugeprogram/" rel="next" title="c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率">
+      c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#先扯一扯"><span class="nav-number">1.</span> <span class="nav-text">先扯一扯</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Quickfix下载（安装）"><span class="nav-number">2.</span> <span class="nav-text">Quickfix下载（安装）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#代码目录介绍"><span class="nav-number">3.</span> <span class="nav-text">代码目录介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据字典载入、处理"><span class="nav-number">4.</span> <span class="nav-text">数据字典载入、处理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据字典解析"><span class="nav-number">5.</span> <span class="nav-text">数据字典解析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FIX报文处理"><span class="nav-number">6.</span> <span class="nav-text">FIX报文处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Message类"><span class="nav-number">6.1.</span> <span class="nav-text">Message类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FieldMap类"><span class="nav-number">6.2.</span> <span class="nav-text">FieldMap类</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#好像介绍完了"><span class="nav-number">7.</span> <span class="nav-text">好像介绍完了</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

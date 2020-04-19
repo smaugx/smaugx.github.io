@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="先来闲聊下3月的杭州，依旧不见暖意。从老家过完年回来，气温低的有点不适应，还感冒了一次。身体没消停，思想也没消停，目前的环境，不太适合自身的发展与追求，良禽择木而栖，打算辞职。忙完了新公司的面试，空下了大半个月的时间，用来处理老东家这边手头的工作交接以及一系列离职手续相关的事项，另外，也打算为下一份工作做点准备，学学python,写个爬虫程序玩玩。后面我会写一篇博文分享一下最近面试的感触与经验。这">
+<meta property="og:type" content="article">
+<meta property="og:title" content="c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率">
+<meta property="og:url" content="http://www.rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="先来闲聊下3月的杭州，依旧不见暖意。从老家过完年回来，气温低的有点不适应，还感冒了一次。身体没消停，思想也没消停，目前的环境，不太适合自身的发展与追求，良禽择木而栖，打算辞职。忙完了新公司的面试，空下了大半个月的时间，用来处理老东家这边手头的工作交接以及一系列离职手续相关的事项，另外，也打算为下一份工作做点准备，学学python,写个爬虫程序玩玩。后面我会写一篇博文分享一下最近面试的感触与经验。这">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/TestCase.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/gcda.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/html.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/html2.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/html3.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/info.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/info2.png">
+<meta property="article:published_time" content="2017-03-17T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.960Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="gcov">
+<meta property="article:tag" content="lcov">
+<meta property="article:tag" content="genthml">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="cppunit">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://o8fj2jbwb.bkt.clouddn.com/TestCase.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-17 11:23:58" itemprop="dateCreated datePublished" datetime="2017-03-17T11:23:58+08:00">2017-03-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c-c/" itemprop="url" rel="index"><span itemprop="name">c/c++</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c-c/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="先来闲聊下"><a href="#先来闲聊下" class="headerlink" title="先来闲聊下"></a>先来闲聊下</h1><p>3月的杭州，依旧不见暖意。从老家过完年回来，气温低的有点不适应，还感冒了一次。身体没消停，思想也没消停，目前的环境，不太适合自身的发展与追求，良禽择木而栖，打算辞职。忙完了新公司的面试，空下了大半个月的时间，用来处理老东家这边手头的工作交接以及一系列离职手续相关的事项，另外，也打算为下一份工作做点准备，学学python,写个爬虫程序玩玩。后面我会写一篇博文分享一下最近面试的感触与经验。这篇博文主要来聊聊目前我手头还没有交接的工作——cppunit的使用以及gcov统计代码覆盖率的问题。</p>
+<h1 id="CPPUNIT"><a href="#CPPUNIT" class="headerlink" title="CPPUNIT"></a>CPPUNIT</h1><p><a href="https://sourceforge.net/projects/cppunit/" target="_blank" rel="noopener">cppunit</a>是个基于LGPL的开源项目，最初版本移植自 JUnit，是一个非常优秀的开源测试框架。正如官方介绍那样：</p>
+<blockquote>
+<p>CppUnit is the C++ port of the famous JUnit framework for unit testing.<br>Test output is in XML or text format for automatic testing and GUI based for supervised tests.</p>
+</blockquote>
+<p>废话不多说，开始正题。或许你也可以参考<a href="http://cppunit.sourceforge.net/doc/cvs/cppunit_cookbook.html" target="_blank" rel="noopener">CppUnit Cookbook</a>快速上手，进行单元测试案例的编写。</p>
+<h2 id="CppUnit原理"><a href="#CppUnit原理" class="headerlink" title="CppUnit原理"></a>CppUnit原理</h2><p><img src="http://o8fj2jbwb.bkt.clouddn.com/TestCase.png" alt=""></p>
+<a id="more"></a>
+<p>TestCase 代表一个测试用例，TestSuit 包含一组测试用例。一个或一组测试用例的测试对象被称为 Fixture。Fixture 就是被测试的目标，可能是一个对象或者一组相关的对象，甚至一个函数。通常编写一个TestCase包含如下四个步骤：</p>
+<ul>
+<li>对 fixture 进行初始化，及其他初始化操作，比如：生成一组被测试的对象，初始化值，setUp()函数；</li>
+<li>按照要测试的某个功能或者某个流程对 fixture 进行操作;</li>
+<li>验证结果是否正确，使用一系列预定义的宏;</li>
+<li>对 fixture 的及其他的资源释放等清理工作，tearDown()函数。</li>
+</ul>
+<h2 id="CppUnit实例"><a href="#CppUnit实例" class="headerlink" title="CppUnit实例"></a>CppUnit实例</h2><p>对 fixture 的所有测试用例可以被封装在一个 CppUnit::TestFixture 的子类中或者一个CPPUNIT_NS::TestCase子类中，如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//GxpMessageTest.h</span></span><br><span class="line"></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cppunit/extensions/HelperMacros.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cppunit/TestFixture.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//两种派生方式都可以，下面那种为了兼容parasoftcpp的使用</span></span><br><span class="line"><span class="comment">//class GxpMessageTest:public CppUnit::TestFixture</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GxpMessageTest</span>:</span><span class="keyword">public</span> CPPUNIT_NS::TestCase </span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">  CPPUNIT_TEST_SUITE(GxpMessageTest);<span class="comment">//开始创建一个TestSuite</span></span><br><span class="line"></span><br><span class="line">  CPPUNIT_TEST(test_calculateBasePath_0); <span class="comment">//添加TestCase</span></span><br><span class="line">  CPPUNIT_TEST(test_calculateBasePath_1);  <span class="comment">//添加TestCase</span></span><br><span class="line"></span><br><span class="line">  CPPUNIT_TEST_SUITE_END();<span class="comment">//结束创建TestSuite</span></span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">  <span class="comment">/* something protected*/</span></span><br><span class="line">  <span class="built_in">string</span> fixml;</span><br><span class="line">  <span class="built_in">string</span> cfgXmlfName;</span><br><span class="line">  <span class="built_in">string</span> fix;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  GxpMessageTest();</span><br><span class="line">  <span class="keyword">virtual</span> ~GxpMessageTest();</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">setUp</span><span class="params">()</span></span>;   <span class="comment">//初始化</span></span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">tearDown</span><span class="params">()</span></span>;  <span class="comment">//结束，清理</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">test_calculateBasePath_0</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">test_calculateBasePath_1</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>类GxpMessageTest.cpp的实现如下，主要针对test_calculateBasePath_0这样的测试函数：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="constructor">CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(GxpMessageTest,<span class="string">"GxpMessagetest"</span>)</span>;</span><br><span class="line"></span><br><span class="line">GxpMessageTest::<span class="constructor">GxpMessageTest()</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">GxpMessageTest::~<span class="constructor">GxpMessageTest()</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void GxpMessageTest::set<span class="constructor">Up()</span></span><br><span class="line">&#123;</span><br><span class="line">  fixml.append(LOCATION).append(<span class="string">"/FIX50SP2.xml"</span>);</span><br><span class="line">  cfgXmlfName.append(LOCATION).append(<span class="string">"/gxpFIXpublic.xml"</span>);</span><br><span class="line">  fix.append(<span class="string">"8=FIX.4.2\0019=272\00135=E\00134=126\00166666=1095350459\00150=00303\00149=BUYSIDE\00152"</span></span><br><span class="line">             <span class="string">"=20040916-16:19:18.328\00168=2\00156=SELLSIDE\00173=2\00111"</span></span><br><span class="line">             <span class="string">"=1095350459\00155=fred\00140=1\00167=1\0011=00303\00178=3\00179=string\00179=string\00179=string\00154=1\00159=3\001"</span></span><br><span class="line">             <span class="string">"11=1095350460\00167=2\00140=1\00159=3\0011=00303\00178=3\00179=string\00179=string\00179=string\00155=feed\00154=5\001394=3\00110="</span></span><br><span class="line">             <span class="string">"120\001"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void GxpMessageTest::tear<span class="constructor">Down()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">//delete _cfgxml;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void GxpMessageTest::test<span class="constructor">_calculateBasePath_0()</span></span><br><span class="line">&#123;</span><br><span class="line">  FIX::GxpMessage object(_object);</span><br><span class="line">  <span class="built_in">string</span> basepath(<span class="string">"/root/nodeA/nodeB|N"</span>);</span><br><span class="line">  <span class="constructor">CPPUNIT_ASSERT_EQUAL(<span class="params">object</span>.<span class="params">calculateBasePath</span>(<span class="params">basepath</span>,5)</span>,(<span class="built_in">string</span>)<span class="string">"/root/node/nodeB|5"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void GxpMessageTest::test<span class="constructor">_calculateBasePath_1()</span></span><br><span class="line">&#123;</span><br><span class="line">  FIX::GxpMessage obj(_object);</span><br><span class="line">  <span class="comment">/*验证类GxpMessage的构造函数GxpMessage(const FIX::Message&amp; m) */</span></span><br><span class="line">  FIX::GxpMessage object(obj);</span><br><span class="line">  FIX::GxpMessage obj_null;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">string</span> basepath(<span class="string">"/root/nodeA/group|4"</span>);</span><br><span class="line">  <span class="built_in">string</span> falsepath(<span class="string">"/root/nodeA/group|N/subnode"</span>);</span><br><span class="line">  <span class="built_in">string</span> respath;</span><br><span class="line">  <span class="constructor">CPPUNIT_ASSERT_EQUAL((<span class="params">string</span>)</span><span class="string">"/root/nodeA/group|4/subnode"</span>,object.calculate<span class="constructor">BasePath(<span class="params">basepath</span>,<span class="params">falsepath</span>,<span class="params">respath</span>)</span>);</span><br><span class="line"></span><br><span class="line">  basepath.assign(<span class="string">"/root/nodeA/group|4/subnode/subgroup|5"</span>);</span><br><span class="line">  falsepath.assign(<span class="string">"/root/nodeA/group|N/subnode/subgroup|N/abc/group|N"</span>);</span><br><span class="line">  respath.clear<span class="literal">()</span>;</span><br><span class="line">  <span class="constructor">CPPUNIT_ASSERT_EQUAL((<span class="params">string</span>)</span><span class="string">"/root/nodeA/group|4/subnode/subgroup|5/abc/group|N"</span>,object.calculate<span class="constructor">BasePath(<span class="params">basepath</span>,<span class="params">falsepath</span>,<span class="params">respath</span>)</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中需要留意的就是这几个宏，可以方便的创建测试用例：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">CPPUNIT_TEST_SUITE</span><span class="params">()</span></span> 开始创建一个TestSuite </span><br><span class="line"><span class="function"><span class="title">CPPUNIT_TEST</span><span class="params">()</span></span> 添加TestCase </span><br><span class="line"><span class="function"><span class="title">CPPUNIT_TEST_SUITE_END</span><span class="params">()</span></span>  结束创建</span><br><span class="line"><span class="function"><span class="title">CPPUNIT_TEST_SUITE_NAMED_REGISTRATION</span><span class="params">()</span></span> 添加一个TestSuite到一个指定的TestFactoryRegistry工厂（两个参数：第一个是TestSuite；第二个是唯一标识TestSuite名称字符串）</span><br></pre></td></tr></table></figure>
+
+<p>另外，CppUnit提供了多种验证测试用例成功失败的宏：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="constructor">CPPUNIT_ASSERT(<span class="params">condition</span>)</span>   <span class="comment">// 确信condition为真</span></span><br><span class="line"><span class="constructor">CPPUNIT_ASSERT_MESSAGE(<span class="params">message</span>, <span class="params">condition</span>)</span>  </span><br><span class="line"><span class="comment">// 当condition为假时失败, 并打印message</span></span><br><span class="line"><span class="constructor">CPPUNIT_FAIL(<span class="params">message</span>)</span>            </span><br><span class="line"><span class="comment">// 当前测试失败, 并打印message</span></span><br><span class="line"><span class="constructor">CPPUNIT_ASSERT_EQUAL(<span class="params">expected</span>, <span class="params">actual</span>)</span>    </span><br><span class="line"><span class="comment">// 确信两者相等</span></span><br><span class="line"><span class="constructor">CPPUNIT_ASSERT_EQUAL_MESSAGE(<span class="params">message</span>, <span class="params">expected</span>, <span class="params">actual</span>)</span>  </span><br><span class="line"><span class="comment">// 失败的同时打印message</span></span><br><span class="line"><span class="constructor">CPPUNIT_ASSERT_DOUBLES_EQUAL(<span class="params">expected</span>, <span class="params">actual</span>, <span class="params">delta</span>)</span>  </span><br><span class="line"><span class="comment">// 当expected和actual之间差大于delta时失败</span></span><br></pre></td></tr></table></figure>
+
+<p>在完成一个或者多个测试类的编写后，需要用TestRunner类的实例来运行每个测试类的测试函数进行测试。TestRunner类型共有：TextUi::TestRunner，QtUi::TestRunner，MfcUi::TestRunner三个，都可以用来运行测试。</p>
+<p>主测试程序如下:</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//main.cpp</span></span><br><span class="line"> <span class="selector-tag">int</span> <span class="selector-tag">main</span>(int argc,char* argv[])</span><br><span class="line">  &#123;</span><br><span class="line">  <span class="comment">/*</span></span><br><span class="line"><span class="comment">    CppUnit::TextUi::TestRunner  runner;</span></span><br><span class="line"><span class="comment">    CppUnit::TestFactoryRegistry &amp;registry =CppUnit::TestFactoryRegistry::getRegistry("alltest");//得到标识MathTest名称字符串</span></span><br><span class="line"><span class="comment">  alltest的TestFactoryRegistry</span></span><br><span class="line"><span class="comment">   </span></span><br><span class="line"><span class="comment">    runner.addTest(registry.makeTest());//添加Test</span></span><br><span class="line"><span class="comment">    runner.run();//运行测试案例</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// informs test-listener about testresults</span></span><br><span class="line">      <span class="attribute">CPPUNIT_NS</span>::TestResult testresult;</span><br><span class="line">  </span><br><span class="line">      <span class="comment">// register listener for collecting the test-results</span></span><br><span class="line">      <span class="attribute">CPPUNIT_NS</span>::TestResultCollector collectedresults;</span><br><span class="line">      <span class="selector-tag">testresult</span><span class="selector-class">.addListener</span> (&amp;collectedresults);</span><br><span class="line">  </span><br><span class="line">      <span class="comment">// register listener for per-test progress output</span></span><br><span class="line">      <span class="selector-tag">CPPUNIT_NS</span><span class="selector-pseudo">::BriefTestProgressListener</span> <span class="selector-tag">progress</span>;</span><br><span class="line">      <span class="selector-tag">testresult</span><span class="selector-class">.addListener</span> (&amp;progress);</span><br><span class="line">  </span><br><span class="line">      <span class="comment">// insert test-suite at test-runner by registry</span></span><br><span class="line">      <span class="selector-tag">CPPUNIT_NS</span><span class="selector-pseudo">::TestRunner</span> <span class="selector-tag">testrunner</span>;</span><br><span class="line">      <span class="selector-tag">testrunner</span><span class="selector-class">.addTest</span> (<span class="attribute">CPPUNIT_NS</span>::<span class="attribute">TestFactoryRegistry</span>::getRegistry(<span class="string">"GxpMessagetest"</span>).makeTest ());</span><br><span class="line">      <span class="selector-tag">testrunner</span><span class="selector-class">.addTest</span> (<span class="attribute">CPPUNIT_NS</span>::<span class="attribute">TestFactoryRegistry</span>::getRegistry(<span class="string">"CfgXmltest"</span>).makeTest ());</span><br><span class="line">      <span class="selector-tag">testrunner</span><span class="selector-class">.run</span>(testresult);</span><br><span class="line">  </span><br><span class="line">      <span class="comment">// output results in compiler-format</span></span><br><span class="line">      <span class="selector-tag">CPPUNIT_NS</span><span class="selector-pseudo">::CompilerOutputter</span> <span class="selector-tag">compileroutputter</span>(&amp;collectedresults, <span class="attribute">std</span>::cerr);</span><br><span class="line">      <span class="selector-tag">compileroutputter</span><span class="selector-class">.write</span> (); </span><br><span class="line">  </span><br><span class="line">      <span class="comment">// Output XML for Jenkins CPPunit plugin</span></span><br><span class="line">      <span class="selector-tag">ofstream</span> <span class="selector-tag">xmlFileOut</span>(<span class="string">"cppTestBasicMathResults.xml"</span>);</span><br><span class="line">      <span class="selector-tag">XmlOutputter</span> <span class="selector-tag">xmlOut</span>(&amp;collectedresults, xmlFileOut);</span><br><span class="line">      <span class="selector-tag">xmlOut</span><span class="selector-class">.write</span>();</span><br><span class="line">  </span><br><span class="line">      <span class="comment">// return 0 if tests were successful</span></span><br><span class="line">      <span class="selector-tag">return</span> <span class="selector-tag">collectedresults</span><span class="selector-class">.wasSuccessful</span>() ? <span class="selector-tag">0</span> : <span class="selector-tag">1</span>;</span><br><span class="line">  </span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>至此，可以很便利的使用CppUnit进行单元测试案例的编写，提高单元测试案例的编写效率以及测试效果。如果单元测试案例写的够详细，那么可以把代码覆盖率提高很多，对源代码的静态或者逻辑功能进行较为详细的测试。<br>另外，可以参考以下网址：</p>
+<p><a href="http://www.whiteboxtest.com/Unit-Testing-With-CppUnit.php" target="_blank" rel="noopener">UnitTestingWithCppUnit</a>    &amp;&amp;<br> <a href="https://www.ibm.com/developerworks/cn/linux/l-cppunit/" target="_blank" rel="noopener">便利的开发工具 CppUnit 快速使用指南</a></p>
+<h1 id="GCOV"><a href="#GCOV" class="headerlink" title="GCOV"></a>GCOV</h1><p>gcov是gcc中内建的工具，用来做代码覆盖率统计；lcov是GCOV图形化的前端工具,基于Html输出，并生成一棵完整的HTML树。</p>
+<h2 id="步骤概览"><a href="#步骤概览" class="headerlink" title="步骤概览"></a>步骤概览</h2><ol>
+<li>编译生成xx.gcno文件</li>
+<li>执行程序生成xx.gcda文件</li>
+<li>使用lcov命令手机覆盖率信息写入yy.info文件，可能对多个yy.info文件进行合并为一个大的info文件</li>
+<li>使用genhtml命令生成用于展示覆盖率的html文件</li>
+</ol>
+<h2 id="gcno文件-amp-amp-gcda文件"><a href="#gcno文件-amp-amp-gcda文件" class="headerlink" title="gcno文件 &amp;&amp; gcda文件"></a>gcno文件 &amp;&amp; gcda文件</h2><p>要在编译时生成gcno文件，运行后生成gcda文件，需要在编译链接过程对相关文件进行插桩，即在编译时添加编译选项<strong>-fprofile-arcs   -ftest-coverage</strong>，在链接时加上选项<strong>-lgcov</strong>。如果没有-lgcov选项编译出来的.so文件在动态加载的时候会提示类似 undefined reference to ‘<strong>gcov_merge_add’ 或者 undefined reference to ‘</strong>gcov_init’这样的错误。可以在makefile里定义宏：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">GCOVFLAG</span>=-fprofile-arcs -ftest-coverage </span><br><span class="line"><span class="attr">LINKFLAG</span>=-lgcov</span><br></pre></td></tr></table></figure>
+<p>编译后每个.cpp文件对应一个gcno文件，然后运行测试程序可以生成gcda文件，虽然可以用环境变量指定gcda文件生成的路径，但是不建议这么做，因为后续的lcov收集覆盖信息需要gcno文件和gcda文件在一个目录下。</p>
+<p>这两个文件都是二进制文件，包含不可见字符。此处需要留意的是<strong><em>可执行程序</em></strong>。对于我来说，此处的 <strong><em>可执行程序</em></strong> 是我使用CppUnit框架编写的单元测试程序，在链接的时候以<strong>动态库so</strong>的方式对需要测试的源代码进行链接。</p>
+<p>通常的做法是，如果源代码目录名为/fix,下面包含了很多.c/.cpp/.h文件，我的做法是在/fix目录下新建一个cppunit文件夹作为单元测试案例的编写目录。编写好后，只需要在源代码目录/fix下的makefile里加入<strong>GCOVFLAG和LINKFLAG</strong>，然后在cppunit目录下的makefile里链接源代码生成的so库,然后make生成可执行程序,然后运行该可执行程序。</p>
+<p>这将会在源代码目录/fix下生成gcno和gcda文件，对应每一个c/cpp文件。如图：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/gcda.png" alt=""></p>
+<h2 id="info文件-amp-amp-html文件"><a href="#info文件-amp-amp-html文件" class="headerlink" title="info文件 &amp;&amp; html文件"></a>info文件 &amp;&amp; html文件</h2><p>使用lcov命令收集覆盖率信息，写入info文件。具体参数使用请查看 lcov –help .我常用命令:</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">GCOVTESTPATH</span>=/home/niki/sources/src/gcovtest</span><br><span class="line"><span class="attribute">INFONAME</span>=$(basename `pwd`)</span><br><span class="line">lcov  -d .  -o <span class="variable">$GCOVTESTPATH</span>/<span class="variable">$INFONAME</span>.<span class="builtin-name">info</span>  -c</span><br></pre></td></tr></table></figure>
+<p>其中gcovtest目录是我专门用来收集info文件的目录，因为会涉及到很多个文件夹，每个源代码目录都可能产生一个info文件，最终需要合并这些info文件为一个统一的info文件然后才能进行分析。这里我用到了一个小脚本all_gcov:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#! /bin/bash</span></span><br><span class="line">./generate_info </span><br><span class="line"></span><br><span class="line">aArg=</span><br><span class="line">argsingle=</span><br><span class="line"></span><br><span class="line">HTMLPATH=~/windows/result</span><br><span class="line"><span class="keyword">for</span> nf <span class="keyword">in</span> `ls *.info`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  argsingle=<span class="string">"-a <span class="variable">$nf</span> "</span></span><br><span class="line">  aArg=<span class="string">"<span class="variable">$aArg</span> <span class="variable">$argsingle</span>"</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span>  <span class="variable">$aArg</span></span><br><span class="line">lcov   -o Main.INFO   <span class="variable">$aArg</span></span><br><span class="line">genhtml -o <span class="variable">$HTMLPATH</span>  Main.INFO</span><br></pre></td></tr></table></figure>
+<p>脚本很容易理解，generate_info脚本是用来对每个源代码目录生成info文件到$GCOVTESTPATH下,后面会介绍。脚本对$GCOVTESTPATH目录下的*.info文件进行遍历，然后合并成一个大的Main.INFO文件。然后使用genhtml命令生成html文件写到目录~/windows/result目录下。</p>
+<p>那么generate_info脚本是什么样的?</p>
+<p>对于一个大型项目来说，有很多的源代码目录甚至多个子目录，每个源代码目录下的源代码都需要编写单元测试案例进行测试，当每个目录下都生成了gcno和gcda文件后，这个时候就需要generate_info脚本了，大致原理是进入到每一个源代码目录下，使用lcov命令根据gcno和gcda文件生成info文件到$GCOVTESTPATH目录下。部分代码如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/ksh</span></span><br><span class="line">SRC_DIR=<span class="variable">$GXPHOME</span>/src</span><br><span class="line">BASE_DIR=`<span class="built_in">cd</span> .&amp;&amp;<span class="built_in">pwd</span>`</span><br><span class="line">MAKE_LOG=<span class="variable">$BASE_DIR</span>/gcov.log</span><br><span class="line">COMPILE_LOG=<span class="variable">$BASE_DIR</span>/process.log</span><br><span class="line"></span><br><span class="line">GCOVTESTPATH=/home/niki/sources/src/gcovtest</span><br><span class="line"></span><br><span class="line"><span class="comment">#进入到某个源代码目录下,根据生成的*.gcno和*.gcda文件,lcov抓取数据生成xx.info文件写到$GCOVTESTPATH目录下</span></span><br><span class="line"><span class="keyword">function</span> gen_infofile &#123;</span><br><span class="line">  INFONAME=$(basename `<span class="built_in">pwd</span>`)</span><br><span class="line">  lcov  -d .  -o <span class="variable">$GCOVTESTPATH</span>/<span class="variable">$INFONAME</span>.info  -c   &gt;&gt; <span class="variable">$COMPILE_LOG</span> 2&gt;&amp;1</span><br><span class="line">  <span class="comment">#du filename 输出为 256 filename</span></span><br><span class="line">  filenone=$(du  <span class="variable">$GCOVTESTPATH</span>/<span class="variable">$INFONAME</span>.info)</span><br><span class="line">  <span class="comment">#获取文件大小</span></span><br><span class="line">  filesize=`<span class="built_in">echo</span> <span class="variable">$filenone</span> | awk <span class="string">'&#123;print $1;&#125;'</span>`</span><br><span class="line">  <span class="comment">#如果文件大小为0,则删除这个info空文件</span></span><br><span class="line">  <span class="keyword">if</span> [ <span class="string">"<span class="variable">$filesize</span>"</span>  -eq 0 ];<span class="keyword">then</span></span><br><span class="line">  ¦ rm <span class="variable">$GCOVTESTPATH</span>/<span class="variable">$INFONAME</span>.info</span><br><span class="line">  <span class="keyword">fi</span>  </span><br><span class="line"></span><br><span class="line">TARGET=gcov_info_file</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"begin <span class="variable">$&#123;TARGET&#125;</span>"</span>|tee <span class="variable">$MAKE_LOG</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"begin process "</span>&gt;<span class="variable">$COMPILE_LOG</span></span><br><span class="line"><span class="comment">#xml</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"begin gcov xml.info"</span> |tee -a <span class="variable">$MAKE_LOG</span></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$SRC_DIR</span>/xml</span><br><span class="line">gen_infofile</span><br><span class="line"></span><br><span class="line"><span class="comment">#plugin</span></span><br><span class="line">PLUGIN_SRC_DIR=<span class="variable">$SRC_DIR</span>/plugin</span><br><span class="line"><span class="keyword">for</span> loop <span class="keyword">in</span> `ls <span class="variable">$PLUGIN_SRC_DIR</span>|grep -v demo`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  ¦ is_in_skiplist <span class="variable">$loop</span></span><br><span class="line">  ¦ <span class="keyword">if</span> [ <span class="variable">$SKIPRET</span> = 1 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">continue</span></span><br><span class="line">  ¦ <span class="keyword">fi</span></span><br><span class="line">  ¦ <span class="built_in">echo</span> <span class="string">"begin gcov plugin <span class="variable">$loop</span>.info"</span>|tee -a <span class="variable">$MAKE_LOG</span></span><br><span class="line">  ¦ <span class="built_in">cd</span> <span class="variable">$PLUGIN_SRC_DIR</span>/<span class="variable">$loop</span></span><br><span class="line">    gen_infofile</span><br><span class="line">  ¦ <span class="comment">#./gcov.sh &gt;&gt;$COMPILE_LOG 2&gt;&amp;1</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#省略了一些类似的代码</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>优化:</strong>这个地方还可以优化，前提需要每个源代码目录下都编译&amp;&amp;运行产生了gcno和gcda文件;其实还可以写脚本执行产生gcno/gcda文件的重复性工作。</p>
+<h2 id="html浏览器展示"><a href="#html浏览器展示" class="headerlink" title="html浏览器展示"></a>html浏览器展示</h2><p>genhtml命令产生的html文件写到了~/windows/result文件夹下，用浏览器打开index.html:<br><img src="http://o8fj2jbwb.bkt.clouddn.com/html.png" alt=""><br><img src="http://o8fj2jbwb.bkt.clouddn.com/html2.png" alt=""><br><img src="http://o8fj2jbwb.bkt.clouddn.com/html3.png" alt=""><br>可以看到还是比较详细的把代码覆盖率显示了。点开源代码也可以看到具体哪一些代码行被执行了哪一些没有被执行。总体看来还是挺不错的！</p>
+<h1 id="CppUnit配合Gcov"><a href="#CppUnit配合Gcov" class="headerlink" title="CppUnit配合Gcov"></a>CppUnit配合Gcov</h1><p>上面详细的介绍了CppUnit和Gcov的使用，那么现在对于一个新编写的源代码目录，比如/newsrcdir,需要做下面一些工作：</p>
+<ol>
+<li>新建目录/newsrcdir/cppunit，编写单元测试案例到此目录下</li>
+<li>/newsrcdir/makefile中添加$GCOVFLAG和$LINKFLAG，编译源代码生成gcno文件</li>
+<li>/newsrcdir/cppunit/makefile中链接-lnewsrcdir(测试源代码生成的动态库）,make all</li>
+<li>执行生成的可执行程序</li>
+<li>/newsrcdir目录下生成了gcda文件</li>
+<li>去到$GCOVTESTPATH下执行./all_gcov</li>
+<li>浏览器中查看html</li>
+</ol>
+<p>以上步骤可以优化，最终的all_gcov执行结果为:<br><img src="http://o8fj2jbwb.bkt.clouddn.com/info.png" alt=""><br><img src="http://o8fj2jbwb.bkt.clouddn.com/info2.png" alt=""></p>
+<h1 id="好了，结束，下班，回家"><a href="#好了，结束，下班，回家" class="headerlink" title="好了，结束，下班，回家"></a>好了，结束，下班，回家</h1><p>写完了。下一篇，面试的感触与经验分享。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#x69;&#x6e;&#117;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#111;&#x6d;">&#108;&#x69;&#x6e;&#117;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#111;&#x6d;</a></p>
+</li>
+</ul>
+<p>2017-03-17 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/06/08/定义自己的rmcommand/" rel="bookmark">定义自己的命令</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/06/07/我的vim捣鼓之路/" rel="bookmark">我的vim捣鼓之路</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/" title="c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率">http://www.rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/gcov/" rel="tag"># gcov</a>
+              <a href="/tags/lcov/" rel="tag"># lcov</a>
+              <a href="/tags/genthml/" rel="tag"># genthml</a>
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/cppunit/" rel="tag"># cppunit</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/02/10/sourcecode-of-quickfix/" rel="prev" title="Quickfix源代码分析">
+      <i class="fa fa-chevron-left"></i> Quickfix源代码分析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/03/22/rebuild_hexoblog_in_mac/" rel="next" title="切换博客从win到mac">
+      切换博客从win到mac <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#先来闲聊下"><span class="nav-number">1.</span> <span class="nav-text">先来闲聊下</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CPPUNIT"><span class="nav-number">2.</span> <span class="nav-text">CPPUNIT</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CppUnit原理"><span class="nav-number">2.1.</span> <span class="nav-text">CppUnit原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CppUnit实例"><span class="nav-number">2.2.</span> <span class="nav-text">CppUnit实例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#GCOV"><span class="nav-number">3.</span> <span class="nav-text">GCOV</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#步骤概览"><span class="nav-number">3.1.</span> <span class="nav-text">步骤概览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gcno文件-amp-amp-gcda文件"><span class="nav-number">3.2.</span> <span class="nav-text">gcno文件 &amp;&amp; gcda文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#info文件-amp-amp-html文件"><span class="nav-number">3.3.</span> <span class="nav-text">info文件 &amp;&amp; html文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#html浏览器展示"><span class="nav-number">3.4.</span> <span class="nav-text">html浏览器展示</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CppUnit配合Gcov"><span class="nav-number">4.</span> <span class="nav-text">CppUnit配合Gcov</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#好了，结束，下班，回家"><span class="nav-number">5.</span> <span class="nav-text">好了，结束，下班，回家</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

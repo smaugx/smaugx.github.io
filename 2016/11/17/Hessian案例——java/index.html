@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null,"activeClass":"livere"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言由于工作的原因，接触到了hessain,项目需要做hessain和xml之间的报文转换。但是对于hessian是个什么东西一头雾水。于是接下来的时间了解了hessain协议的序列化规则以及hessian协议进行通信的方式。这篇文章是在完成了这个模块之后很长一段时间（大概3个月）才记录的。一来这个时候没什么事，二来当时就一直打算记录下学习的过程，后来搁置了。故本文对hessain协议做一个简单介">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hessian通信案例(java)">
+<meta property="og:url" content="http://www.rebootcat.com/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="前言由于工作的原因，接触到了hessain,项目需要做hessain和xml之间的报文转换。但是对于hessian是个什么东西一头雾水。于是接下来的时间了解了hessain协议的序列化规则以及hessian协议进行通信的方式。这篇文章是在完成了这个模块之后很长一段时间（大概3个月）才记录的。一来这个时候没什么事，二来当时就一直打算记录下学习的过程，后来搁置了。故本文对hessain协议做一个简单介">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/s1.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/s2.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/s6.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/s7.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/c1.png">
+<meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/c2.png">
+<meta property="article:published_time" content="2016-11-17T07:35:34.000Z">
+<meta property="article:modified_time" content="2020-04-17T16:58:13.958Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="hessian">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="tomcat">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://o8fj2jbwb.bkt.clouddn.com/s1.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Hessian通信案例(java) | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hessian通信案例(java)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-17 15:35:34" itemprop="dateCreated datePublished" datetime="2016-11-17T15:35:34+08:00">2016-11-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-18 00:58:13" itemprop="dateModified" datetime="2020-04-18T00:58:13+08:00">2020-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/hessian/" itemprop="url" rel="index"><span itemprop="name">hessian</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>由于工作的原因，接触到了hessain,项目需要做hessain和xml之间的报文转换。但是对于hessian是个什么东西一头雾水。于是接下来的时间了解了hessain协议的序列化规则以及hessian协议进行通信的方式。这篇文章是在完成了这个模块之后很长一段时间（大概3个月）才记录的。一来这个时候没什么事，二来当时就一直打算记录下学习的过程，后来搁置了。故本文对hessain协议做一个简单介绍，然后搭建了一个Java版的hessian客户端和服务端，实现了hessian通信。</p>
+<h1 id="什么是Hessian"><a href="#什么是Hessian" class="headerlink" title="什么是Hessian"></a>什么是Hessian</h1><h2 id="什么是rpc"><a href="#什么是rpc" class="headerlink" title="什么是rpc?"></a>什么是rpc?</h2><p>RPC（Remote Procedure Call Protocol）——远程过程调用协议，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。RPC协议假定某些传输协议的存在，如TCP或UDP，为通信程序之间携带信息数据。在OSI网络通信模型中，RPC跨越了传输层和应用层。RPC使得开发包括网络分布式多程序在内的应用程序更加容易。RMI是J2EE中标准的RPC服务，RPC的完美封装是的将业务逻辑可以进行分布式部署，将运算密集型的工作进行分流（但请求还是同步的），在使用过程中间封装起实现可以实现在客户端调用的时候完全透明(需要在RMI客户端调用方式进行封装)。</p>
+<h2 id="什么是hessian"><a href="#什么是hessian" class="headerlink" title="什么是hessian?"></a>什么是hessian?</h2><p>Hessian是一个轻量级的,自定义描述的二进制RPC协议。Hessian主要用作面向对象的消息通信。</p>
+<h2 id="hessian序列化规则"><a href="#hessian序列化规则" class="headerlink" title="hessian序列化规则"></a>hessian序列化规则</h2><p>hessian序列化方式目前有两个版本1.0和2.0，具体可以查看官网<a href="http://hessian.caucho.com/doc/hessian-serialization.html" target="_blank" rel="noopener">http://hessian.caucho.com/doc/hessian-serialization.html</a>。另外我在我的七牛空间上传了<a href="http://o8fj2jbwb.bkt.clouddn.com/hessian%E5%8D%8F%E8%AE%AE%E4%B8%AD%E6%96%87%E7%89%88.docx" target="_blank" rel="noopener">hessian协议2.0中文版</a>，有需要的话可以下载，防止官网全英文看不懂。另外hessian<a href="http://hessian.caucho.com/index.xtp" target="_blank" rel="noopener">官网</a>上提供了各种版本的hessian协议的实现，包括java,c++,c#,Python,.NET,Ruby等，上面其实有比较详细的demo。可以参考，当时我也是参考过的。</p>
+<h1 id="Hessian通信案列-java"><a href="#Hessian通信案列-java" class="headerlink" title="Hessian通信案列(java)"></a>Hessian通信案列(java)</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><a id="more"></a>
+<p>Eclipse &amp;&amp;　Tomcat.</p>
+<h2 id="资源下载"><a href="#资源下载" class="headerlink" title="资源下载"></a>资源下载</h2><p>下载java版的hessian类库: <a href="http://hessian.caucho.com/index.xtp#Java" target="_blank" rel="noopener">hessian-4.0.37.jar</a></p>
+<h2 id="hessian-服务端"><a href="#hessian-服务端" class="headerlink" title="hessian 服务端"></a>hessian 服务端</h2><ol>
+<li><p>Eclipse中新建Dynamic Web Project<br><img src="http://o8fj2jbwb.bkt.clouddn.com/s1.png" alt=""><br>此处可以看到需要选择Target runtime，需要首先安装Tomcat。</p>
+</li>
+<li><p>导入下载的hessian-4.0-37.jar,右键build path-&gt;Add to Build path<br>导入完成如图：<img src="http://o8fj2jbwb.bkt.clouddn.com/s2.png" alt=""></p>
+</li>
+<li><p>开发步骤</p>
+<p>hessian服务端的开发涉及到3个部分。定义接口&amp;&amp;接口实现&amp;&amp;web.xml</p>
+</li>
+</ol>
+<ul>
+<li>定义接口</li>
+</ul>
+<p>新建IBasic.java,随便命名。</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">package test;</span><br><span class="line"></span><br><span class="line">public<span class="built_in"> interface </span>IBasic &#123;  </span><br><span class="line">public String hello();   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此处做演示，只定义了一个最简单的hello函数,实际情况可以在此文件中增加你的接口函数。<strong>接口函数就是服务端暴露出来的服务，可以为客户服务的实际内容。故此接口文件也需要在客户端的开发中用到。</strong></p>
+<ul>
+<li>接口实现</li>
+</ul>
+<p>新建BasicService.java，随便命名。</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BasicService</span> <span class="keyword"><span class="keyword">implements</span> <span class="type">IBasic</span></span> </span>&#123;</span><br><span class="line">	</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">String</span> hello= <span class="string">"Hello, world,my name is nick!"</span>;   </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">String</span> hello() &#123;</span><br><span class="line">  <span class="keyword">return</span> hello;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此文件就是接口函数的具体实现,此处只是针对在IBasic.java中定义好的接口函数。<strong>对于小白，简单来说，就是服务端提供了一些服务，或者说暴露了一些服务，也就是接口函数，这些服务供客户端远程调用，就像客户端在本地调用一样，只不过服务端跟客户端的通信采用了一些二进制协议。</strong></p>
+<ul>
+<li>web.xml<br>服务端实现了上述两个文件，基本就算完成了，不过如果需要发布到tomcat运行，还需要在web.xml配置Servlet.</li>
+</ul>
+<p>web.xml:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">version</span>=<span class="string">"2.5"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">xsi:schemaLocation</span>=<span class="string">"http://java.sun.com/xml/ns/javaee </span></span></span><br><span class="line"><span class="tag"><span class="string">http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">welcome-file-list</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">welcome-file</span>&gt;</span>index.jsp<span class="tag">&lt;/<span class="name">welcome-file</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">welcome-file-list</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>ServerMachine<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>com.caucho.hessian.server.HessianServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>home-class<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span>  </span><br><span class="line">       <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>test.BasicService<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>home-api<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span>  </span><br><span class="line">       <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>test.IBasic<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;/<span class="name">servlet</span>&gt;</span>  </span><br><span class="line"> </span><br><span class="line">	<span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>ServerMachine<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/ServerMachine<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span>  </span><br><span class="line"> <span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span>  </span><br><span class="line"> </span><br><span class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>图中需要注意的就是servlet-name，可以修改成你自己喜欢的名字,至于具体这个web.xml里面各个字段的意义，我其实也不清楚，我对java不了解，我一直从事C++开发。当时自己尝试了很多遍。如果你配置的时候发布到Tomcat启动不了，那么请反复修改下吧。</p>
+<p>此处还需要注意需要有个index.jsp这个脚本，如下：</p>
+<p>index.jsp:</p>
+<figure class="highlight vbscript-html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="vbscript">&lt;%@ page language=<span class="string">"java"</span> import=<span class="string">"java.util.*"</span> pageEncoding=<span class="string">"ISO-8859-1"</span>%&gt;</span></span><br><span class="line"><span class="vbscript">&lt;%</span></span><br><span class="line"><span class="vbscript"><span class="built_in">String</span> path = <span class="built_in">request</span>.getContextPath();</span></span><br><span class="line"><span class="vbscript"><span class="built_in">String</span> basePath = <span class="built_in">request</span>.getScheme()+<span class="string">"://"</span>+<span class="built_in">request</span>.getServerName()+<span class="string">":"</span>+<span class="built_in">request</span>.getServerPort()+path+<span class="string">"/"</span>;</span></span><br><span class="line"><span class="vbscript">%&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="xml"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">HTML</span> <span class="meta-keyword">PUBLIC</span> <span class="meta-string">"-//W3C//DTD HTML 4.01 Transitional//EN"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">base</span> <span class="attr">href</span>=<span class="string">"</span></span></span><span class="vbscript">&lt;%=basePath%&gt;</span><span class="xml"><span class="tag"><span class="string">"</span>&gt;</span></span></span><br><span class="line"><span class="xml">  </span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">title</span>&gt;</span>My JSP 'index.jsp' starting page<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"pragma"</span> <span class="attr">content</span>=<span class="string">"no-cache"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"cache-control"</span> <span class="attr">content</span>=<span class="string">"no-cache"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"expires"</span> <span class="attr">content</span>=<span class="string">"0"</span>&gt;</span>    </span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"keywords"</span> <span class="attr">content</span>=<span class="string">"keyword1,keyword2,keyword3"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"description"</span> <span class="attr">content</span>=<span class="string">"This is my page"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="comment">&lt;!--</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"stylesheet"</span> <span class="attr">type</span>=<span class="string">"text/css"</span> <span class="attr">href</span>=<span class="string">"styles.css"</span>&gt;</span></span></span><br><span class="line"><span class="xml">	--&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="xml"> <span class="tag">&lt;<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="xml">  This is my JSP page. <span class="tag">&lt;<span class="name">br</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p><strong>这两个文件的放置的位置也很关键，如果不对，是会出错的。</strong>见下图：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/s6.png" alt=""></p>
+<p>4  发布到Tomcat，启动hessian_server</p>
+<p><strong>这一步的前提是需要在Eclipse中新建Server并配置好。</strong>过程略。毕竟现在不会java的不太多了，我当时为了这小个问题还折腾了好久。</p>
+<p>成功后如下:<img src="http://o8fj2jbwb.bkt.clouddn.com/s7.png" alt=""><br>这里注意到上面的URL:  <a href="http://localhost:8080/hessian_server/" target="_blank" rel="noopener">http://localhost:8080/hessian_server</a>，这个地址就是hessian服务端的地址，实际情况将localhost换成服务端所在的IP地址，这个地址客户端需要用到。</p>
+<p>hessian服务端到这里就完了。这里我只是用了最简单的方式来设置，实际比较复杂的情况下可以使用spring等，具体我还没研究过。</p>
+<p>接下来就是hessian客户端的开发了！！</p>
+<h2 id="hessain-客户端"><a href="#hessain-客户端" class="headerlink" title="hessain 客户端"></a>hessain 客户端</h2><ol>
+<li><p>Eclipse中新建Java Project</p>
+</li>
+<li><p>导入下载的hessian-4.0-37.jar,右键build path-&gt;Add to Build path<br>导入完成如图：<img src="http://o8fj2jbwb.bkt.clouddn.com/c1.png" alt=""></p>
+</li>
+<li><p>开发步骤</p>
+<p>hessian客户端的开发涉及到2个部分。定义接口&amp;&amp;客户端主程序</p>
+</li>
+</ol>
+<ul>
+<li>定义接口</li>
+</ul>
+<p><strong>把上面服务端定义好的接口文件IBasic.java原样复制到工程中。</strong></p>
+<ul>
+<li>客户端主程序</li>
+</ul>
+<p>新建HessianClient.java，随便命名。</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">package test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.caucho.hessian.client.HessianProxyFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HessianClient</span>&#123;</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">String</span> []args)</span>   </span></span><br><span class="line"><span class="function">        throws Exception   </span></span><br><span class="line"><span class="function">      </span>&#123;   </span><br><span class="line">        <span class="keyword">String</span> url = <span class="string">"http://localhost:8080/hessian_server/ServerMachineTest"</span>;   </span><br><span class="line">        HessianProxyFactory factory = <span class="keyword">new</span> HessianProxyFactory();   </span><br><span class="line">        IBasic basic = (IBasic) factory.create(IBasic.class, url); </span><br><span class="line"></span><br><span class="line">        <span class="keyword">String</span> helloreturn = basic.hello();</span><br><span class="line">        System.out.<span class="built_in">println</span>(helloreturn);</span><br><span class="line">        </span><br><span class="line">		</span><br><span class="line">      &#125;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意上面的URL地址。</strong></p>
+<p>主要步骤定义服务端的地址URL,然后new一个代理工厂HessainProxyFactory，这个代理类工厂负责远程调用。 然后就可以像调用本地函数一样，调用在IBasic.java中定义好的接口函数hello()。</p>
+<p>4  启动客户端</p>
+<p>项目上右键Run as-&gt;Java  Application启动客户端。<br>成功后结果如下：<img src="http://o8fj2jbwb.bkt.clouddn.com/c2.png" alt=""></p>
+<h2 id="至此，小结"><a href="#至此，小结" class="headerlink" title="至此，小结"></a>至此，小结</h2><p>至此，完成了Hessian 客户端和服务端的通信。现在回过头来看，可能会觉得比较简单。当时还是折腾了好一会呢！！ 简单来说，服务端定义并实现服务，发布到Tomcat，客户端新建一个代理，就像调用本地函数那样调用远程的服务端提供的函数，完成通信。</p>
+<p><em>那么Hessian的底层具体是怎么实现的呢?客户端和服务端是怎么完成了序列化，并反序列的？客户端的代理类工厂是怎么实现的？这些我可能会留到另外的博客里分析。</em></p>
+<h1 id="写完了"><a href="#写完了" class="headerlink" title="写完了"></a>写完了</h1><p>写这篇文章是回过头来写，大概中间隔了快4个月的时间，为了写这篇博客，里面用到的一些图片，我又从头搭建了一个服务端和客户端，还是碰到了一些小问题，说明过了段时间是会陌生的。最好的时间是做完那个关于Hessain的项目就应该记录下过程，可以节省很多时间。</p>
+<p>坚持写博客还是挺困难的，后面有时间打算再写分析下Hessian的源码以及C++版的Hessain,以及做其他项目涉及到的一些东西。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#x78;&#99;&#x6f;&#x64;&#101;&#x32;&#x6e;&#105;&#107;&#x69;&#64;&#103;&#109;&#97;&#105;&#108;&#x2e;&#x63;&#111;&#x6d;">&#108;&#105;&#110;&#117;&#x78;&#99;&#x6f;&#x64;&#101;&#x32;&#x6e;&#105;&#107;&#x69;&#64;&#103;&#109;&#97;&#105;&#108;&#x2e;&#x63;&#111;&#x6d;</a></p>
+</li>
+</ul>
+<p>2016-11-17 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/18/Hessian源码分析——java/" rel="bookmark">Hessian源码分析(java)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/22/hessiancpp编译和使用——C++版/" rel="bookmark">hessiancpp编译和使用(C++版)</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/" title="Hessian通信案例(java)">http://www.rebootcat.com/2016/11/17/Hessian案例——java/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hessian/" rel="tag"># hessian</a>
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/tomcat/" rel="tag"># tomcat</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/" rel="prev" title="同时托管博客到coding和github">
+      <i class="fa fa-chevron-left"></i> 同时托管博客到coding和github
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/" rel="next" title="Hessian源码分析(java)">
+      Hessian源码分析(java) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC8zMzA4MC85NjQx"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是Hessian"><span class="nav-number">2.</span> <span class="nav-text">什么是Hessian</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是rpc"><span class="nav-number">2.1.</span> <span class="nav-text">什么是rpc?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是hessian"><span class="nav-number">2.2.</span> <span class="nav-text">什么是hessian?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hessian序列化规则"><span class="nav-number">2.3.</span> <span class="nav-text">hessian序列化规则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hessian通信案列-java"><span class="nav-number">3.</span> <span class="nav-text">Hessian通信案列(java)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#环境准备"><span class="nav-number">3.1.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#资源下载"><span class="nav-number">3.2.</span> <span class="nav-text">资源下载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hessian-服务端"><span class="nav-number">3.3.</span> <span class="nav-text">hessian 服务端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hessain-客户端"><span class="nav-number">3.4.</span> <span class="nav-text">hessain 客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#至此，小结"><span class="nav-number">3.5.</span> <span class="nav-text">至此，小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#写完了"><span class="nav-number">4.</span> <span class="nav-text">写完了</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element">
+    <a onclick="tidioChatApi.open();"><i class="fa fa-comment"></i>
+    和我交流
+  </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+  <script src="//code.tidio.co/ibqtbdm5jm8kzn0c84laenp7y0qme3kq.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>
