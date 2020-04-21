@@ -75,6 +75,101 @@
       </tags>
   </entry>
   <entry>
+    <title>Hessian通信案例(java)</title>
+    <url>/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>由于工作的原因，接触到了hessain,项目需要做hessain和xml之间的报文转换。但是对于hessian是个什么东西一头雾水。于是接下来的时间了解了hessain协议的序列化规则以及hessian协议进行通信的方式。这篇文章是在完成了这个模块之后很长一段时间（大概3个月）才记录的。一来这个时候没什么事，二来当时就一直打算记录下学习的过程，后来搁置了。故本文对hessain协议做一个简单介绍，然后搭建了一个Java版的hessian客户端和服务端，实现了hessian通信。</p>
+<h1 id="什么是Hessian"><a href="#什么是Hessian" class="headerlink" title="什么是Hessian"></a>什么是Hessian</h1><h2 id="什么是rpc"><a href="#什么是rpc" class="headerlink" title="什么是rpc?"></a>什么是rpc?</h2><p>RPC（Remote Procedure Call Protocol）——远程过程调用协议，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。RPC协议假定某些传输协议的存在，如TCP或UDP，为通信程序之间携带信息数据。在OSI网络通信模型中，RPC跨越了传输层和应用层。RPC使得开发包括网络分布式多程序在内的应用程序更加容易。RMI是J2EE中标准的RPC服务，RPC的完美封装是的将业务逻辑可以进行分布式部署，将运算密集型的工作进行分流（但请求还是同步的），在使用过程中间封装起实现可以实现在客户端调用的时候完全透明(需要在RMI客户端调用方式进行封装)。</p>
+<h2 id="什么是hessian"><a href="#什么是hessian" class="headerlink" title="什么是hessian?"></a>什么是hessian?</h2><p>Hessian是一个轻量级的,自定义描述的二进制RPC协议。Hessian主要用作面向对象的消息通信。</p>
+<h2 id="hessian序列化规则"><a href="#hessian序列化规则" class="headerlink" title="hessian序列化规则"></a>hessian序列化规则</h2><p>hessian序列化方式目前有两个版本1.0和2.0，具体可以查看官网<a href="http://hessian.caucho.com/doc/hessian-serialization.html" target="_blank" rel="noopener">http://hessian.caucho.com/doc/hessian-serialization.html</a>。另外我在我的七牛空间上传了<a href="http://o8fj2jbwb.bkt.clouddn.com/hessian%E5%8D%8F%E8%AE%AE%E4%B8%AD%E6%96%87%E7%89%88.docx" target="_blank" rel="noopener">hessian协议2.0中文版</a>，有需要的话可以下载，防止官网全英文看不懂。另外hessian<a href="http://hessian.caucho.com/index.xtp" target="_blank" rel="noopener">官网</a>上提供了各种版本的hessian协议的实现，包括java,c++,c#,Python,.NET,Ruby等，上面其实有比较详细的demo。可以参考，当时我也是参考过的。</p>
+<h1 id="Hessian通信案列-java"><a href="#Hessian通信案列-java" class="headerlink" title="Hessian通信案列(java)"></a>Hessian通信案列(java)</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><a id="more"></a>
+<p>Eclipse &amp;&amp;　Tomcat.</p>
+<h2 id="资源下载"><a href="#资源下载" class="headerlink" title="资源下载"></a>资源下载</h2><p>下载java版的hessian类库: <a href="http://hessian.caucho.com/index.xtp#Java" target="_blank" rel="noopener">hessian-4.0.37.jar</a></p>
+<h2 id="hessian-服务端"><a href="#hessian-服务端" class="headerlink" title="hessian 服务端"></a>hessian 服务端</h2><ol>
+<li><p>Eclipse中新建Dynamic Web Project<br><img src="http://o8fj2jbwb.bkt.clouddn.com/s1.png" alt=""><br>此处可以看到需要选择Target runtime，需要首先安装Tomcat。</p>
+</li>
+<li><p>导入下载的hessian-4.0-37.jar,右键build path-&gt;Add to Build path<br>导入完成如图：<img src="http://o8fj2jbwb.bkt.clouddn.com/s2.png" alt=""></p>
+</li>
+<li><p>开发步骤</p>
+<p>hessian服务端的开发涉及到3个部分。定义接口&amp;&amp;接口实现&amp;&amp;web.xml</p>
+</li>
+</ol>
+<ul>
+<li>定义接口</li>
+</ul>
+<p>新建IBasic.java,随便命名。</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">package test;</span><br><span class="line"></span><br><span class="line">public<span class="built_in"> interface </span>IBasic &#123;  </span><br><span class="line">public String hello();   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此处做演示，只定义了一个最简单的hello函数,实际情况可以在此文件中增加你的接口函数。<strong>接口函数就是服务端暴露出来的服务，可以为客户服务的实际内容。故此接口文件也需要在客户端的开发中用到。</strong></p>
+<ul>
+<li>接口实现</li>
+</ul>
+<p>新建BasicService.java，随便命名。</p>
+<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BasicService</span> <span class="keyword"><span class="keyword">implements</span> <span class="type">IBasic</span></span> </span>&#123;</span><br><span class="line">	</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">String</span> hello= <span class="string">"Hello, world,my name is nick!"</span>;   </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">String</span> hello() &#123;</span><br><span class="line">  <span class="keyword">return</span> hello;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此文件就是接口函数的具体实现,此处只是针对在IBasic.java中定义好的接口函数。<strong>对于小白，简单来说，就是服务端提供了一些服务，或者说暴露了一些服务，也就是接口函数，这些服务供客户端远程调用，就像客户端在本地调用一样，只不过服务端跟客户端的通信采用了一些二进制协议。</strong></p>
+<ul>
+<li>web.xml<br>服务端实现了上述两个文件，基本就算完成了，不过如果需要发布到tomcat运行，还需要在web.xml配置Servlet.</li>
+</ul>
+<p>web.xml:</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">version</span>=<span class="string">"2.5"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">xsi:schemaLocation</span>=<span class="string">"http://java.sun.com/xml/ns/javaee </span></span></span><br><span class="line"><span class="tag"><span class="string">http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">welcome-file-list</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">welcome-file</span>&gt;</span>index.jsp<span class="tag">&lt;/<span class="name">welcome-file</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">welcome-file-list</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>ServerMachine<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>com.caucho.hessian.server.HessianServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>home-class<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span>  </span><br><span class="line">       <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>test.BasicService<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>home-api<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span>  </span><br><span class="line">       <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>test.IBasic<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;/<span class="name">servlet</span>&gt;</span>  </span><br><span class="line"> </span><br><span class="line">	<span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>ServerMachine<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/ServerMachine<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span>  </span><br><span class="line"> <span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span>  </span><br><span class="line"> </span><br><span class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>图中需要注意的就是servlet-name，可以修改成你自己喜欢的名字,至于具体这个web.xml里面各个字段的意义，我其实也不清楚，我对java不了解，我一直从事C++开发。当时自己尝试了很多遍。如果你配置的时候发布到Tomcat启动不了，那么请反复修改下吧。</p>
+<p>此处还需要注意需要有个index.jsp这个脚本，如下：</p>
+<p>index.jsp:</p>
+<figure class="highlight vbscript-html"><table><tr><td class="code"><pre><span class="line"><span class="vbscript">&lt;%@ page language=<span class="string">"java"</span> import=<span class="string">"java.util.*"</span> pageEncoding=<span class="string">"ISO-8859-1"</span>%&gt;</span></span><br><span class="line"><span class="vbscript">&lt;%</span></span><br><span class="line"><span class="vbscript"><span class="built_in">String</span> path = <span class="built_in">request</span>.getContextPath();</span></span><br><span class="line"><span class="vbscript"><span class="built_in">String</span> basePath = <span class="built_in">request</span>.getScheme()+<span class="string">"://"</span>+<span class="built_in">request</span>.getServerName()+<span class="string">":"</span>+<span class="built_in">request</span>.getServerPort()+path+<span class="string">"/"</span>;</span></span><br><span class="line"><span class="vbscript">%&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="xml"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">HTML</span> <span class="meta-keyword">PUBLIC</span> <span class="meta-string">"-//W3C//DTD HTML 4.01 Transitional//EN"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">base</span> <span class="attr">href</span>=<span class="string">"</span></span></span><span class="vbscript">&lt;%=basePath%&gt;</span><span class="xml"><span class="tag"><span class="string">"</span>&gt;</span></span></span><br><span class="line"><span class="xml">  </span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">title</span>&gt;</span>My JSP 'index.jsp' starting page<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"pragma"</span> <span class="attr">content</span>=<span class="string">"no-cache"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"cache-control"</span> <span class="attr">content</span>=<span class="string">"no-cache"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"expires"</span> <span class="attr">content</span>=<span class="string">"0"</span>&gt;</span>    </span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"keywords"</span> <span class="attr">content</span>=<span class="string">"keyword1,keyword2,keyword3"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"description"</span> <span class="attr">content</span>=<span class="string">"This is my page"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="comment">&lt;!--</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"stylesheet"</span> <span class="attr">type</span>=<span class="string">"text/css"</span> <span class="attr">href</span>=<span class="string">"styles.css"</span>&gt;</span></span></span><br><span class="line"><span class="xml">	--&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="xml"> <span class="tag">&lt;<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="xml">  This is my JSP page. <span class="tag">&lt;<span class="name">br</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p><strong>这两个文件的放置的位置也很关键，如果不对，是会出错的。</strong>见下图：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/s6.png" alt=""></p>
+<p>4  发布到Tomcat，启动hessian_server</p>
+<p><strong>这一步的前提是需要在Eclipse中新建Server并配置好。</strong>过程略。毕竟现在不会java的不太多了，我当时为了这小个问题还折腾了好久。</p>
+<p>成功后如下:<img src="http://o8fj2jbwb.bkt.clouddn.com/s7.png" alt=""><br>这里注意到上面的URL:  <a href="http://localhost:8080/hessian_server/" target="_blank" rel="noopener">http://localhost:8080/hessian_server</a>，这个地址就是hessian服务端的地址，实际情况将localhost换成服务端所在的IP地址，这个地址客户端需要用到。</p>
+<p>hessian服务端到这里就完了。这里我只是用了最简单的方式来设置，实际比较复杂的情况下可以使用spring等，具体我还没研究过。</p>
+<p>接下来就是hessian客户端的开发了！！</p>
+<h2 id="hessain-客户端"><a href="#hessain-客户端" class="headerlink" title="hessain 客户端"></a>hessain 客户端</h2><ol>
+<li><p>Eclipse中新建Java Project</p>
+</li>
+<li><p>导入下载的hessian-4.0-37.jar,右键build path-&gt;Add to Build path<br>导入完成如图：<img src="http://o8fj2jbwb.bkt.clouddn.com/c1.png" alt=""></p>
+</li>
+<li><p>开发步骤</p>
+<p>hessian客户端的开发涉及到2个部分。定义接口&amp;&amp;客户端主程序</p>
+</li>
+</ol>
+<ul>
+<li>定义接口</li>
+</ul>
+<p><strong>把上面服务端定义好的接口文件IBasic.java原样复制到工程中。</strong></p>
+<ul>
+<li>客户端主程序</li>
+</ul>
+<p>新建HessianClient.java，随便命名。</p>
+<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">package test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.caucho.hessian.client.HessianProxyFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HessianClient</span>&#123;</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">String</span> []args)</span>   </span></span><br><span class="line"><span class="function">        throws Exception   </span></span><br><span class="line"><span class="function">      </span>&#123;   </span><br><span class="line">        <span class="keyword">String</span> url = <span class="string">"http://localhost:8080/hessian_server/ServerMachineTest"</span>;   </span><br><span class="line">        HessianProxyFactory factory = <span class="keyword">new</span> HessianProxyFactory();   </span><br><span class="line">        IBasic basic = (IBasic) factory.create(IBasic.class, url); </span><br><span class="line"></span><br><span class="line">        <span class="keyword">String</span> helloreturn = basic.hello();</span><br><span class="line">        System.out.<span class="built_in">println</span>(helloreturn);</span><br><span class="line">        </span><br><span class="line">		</span><br><span class="line">      &#125;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意上面的URL地址。</strong></p>
+<p>主要步骤定义服务端的地址URL,然后new一个代理工厂HessainProxyFactory，这个代理类工厂负责远程调用。 然后就可以像调用本地函数一样，调用在IBasic.java中定义好的接口函数hello()。</p>
+<p>4  启动客户端</p>
+<p>项目上右键Run as-&gt;Java  Application启动客户端。<br>成功后结果如下：<img src="http://o8fj2jbwb.bkt.clouddn.com/c2.png" alt=""></p>
+<h2 id="至此，小结"><a href="#至此，小结" class="headerlink" title="至此，小结"></a>至此，小结</h2><p>至此，完成了Hessian 客户端和服务端的通信。现在回过头来看，可能会觉得比较简单。当时还是折腾了好一会呢！！ 简单来说，服务端定义并实现服务，发布到Tomcat，客户端新建一个代理，就像调用本地函数那样调用远程的服务端提供的函数，完成通信。</p>
+<p><em>那么Hessian的底层具体是怎么实现的呢?客户端和服务端是怎么完成了序列化，并反序列的？客户端的代理类工厂是怎么实现的？这些我可能会留到另外的博客里分析。</em></p>
+<h1 id="写完了"><a href="#写完了" class="headerlink" title="写完了"></a>写完了</h1><p>写这篇文章是回过头来写，大概中间隔了快4个月的时间，为了写这篇博客，里面用到的一些图片，我又从头搭建了一个服务端和客户端，还是碰到了一些小问题，说明过了段时间是会陌生的。最好的时间是做完那个关于Hessain的项目就应该记录下过程，可以节省很多时间。</p>
+<p>坚持写博客还是挺困难的，后面有时间打算再写分析下Hessian的源码以及C++版的Hessain,以及做其他项目涉及到的一些东西。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#117;&#120;&#99;&#x6f;&#x64;&#x65;&#50;&#x6e;&#105;&#107;&#105;&#64;&#103;&#x6d;&#x61;&#105;&#108;&#46;&#x63;&#x6f;&#x6d;">&#108;&#105;&#x6e;&#117;&#120;&#99;&#x6f;&#x64;&#x65;&#50;&#x6e;&#105;&#107;&#105;&#64;&#103;&#x6d;&#x61;&#105;&#108;&#46;&#x63;&#x6f;&#x6d;</a></p>
+</li>
+</ul>
+<p>2016-11-17 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+]]></content>
+      <categories>
+        <category>hessian</category>
+      </categories>
+      <tags>
+        <tag>hessian</tag>
+        <tag>java</tag>
+        <tag>tomcat</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>FIX协议介绍</title>
     <url>/2017/02/09/FIX-protocol-introduce/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>FIX协议是什么？我为什么会接触到FIX协议？由于工作上的关系，自己负责的一个模块需要实现fix报文与xml报文之间的转换。故需要了解fix是个什么东西才能实现这个转换功能。总体看来，FIX协议还是有些许的复杂，些许的不好理解。闲话少叙，开干！</p>
@@ -156,7 +251,7 @@
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#117;&#x78;&#x63;&#x6f;&#100;&#101;&#50;&#x6e;&#105;&#x6b;&#x69;&#64;&#x67;&#x6d;&#97;&#x69;&#108;&#x2e;&#99;&#111;&#109;">&#x6c;&#105;&#x6e;&#117;&#x78;&#x63;&#x6f;&#100;&#101;&#50;&#x6e;&#105;&#x6b;&#x69;&#64;&#x67;&#x6d;&#97;&#x69;&#108;&#x2e;&#99;&#111;&#109;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#111;&#x64;&#101;&#50;&#x6e;&#x69;&#107;&#x69;&#64;&#103;&#109;&#97;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;">&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#111;&#x64;&#101;&#50;&#x6e;&#x69;&#107;&#x69;&#64;&#103;&#109;&#97;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;</a></p>
 </li>
 </ul>
 <p>2017-02-09 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -169,98 +264,79 @@
       </tags>
   </entry>
   <entry>
-    <title>Hessian通信案例(java)</title>
-    <url>/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>由于工作的原因，接触到了hessain,项目需要做hessain和xml之间的报文转换。但是对于hessian是个什么东西一头雾水。于是接下来的时间了解了hessain协议的序列化规则以及hessian协议进行通信的方式。这篇文章是在完成了这个模块之后很长一段时间（大概3个月）才记录的。一来这个时候没什么事，二来当时就一直打算记录下学习的过程，后来搁置了。故本文对hessain协议做一个简单介绍，然后搭建了一个Java版的hessian客户端和服务端，实现了hessian通信。</p>
-<h1 id="什么是Hessian"><a href="#什么是Hessian" class="headerlink" title="什么是Hessian"></a>什么是Hessian</h1><h2 id="什么是rpc"><a href="#什么是rpc" class="headerlink" title="什么是rpc?"></a>什么是rpc?</h2><p>RPC（Remote Procedure Call Protocol）——远程过程调用协议，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。RPC协议假定某些传输协议的存在，如TCP或UDP，为通信程序之间携带信息数据。在OSI网络通信模型中，RPC跨越了传输层和应用层。RPC使得开发包括网络分布式多程序在内的应用程序更加容易。RMI是J2EE中标准的RPC服务，RPC的完美封装是的将业务逻辑可以进行分布式部署，将运算密集型的工作进行分流（但请求还是同步的），在使用过程中间封装起实现可以实现在客户端调用的时候完全透明(需要在RMI客户端调用方式进行封装)。</p>
-<h2 id="什么是hessian"><a href="#什么是hessian" class="headerlink" title="什么是hessian?"></a>什么是hessian?</h2><p>Hessian是一个轻量级的,自定义描述的二进制RPC协议。Hessian主要用作面向对象的消息通信。</p>
-<h2 id="hessian序列化规则"><a href="#hessian序列化规则" class="headerlink" title="hessian序列化规则"></a>hessian序列化规则</h2><p>hessian序列化方式目前有两个版本1.0和2.0，具体可以查看官网<a href="http://hessian.caucho.com/doc/hessian-serialization.html" target="_blank" rel="noopener">http://hessian.caucho.com/doc/hessian-serialization.html</a>。另外我在我的七牛空间上传了<a href="http://o8fj2jbwb.bkt.clouddn.com/hessian%E5%8D%8F%E8%AE%AE%E4%B8%AD%E6%96%87%E7%89%88.docx" target="_blank" rel="noopener">hessian协议2.0中文版</a>，有需要的话可以下载，防止官网全英文看不懂。另外hessian<a href="http://hessian.caucho.com/index.xtp" target="_blank" rel="noopener">官网</a>上提供了各种版本的hessian协议的实现，包括java,c++,c#,Python,.NET,Ruby等，上面其实有比较详细的demo。可以参考，当时我也是参考过的。</p>
-<h1 id="Hessian通信案列-java"><a href="#Hessian通信案列-java" class="headerlink" title="Hessian通信案列(java)"></a>Hessian通信案列(java)</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><a id="more"></a>
-<p>Eclipse &amp;&amp;　Tomcat.</p>
-<h2 id="资源下载"><a href="#资源下载" class="headerlink" title="资源下载"></a>资源下载</h2><p>下载java版的hessian类库: <a href="http://hessian.caucho.com/index.xtp#Java" target="_blank" rel="noopener">hessian-4.0.37.jar</a></p>
-<h2 id="hessian-服务端"><a href="#hessian-服务端" class="headerlink" title="hessian 服务端"></a>hessian 服务端</h2><ol>
-<li><p>Eclipse中新建Dynamic Web Project<br><img src="http://o8fj2jbwb.bkt.clouddn.com/s1.png" alt=""><br>此处可以看到需要选择Target runtime，需要首先安装Tomcat。</p>
-</li>
-<li><p>导入下载的hessian-4.0-37.jar,右键build path-&gt;Add to Build path<br>导入完成如图：<img src="http://o8fj2jbwb.bkt.clouddn.com/s2.png" alt=""></p>
-</li>
-<li><p>开发步骤</p>
-<p>hessian服务端的开发涉及到3个部分。定义接口&amp;&amp;接口实现&amp;&amp;web.xml</p>
-</li>
-</ol>
-<ul>
-<li>定义接口</li>
-</ul>
-<p>新建IBasic.java,随便命名。</p>
-<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">package test;</span><br><span class="line"></span><br><span class="line">public<span class="built_in"> interface </span>IBasic &#123;  </span><br><span class="line">public String hello();   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>此处做演示，只定义了一个最简单的hello函数,实际情况可以在此文件中增加你的接口函数。<strong>接口函数就是服务端暴露出来的服务，可以为客户服务的实际内容。故此接口文件也需要在客户端的开发中用到。</strong></p>
-<ul>
-<li>接口实现</li>
-</ul>
-<p>新建BasicService.java，随便命名。</p>
-<figure class="highlight haxe"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BasicService</span> <span class="keyword"><span class="keyword">implements</span> <span class="type">IBasic</span></span> </span>&#123;</span><br><span class="line">	</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">String</span> hello= <span class="string">"Hello, world,my name is nick!"</span>;   </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">String</span> hello() &#123;</span><br><span class="line">  <span class="keyword">return</span> hello;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>此文件就是接口函数的具体实现,此处只是针对在IBasic.java中定义好的接口函数。<strong>对于小白，简单来说，就是服务端提供了一些服务，或者说暴露了一些服务，也就是接口函数，这些服务供客户端远程调用，就像客户端在本地调用一样，只不过服务端跟客户端的通信采用了一些二进制协议。</strong></p>
-<ul>
-<li>web.xml<br>服务端实现了上述两个文件，基本就算完成了，不过如果需要发布到tomcat运行，还需要在web.xml配置Servlet.</li>
-</ul>
-<p>web.xml:</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">version</span>=<span class="string">"2.5"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">xsi:schemaLocation</span>=<span class="string">"http://java.sun.com/xml/ns/javaee </span></span></span><br><span class="line"><span class="tag"><span class="string">http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">welcome-file-list</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">welcome-file</span>&gt;</span>index.jsp<span class="tag">&lt;/<span class="name">welcome-file</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">welcome-file-list</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>ServerMachine<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>com.caucho.hessian.server.HessianServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>home-class<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span>  </span><br><span class="line">       <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>test.BasicService<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>home-api<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span>  </span><br><span class="line">       <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>test.IBasic<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;/<span class="name">servlet</span>&gt;</span>  </span><br><span class="line"> </span><br><span class="line">	<span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>ServerMachine<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/ServerMachine<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span>  </span><br><span class="line"> <span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span>  </span><br><span class="line"> </span><br><span class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<p>图中需要注意的就是servlet-name，可以修改成你自己喜欢的名字,至于具体这个web.xml里面各个字段的意义，我其实也不清楚，我对java不了解，我一直从事C++开发。当时自己尝试了很多遍。如果你配置的时候发布到Tomcat启动不了，那么请反复修改下吧。</p>
-<p>此处还需要注意需要有个index.jsp这个脚本，如下：</p>
-<p>index.jsp:</p>
-<figure class="highlight vbscript-html"><table><tr><td class="code"><pre><span class="line"><span class="vbscript">&lt;%@ page language=<span class="string">"java"</span> import=<span class="string">"java.util.*"</span> pageEncoding=<span class="string">"ISO-8859-1"</span>%&gt;</span></span><br><span class="line"><span class="vbscript">&lt;%</span></span><br><span class="line"><span class="vbscript"><span class="built_in">String</span> path = <span class="built_in">request</span>.getContextPath();</span></span><br><span class="line"><span class="vbscript"><span class="built_in">String</span> basePath = <span class="built_in">request</span>.getScheme()+<span class="string">"://"</span>+<span class="built_in">request</span>.getServerName()+<span class="string">":"</span>+<span class="built_in">request</span>.getServerPort()+path+<span class="string">"/"</span>;</span></span><br><span class="line"><span class="vbscript">%&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="xml"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">HTML</span> <span class="meta-keyword">PUBLIC</span> <span class="meta-string">"-//W3C//DTD HTML 4.01 Transitional//EN"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">base</span> <span class="attr">href</span>=<span class="string">"</span></span></span><span class="vbscript">&lt;%=basePath%&gt;</span><span class="xml"><span class="tag"><span class="string">"</span>&gt;</span></span></span><br><span class="line"><span class="xml">  </span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">title</span>&gt;</span>My JSP 'index.jsp' starting page<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"pragma"</span> <span class="attr">content</span>=<span class="string">"no-cache"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"cache-control"</span> <span class="attr">content</span>=<span class="string">"no-cache"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"expires"</span> <span class="attr">content</span>=<span class="string">"0"</span>&gt;</span>    </span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"keywords"</span> <span class="attr">content</span>=<span class="string">"keyword1,keyword2,keyword3"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"description"</span> <span class="attr">content</span>=<span class="string">"This is my page"</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="comment">&lt;!--</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"stylesheet"</span> <span class="attr">type</span>=<span class="string">"text/css"</span> <span class="attr">href</span>=<span class="string">"styles.css"</span>&gt;</span></span></span><br><span class="line"><span class="xml">	--&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="xml"> <span class="tag">&lt;<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="xml">  This is my JSP page. <span class="tag">&lt;<span class="name">br</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
-
-<p><strong>这两个文件的放置的位置也很关键，如果不对，是会出错的。</strong>见下图：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/s6.png" alt=""></p>
-<p>4  发布到Tomcat，启动hessian_server</p>
-<p><strong>这一步的前提是需要在Eclipse中新建Server并配置好。</strong>过程略。毕竟现在不会java的不太多了，我当时为了这小个问题还折腾了好久。</p>
-<p>成功后如下:<img src="http://o8fj2jbwb.bkt.clouddn.com/s7.png" alt=""><br>这里注意到上面的URL:  <a href="http://localhost:8080/hessian_server/" target="_blank" rel="noopener">http://localhost:8080/hessian_server</a>，这个地址就是hessian服务端的地址，实际情况将localhost换成服务端所在的IP地址，这个地址客户端需要用到。</p>
-<p>hessian服务端到这里就完了。这里我只是用了最简单的方式来设置，实际比较复杂的情况下可以使用spring等，具体我还没研究过。</p>
-<p>接下来就是hessian客户端的开发了！！</p>
-<h2 id="hessain-客户端"><a href="#hessain-客户端" class="headerlink" title="hessain 客户端"></a>hessain 客户端</h2><ol>
-<li><p>Eclipse中新建Java Project</p>
-</li>
-<li><p>导入下载的hessian-4.0-37.jar,右键build path-&gt;Add to Build path<br>导入完成如图：<img src="http://o8fj2jbwb.bkt.clouddn.com/c1.png" alt=""></p>
-</li>
-<li><p>开发步骤</p>
-<p>hessian客户端的开发涉及到2个部分。定义接口&amp;&amp;客户端主程序</p>
-</li>
-</ol>
-<ul>
-<li>定义接口</li>
-</ul>
-<p><strong>把上面服务端定义好的接口文件IBasic.java原样复制到工程中。</strong></p>
-<ul>
-<li>客户端主程序</li>
-</ul>
-<p>新建HessianClient.java，随便命名。</p>
-<figure class="highlight arduino"><table><tr><td class="code"><pre><span class="line">package test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.caucho.hessian.client.HessianProxyFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HessianClient</span>&#123;</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">String</span> []args)</span>   </span></span><br><span class="line"><span class="function">        throws Exception   </span></span><br><span class="line"><span class="function">      </span>&#123;   </span><br><span class="line">        <span class="keyword">String</span> url = <span class="string">"http://localhost:8080/hessian_server/ServerMachineTest"</span>;   </span><br><span class="line">        HessianProxyFactory factory = <span class="keyword">new</span> HessianProxyFactory();   </span><br><span class="line">        IBasic basic = (IBasic) factory.create(IBasic.class, url); </span><br><span class="line"></span><br><span class="line">        <span class="keyword">String</span> helloreturn = basic.hello();</span><br><span class="line">        System.out.<span class="built_in">println</span>(helloreturn);</span><br><span class="line">        </span><br><span class="line">		</span><br><span class="line">      &#125;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>注意上面的URL地址。</strong></p>
-<p>主要步骤定义服务端的地址URL,然后new一个代理工厂HessainProxyFactory，这个代理类工厂负责远程调用。 然后就可以像调用本地函数一样，调用在IBasic.java中定义好的接口函数hello()。</p>
-<p>4  启动客户端</p>
-<p>项目上右键Run as-&gt;Java  Application启动客户端。<br>成功后结果如下：<img src="http://o8fj2jbwb.bkt.clouddn.com/c2.png" alt=""></p>
-<h2 id="至此，小结"><a href="#至此，小结" class="headerlink" title="至此，小结"></a>至此，小结</h2><p>至此，完成了Hessian 客户端和服务端的通信。现在回过头来看，可能会觉得比较简单。当时还是折腾了好一会呢！！ 简单来说，服务端定义并实现服务，发布到Tomcat，客户端新建一个代理，就像调用本地函数那样调用远程的服务端提供的函数，完成通信。</p>
-<p><em>那么Hessian的底层具体是怎么实现的呢?客户端和服务端是怎么完成了序列化，并反序列的？客户端的代理类工厂是怎么实现的？这些我可能会留到另外的博客里分析。</em></p>
-<h1 id="写完了"><a href="#写完了" class="headerlink" title="写完了"></a>写完了</h1><p>写这篇文章是回过头来写，大概中间隔了快4个月的时间，为了写这篇博客，里面用到的一些图片，我又从头搭建了一个服务端和客户端，还是碰到了一些小问题，说明过了段时间是会陌生的。最好的时间是做完那个关于Hessain的项目就应该记录下过程，可以节省很多时间。</p>
-<p>坚持写博客还是挺困难的，后面有时间打算再写分析下Hessian的源码以及C++版的Hessain,以及做其他项目涉及到的一些东西。</p>
-<p>Blog:</p>
-<ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
-</li>
-<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#120;&#x63;&#111;&#x64;&#x65;&#50;&#x6e;&#105;&#107;&#105;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#111;&#109;">&#x6c;&#105;&#x6e;&#x75;&#120;&#x63;&#111;&#x64;&#x65;&#50;&#x6e;&#105;&#107;&#105;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#111;&#109;</a></p>
-</li>
-</ul>
-<p>2016-11-17 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+    <title>daocloud测试</title>
+    <url>/2016/12/06/daocloud-hexo/</url>
+    <content><![CDATA[<h1 id="TEST"><a href="#TEST" class="headerlink" title="TEST"></a>TEST</h1><p>使用daocloud结合docker进行自动化持续集成，测试！<br>Success!</p>
 ]]></content>
       <categories>
-        <category>hessian</category>
+        <category>docker</category>
       </categories>
       <tags>
-        <tag>hessian</tag>
-        <tag>java</tag>
-        <tag>tomcat</tag>
+        <tag>hexo</tag>
+        <tag>docker</tag>
+        <tag>daocloud</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CPU.IOWAIT 偏高问题《二》</title>
+    <url>/2018/01/04/analyze-of-high-iowait/</url>
+    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！</p>
+<p>这几天好好的写一篇总结！2018年对我来说，很重要！</p>
+<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><p>上一篇文章 <a href="http://rebootcat.com/2017/12/14/instability-of-cpu/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中其实已经大致分析出了问题所在。</p>
+<p>文中『Find The Murderer』章节也指出了可能造成 IOWAIT% 偏高的进程，但不够有说服力。故此文尝试进一步的分析造成 IOWAIT% 偏高的原因！</p>
+<p><img src="/images/problem.png" alt=""></p>
+<a id="more"></a>
+
+<h1 id="查找最耗-IOWAIT-的进程"><a href="#查找最耗-IOWAIT-的进程" class="headerlink" title="查找最耗 IOWAIT 的进程"></a>查找最耗 IOWAIT 的进程</h1><p>造成 IOWAIT% 偏高的进程一定也是 I/O 操作比较频繁的进程，<a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中使用了两种方法，第一种是使用 ps 命令查找状态码为 ‘D’ 的进程，这种方式找到的结果不够准确；第二种是使用 iotop 工具，这种方式可能存在的问题是机器内核版本定制过，部分模块可能没有，而 iotop 这个工具要求内核版本相对较高，虽然我做了一点修改，骗过了 iotop，让 iotop 能正常运行，但总之得到的结果可能不够准确。</p>
+<p>基于以上的分析，有必要用另外的方法。那么如何统计每个进程的 I/O 数呢，进而找到 I/O 数最高的进程？下面是查找过程。</p>
+<p>首先，关闭syslog:</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line">dmesg -<span class="built_in">c</span></span><br><span class="line">/etc/<span class="keyword">init</span>.d/klogd stop</span><br></pre></td></tr></table></figure>
+
+<p>接着下载一个 perl 脚本:</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">wget https:<span class="regexp">//gi</span>thub.com<span class="regexp">/true/</span>aspersa-mirror<span class="regexp">/blob/m</span>aster<span class="regexp">/iodump</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，打开 block_dump，这是内核关于 I/O 信息的一些日志：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">echo <span class="number">1</span> &gt; <span class="regexp">/proc/</span>sys<span class="regexp">/vm/</span>block_dump</span><br></pre></td></tr></table></figure>
+<p>block_dump中设置非零值能够打开内核关于每一个 I/O 操作进行记录的开关，这时候可以看到内核已经收集到了 I/O 的日志：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">[<span class="symbol">root@</span>localhost]# dmesg</span><br><span class="line">someprocess(<span class="number">1880</span>): READ block <span class="number">3830529728</span> on bcache1 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1877</span>): READ block <span class="number">2492278208</span> on bcache2 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1878</span>): READ block <span class="number">1407266528</span> on bcache3 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1877</span>): WRITE block <span class="number">2671126368</span> on bcache2 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1877</span>): WRITE block <span class="number">2671126528</span> on bcache2 (<span class="number">160</span> sectors)</span><br></pre></td></tr></table></figure>
+
+<p>接下来就是对这些日志进行分析，这时就用到了 iodump 脚本：</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">while</span> <span class="literal">true</span>; <span class="attribute">do</span> sleep <span class="number">1</span>; <span class="attribute">dmesg</span> -c; <span class="attribute">done</span> | perl iodump</span><br></pre></td></tr></table></figure>
+<p>这时候可能会出错：</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">-<span class="string">bash:</span> <span class="string">perl:</span> command not found</span><br></pre></td></tr></table></figure>
+<p>oho,这台机器没有 perl 环境，好吧，接着装一个好了:</p>
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">wget http://www.cpan.org/src/<span class="number">5.0</span>/<span class="keyword">perl</span>-<span class="number">5.26</span>.<span class="number">1</span>.tar.gz</span><br><span class="line">tar zxvf <span class="keyword">perl</span>-<span class="number">5.26</span>.<span class="number">1</span>.tar.gz</span><br><span class="line"><span class="keyword">cd</span> <span class="keyword">perl</span>-<span class="number">5.26</span>.<span class="number">1</span></span><br><span class="line"></span><br><span class="line">./Configure -des -Dprefix=./localperl</span><br><span class="line"><span class="keyword">make</span> test</span><br><span class="line"><span class="keyword">make</span> install</span><br></pre></td></tr></table></figure>
+<p>然后添加环境变量：</p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line">export PATH=<span class="variable">$PATH</span><span class="symbol">:/root/mydir/localperl/bin</span></span><br></pre></td></tr></table></figure>
+<p>重新执行命令:</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">while</span> <span class="literal">true</span>; <span class="attribute">do</span> sleep <span class="number">1</span>; <span class="attribute">dmesg</span> -c; <span class="attribute">done</span> | perl iodump</span><br></pre></td></tr></table></figure>
+<p>又抛错了？纳尼？</p>
+<figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line">Can't <span class="keyword">locate</span> strict.pm in <span class="comment">@INC (you may need to install the strict module) (@</span>INC contains: /root/mydir/localperl/<span class="keyword">lib</span>/site_perl/<span class="number">5.20</span><span class="number">.1</span>/x86_64-linux /root/mydir/localperl/<span class="keyword">lib</span>/site_perl/<span class="number">5.20</span><span class="number">.1</span> /root/mydir/localperl/<span class="keyword">lib</span>/<span class="number">5.20</span><span class="number">.1</span>/x86_64-linux /root/mydir/localperl/<span class="keyword">lib</span>/<span class="number">5.20</span><span class="number">.1</span> .) at iodump <span class="keyword">line</span> <span class="number">34.</span></span><br></pre></td></tr></table></figure>
+<p>好吧，设置下库路径:</p>
+<figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">export PERL5LIB=$<span class="symbol">PERL5LIB:</span>/root/mydir/localperl/<span class="class"><span class="keyword">lib</span></span></span><br></pre></td></tr></table></figure>
+<p>重新运行命令，正常的话可以看到下面的输出：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">[<span class="symbol">root@</span>localhost]# <span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span> sleep <span class="number">1</span>; dmesg -c; done | ./localperl/bin/perl iodump</span><br><span class="line">TASK                   PID      TOTAL       READ      WRITE      DIRTY DEVICES</span><br><span class="line">someproce             <span class="number">1877</span>       <span class="number">7236</span>       <span class="number">5923</span>       <span class="number">1313</span>          <span class="number">0</span> sda3</span><br><span class="line">someproce             <span class="number">1879</span>       <span class="number">7206</span>       <span class="number">5877</span>       <span class="number">1329</span>          <span class="number">0</span> sda3</span><br><span class="line">jbd2/sda3<span class="number">-8</span>           <span class="number">1241</span>        <span class="number">235</span>          <span class="number">0</span>        <span class="number">235</span>          <span class="number">0</span> sda3</span><br><span class="line">kworker/u16:<span class="number">2</span>       <span class="number">949469</span>         <span class="number">84</span>          <span class="number">0</span>         <span class="number">84</span>          <span class="number">0</span> sda3, sda1</span><br><span class="line">jbd2/sda1<span class="number">-8</span>            <span class="number">509</span>         <span class="number">82</span>          <span class="number">0</span>         <span class="number">82</span>          <span class="number">0</span> sda1</span><br><span class="line">edge-speeds-ale    <span class="number">1265169</span>          <span class="number">3</span>          <span class="number">0</span>          <span class="number">3</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">4144</span>          <span class="number">2</span>          <span class="number">0</span>          <span class="number">2</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">1831</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266086</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">curl               <span class="number">1266655</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">curl               <span class="number">1265033</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266089</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent        <span class="number">116709</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">bash               <span class="number">1264583</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda1</span><br><span class="line">falcon-agent          <span class="number">4142</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266083</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">4150</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent        <span class="number">116710</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br></pre></td></tr></table></figure>
+
+<p>统计结果很明白了，I/O 频繁的进程自然是导致 IOWAIT% 偏高的原因，那么根本原因还是硬件性能不足，磁盘 SSD 性能退化问题。</p>
+<h1 id="告一段落"><a href="#告一段落" class="headerlink" title="告一段落"></a>告一段落</h1><p><a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>以及本篇文章，做了很多关于 I/O、CPU、磁盘的比较细的研究，这些手段和方法值得以后排查其他问题借鉴！</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="https://www.xaprb.com/blog/2009/08/23/how-to-find-per-process-io-statistics-on-linux/" target="_blank" rel="noopener">How to find per-process I/O statistics on Linux</a></li>
+<li><a href="http://www.opensoce.com/2302.html" target="_blank" rel="noopener">linux iowait过高的分析</a></li>
+<li><a href="https://lenciel.com/2014/02/hunting-the-iowait-problem-maker/" target="_blank" rel="noopener">解决iowait过高的告警</a></li>
+<li><a href="https://stackoverflow.com/questions/249570/how-can-i-record-what-process-or-kernel-activity-is-using-the-disk-in-gnu-linux" target="_blank" rel="noopener">How can I record what process or kernel activity is using the disk in GNU/Linux?
+</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>cpu</tag>
+        <tag>iowait</tag>
+        <tag>iotop</tag>
+        <tag>iostat</tag>
+        <tag>perl</tag>
+        <tag>kernel</tag>
       </tags>
   </entry>
   <entry>
@@ -329,7 +405,7 @@
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#117;&#x78;&#99;&#111;&#100;&#x65;&#50;&#x6e;&#105;&#107;&#x69;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;">&#108;&#105;&#x6e;&#117;&#x78;&#99;&#111;&#100;&#x65;&#50;&#x6e;&#105;&#107;&#x69;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#x75;&#x78;&#99;&#111;&#100;&#x65;&#x32;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#x63;&#111;&#x6d;">&#108;&#105;&#110;&#x75;&#x78;&#99;&#111;&#100;&#x65;&#x32;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#x63;&#111;&#x6d;</a></p>
 </li>
 </ul>
 <p>2016-11-18 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -341,82 +417,6 @@
         <tag>hessian</tag>
         <tag>java</tag>
         <tag>源码</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CPU.IOWAIT 偏高问题《二》</title>
-    <url>/2018/01/04/analyze-of-high-iowait/</url>
-    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！</p>
-<p>这几天好好的写一篇总结！2018年对我来说，很重要！</p>
-<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><p>上一篇文章 <a href="http://rebootcat.com/2017/12/14/instability-of-cpu/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中其实已经大致分析出了问题所在。</p>
-<p>文中『Find The Murderer』章节也指出了可能造成 IOWAIT% 偏高的进程，但不够有说服力。故此文尝试进一步的分析造成 IOWAIT% 偏高的原因！</p>
-<p><img src="/images/problem.png" alt=""></p>
-<a id="more"></a>
-
-<h1 id="查找最耗-IOWAIT-的进程"><a href="#查找最耗-IOWAIT-的进程" class="headerlink" title="查找最耗 IOWAIT 的进程"></a>查找最耗 IOWAIT 的进程</h1><p>造成 IOWAIT% 偏高的进程一定也是 I/O 操作比较频繁的进程，<a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中使用了两种方法，第一种是使用 ps 命令查找状态码为 ‘D’ 的进程，这种方式找到的结果不够准确；第二种是使用 iotop 工具，这种方式可能存在的问题是机器内核版本定制过，部分模块可能没有，而 iotop 这个工具要求内核版本相对较高，虽然我做了一点修改，骗过了 iotop，让 iotop 能正常运行，但总之得到的结果可能不够准确。</p>
-<p>基于以上的分析，有必要用另外的方法。那么如何统计每个进程的 I/O 数呢，进而找到 I/O 数最高的进程？下面是查找过程。</p>
-<p>首先，关闭syslog:</p>
-<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line">dmesg -<span class="built_in">c</span></span><br><span class="line">/etc/<span class="keyword">init</span>.d/klogd stop</span><br></pre></td></tr></table></figure>
-
-<p>接着下载一个 perl 脚本:</p>
-<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">wget https:<span class="regexp">//gi</span>thub.com<span class="regexp">/true/</span>aspersa-mirror<span class="regexp">/blob/m</span>aster<span class="regexp">/iodump</span></span><br></pre></td></tr></table></figure>
-
-<p>然后，打开 block_dump，这是内核关于 I/O 信息的一些日志：</p>
-<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">echo <span class="number">1</span> &gt; <span class="regexp">/proc/</span>sys<span class="regexp">/vm/</span>block_dump</span><br></pre></td></tr></table></figure>
-<p>block_dump中设置非零值能够打开内核关于每一个 I/O 操作进行记录的开关，这时候可以看到内核已经收集到了 I/O 的日志：</p>
-<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">[<span class="symbol">root@</span>localhost]# dmesg</span><br><span class="line">someprocess(<span class="number">1880</span>): READ block <span class="number">3830529728</span> on bcache1 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1877</span>): READ block <span class="number">2492278208</span> on bcache2 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1878</span>): READ block <span class="number">1407266528</span> on bcache3 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1877</span>): WRITE block <span class="number">2671126368</span> on bcache2 (<span class="number">160</span> sectors)</span><br><span class="line">someprocess(<span class="number">1877</span>): WRITE block <span class="number">2671126528</span> on bcache2 (<span class="number">160</span> sectors)</span><br></pre></td></tr></table></figure>
-
-<p>接下来就是对这些日志进行分析，这时就用到了 iodump 脚本：</p>
-<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">while</span> <span class="literal">true</span>; <span class="attribute">do</span> sleep <span class="number">1</span>; <span class="attribute">dmesg</span> -c; <span class="attribute">done</span> | perl iodump</span><br></pre></td></tr></table></figure>
-<p>这时候可能会出错：</p>
-<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">-<span class="string">bash:</span> <span class="string">perl:</span> command not found</span><br></pre></td></tr></table></figure>
-<p>oho,这台机器没有 perl 环境，好吧，接着装一个好了:</p>
-<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">wget http://www.cpan.org/src/<span class="number">5.0</span>/<span class="keyword">perl</span>-<span class="number">5.26</span>.<span class="number">1</span>.tar.gz</span><br><span class="line">tar zxvf <span class="keyword">perl</span>-<span class="number">5.26</span>.<span class="number">1</span>.tar.gz</span><br><span class="line"><span class="keyword">cd</span> <span class="keyword">perl</span>-<span class="number">5.26</span>.<span class="number">1</span></span><br><span class="line"></span><br><span class="line">./Configure -des -Dprefix=./localperl</span><br><span class="line"><span class="keyword">make</span> test</span><br><span class="line"><span class="keyword">make</span> install</span><br></pre></td></tr></table></figure>
-<p>然后添加环境变量：</p>
-<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line">export PATH=<span class="variable">$PATH</span><span class="symbol">:/root/mydir/localperl/bin</span></span><br></pre></td></tr></table></figure>
-<p>重新执行命令:</p>
-<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">while</span> <span class="literal">true</span>; <span class="attribute">do</span> sleep <span class="number">1</span>; <span class="attribute">dmesg</span> -c; <span class="attribute">done</span> | perl iodump</span><br></pre></td></tr></table></figure>
-<p>又抛错了？纳尼？</p>
-<figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line">Can't <span class="keyword">locate</span> strict.pm in <span class="comment">@INC (you may need to install the strict module) (@</span>INC contains: /root/mydir/localperl/<span class="keyword">lib</span>/site_perl/<span class="number">5.20</span><span class="number">.1</span>/x86_64-linux /root/mydir/localperl/<span class="keyword">lib</span>/site_perl/<span class="number">5.20</span><span class="number">.1</span> /root/mydir/localperl/<span class="keyword">lib</span>/<span class="number">5.20</span><span class="number">.1</span>/x86_64-linux /root/mydir/localperl/<span class="keyword">lib</span>/<span class="number">5.20</span><span class="number">.1</span> .) at iodump <span class="keyword">line</span> <span class="number">34.</span></span><br></pre></td></tr></table></figure>
-<p>好吧，设置下库路径:</p>
-<figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">export PERL5LIB=$<span class="symbol">PERL5LIB:</span>/root/mydir/localperl/<span class="class"><span class="keyword">lib</span></span></span><br></pre></td></tr></table></figure>
-<p>重新运行命令，正常的话可以看到下面的输出：</p>
-<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">[<span class="symbol">root@</span>localhost]# <span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span> sleep <span class="number">1</span>; dmesg -c; done | ./localperl/bin/perl iodump</span><br><span class="line">TASK                   PID      TOTAL       READ      WRITE      DIRTY DEVICES</span><br><span class="line">someproce             <span class="number">1877</span>       <span class="number">7236</span>       <span class="number">5923</span>       <span class="number">1313</span>          <span class="number">0</span> sda3</span><br><span class="line">someproce             <span class="number">1879</span>       <span class="number">7206</span>       <span class="number">5877</span>       <span class="number">1329</span>          <span class="number">0</span> sda3</span><br><span class="line">jbd2/sda3<span class="number">-8</span>           <span class="number">1241</span>        <span class="number">235</span>          <span class="number">0</span>        <span class="number">235</span>          <span class="number">0</span> sda3</span><br><span class="line">kworker/u16:<span class="number">2</span>       <span class="number">949469</span>         <span class="number">84</span>          <span class="number">0</span>         <span class="number">84</span>          <span class="number">0</span> sda3, sda1</span><br><span class="line">jbd2/sda1<span class="number">-8</span>            <span class="number">509</span>         <span class="number">82</span>          <span class="number">0</span>         <span class="number">82</span>          <span class="number">0</span> sda1</span><br><span class="line">edge-speeds-ale    <span class="number">1265169</span>          <span class="number">3</span>          <span class="number">0</span>          <span class="number">3</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">4144</span>          <span class="number">2</span>          <span class="number">0</span>          <span class="number">2</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">1831</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266086</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">curl               <span class="number">1266655</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">curl               <span class="number">1265033</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266089</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent        <span class="number">116709</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">bash               <span class="number">1264583</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda1</span><br><span class="line">falcon-agent          <span class="number">4142</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266083</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">4150</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent        <span class="number">116710</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br></pre></td></tr></table></figure>
-
-<p>统计结果很明白了，I/O 频繁的进程自然是导致 IOWAIT% 偏高的原因，那么根本原因还是硬件性能不足，磁盘 SSD 性能退化问题。</p>
-<h1 id="告一段落"><a href="#告一段落" class="headerlink" title="告一段落"></a>告一段落</h1><p><a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>以及本篇文章，做了很多关于 I/O、CPU、磁盘的比较细的研究，这些手段和方法值得以后排查其他问题借鉴！</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
-<li><a href="https://www.xaprb.com/blog/2009/08/23/how-to-find-per-process-io-statistics-on-linux/" target="_blank" rel="noopener">How to find per-process I/O statistics on Linux</a></li>
-<li><a href="http://www.opensoce.com/2302.html" target="_blank" rel="noopener">linux iowait过高的分析</a></li>
-<li><a href="https://lenciel.com/2014/02/hunting-the-iowait-problem-maker/" target="_blank" rel="noopener">解决iowait过高的告警</a></li>
-<li><a href="https://stackoverflow.com/questions/249570/how-can-i-record-what-process-or-kernel-activity-is-using-the-disk-in-gnu-linux" target="_blank" rel="noopener">How can I record what process or kernel activity is using the disk in GNU/Linux?
-</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>linux</category>
-      </categories>
-      <tags>
-        <tag>cpu</tag>
-        <tag>iowait</tag>
-        <tag>iotop</tag>
-        <tag>iostat</tag>
-        <tag>perl</tag>
-        <tag>kernel</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>daocloud测试</title>
-    <url>/2016/12/06/daocloud-hexo/</url>
-    <content><![CDATA[<h1 id="TEST"><a href="#TEST" class="headerlink" title="TEST"></a>TEST</h1><p>使用daocloud结合docker进行自动化持续集成，测试！<br>Success!</p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
-        <tag>docker</tag>
-        <tag>daocloud</tag>
       </tags>
   </entry>
   <entry>
@@ -479,6 +479,66 @@
         <tag>python</tag>
         <tag>matplotlib</tag>
         <tag>numpy</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>破解微信 DB, 导出 Mac 微信聊天记录</title>
+    <url>/2018/03/05/export_mac_wechat/</url>
+    <content><![CDATA[<h1 id="前头的话"><a href="#前头的话" class="headerlink" title="前头的话"></a>前头的话</h1><p>最近由于手机内存告急，打算对手机进行一下瘦身。其中手机微信占用了将近 5G，这个简直太可怕了，于是打算把微信聊天记录备份到电脑上。本来备份就备份了，也没啥好说的，不过突发奇想想知道 Mac Wechat 把聊天记录备份到哪了？或者说平常聊天的数据放在哪里了？能不能把这些聊天记录导出成 txt 文件呢？</p>
+<p>于是就有了这篇文章。</p>
+<h1 id="导出微信聊天记录为txt"><a href="#导出微信聊天记录为txt" class="headerlink" title="导出微信聊天记录为txt"></a>导出微信聊天记录为txt</h1><p>导出微信聊天记录最简单的一种方式应该是使用 itunes 对 iphone 进行<strong>不加密备份</strong>，然后找到备份文件里面的数据，据说聊天记录是以明文的方式存在 DB 中的。这种方法我没去试过，这里主要讲一下通过<strong>破解微信 DB，读取到聊天记录，然后导出聊天记录</strong>。</p>
+<h2 id="微信数据目录"><a href="#微信数据目录" class="headerlink" title="微信数据目录"></a>微信数据目录</h2><figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line"># 替换其中的 smaug 为你自己的用户名</span><br><span class="line">cd /Users/smaug/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/<span class="number">2.0b4</span><span class="number">.0</span><span class="number">.9</span></span><br><span class="line"></span><br><span class="line">find ./ -name <span class="string">"*.db"</span></span><br></pre></td></tr></table></figure>
+
+<p>以上目录就是微信数据存储的目录，可以看到有很多 db 文件：</p>
+<figure class="highlight 1c"><table><tr><td class="code"><pre><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/ChatSync/ChatSync.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_1.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_5.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_4.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_0.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/fts/ftsmessage.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_7.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_3.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_2.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_6.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_9.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_8.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Sync/openim_oplog.db</span></span><br></pre></td></tr></table></figure>
+
+<p>其中类似于 msg_0.db、 msg_1.db 的就是聊天记录的数据文件，只不过是加过密的数据库，没法直接看。不过好在有各路大神，可以参考文末的参考链接。</p>
+<h2 id="破解步骤"><a href="#破解步骤" class="headerlink" title="破解步骤"></a>破解步骤</h2><p>1.打开 Mac Wechat，但是不要登录</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/export_mac_wechat/1.png" alt=""></p>
+<p>2.打开终端，输入命令</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">lldb -p <span class="constructor">$(<span class="params">pgrep</span> WeChat)</span></span><br></pre></td></tr></table></figure>
+<p>lldb 是在 mac 上的一个调试工具，上面的意思是使用 lldb attach 到 WeChat 这个进程上，进行调试，回车之后进入 lldb 调试界面</p>
+<p>3.在 lldb 调试界面输入命令</p>
+<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line">br <span class="keyword">set</span> -n <span class="comment">sqlite3_key</span></span><br></pre></td></tr></table></figure>
+<p>然后回车。</p>
+<p><strong>这时调试屏幕上可能会出现一些 error，可以暂时忽略，不用管</strong>。</p>
+<p>4.输入 c  回车</p>
+<p>5.然后正常登录 Mac Wechat，点击登录，手机上点击允许（或者是扫码登录），不用关心此时 Mac Wechat 是否被卡住</p>
+<p>6.接着输入命令</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">memory</span> <span class="keyword">read</span> --size 1 --<span class="keyword">format</span> x --<span class="keyword">count</span> 32 <span class="variable">$rsi</span></span><br></pre></td></tr></table></figure>
+<p>回车。</p>
+<p>读取内存中 寄存器 rsi 存储的值。大致回输出如下的字样：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/export_mac_wechat/2.png" alt=""></p>
+<p>其中下面的这段是我们关心的：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="number">0x604004c346a0</span>: <span class="number">0xad</span> <span class="number">0x5c</span> <span class="number">0xff</span> <span class="number">0x0a</span> <span class="number">0x85</span> <span class="number">0xce</span> <span class="number">0x4a</span> <span class="number">0x5e</span></span><br><span class="line"><span class="number">0x604004c346a8</span>: <span class="number">0x9f</span> <span class="number">0x7f</span> <span class="number">0x8a</span> <span class="number">0xd3</span> <span class="number">0xa6</span> <span class="number">0xc6</span> <span class="number">0x02</span> <span class="number">0xf3</span></span><br><span class="line"><span class="number">0x604004c346b0</span>: <span class="number">0x25</span> <span class="number">0x02</span> <span class="number">0xb1</span> <span class="number">0x48</span> <span class="number">0x4c</span> <span class="number">0x76</span> <span class="number">0x4c</span> <span class="number">0x84</span></span><br><span class="line"><span class="number">0x604004c346b8</span>: <span class="number">0x82</span> <span class="number">0x38</span> <span class="number">0xc3</span> <span class="number">0x17</span> <span class="number">0x4d</span> <span class="number">0x27</span> <span class="number">0x14</span> <span class="number">0x33</span></span><br></pre></td></tr></table></figure>
+<p>把前面 0x604004c346b0： 去掉，同时删除后面所有的 0x 和空格，拼接成一个字符串为 (总共 64 个字符）：</p>
+<figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">ad<span class="number">5</span>cff<span class="number">0</span>a<span class="number">85</span>ce<span class="number">4</span>a<span class="number">5e9</span>f<span class="number">7</span>f<span class="number">8</span>ad<span class="number">3</span>a<span class="number">6</span><span class="keyword">c</span><span class="number">602</span>f<span class="number">32502</span>b<span class="number">1484</span><span class="keyword">c</span><span class="number">764</span><span class="keyword">c</span><span class="number">848238</span><span class="keyword">c</span><span class="number">3174</span>d<span class="number">271433</span></span><br></pre></td></tr></table></figure>
+<p>前面加上 0x 就是我们用来破解 DB 的 key:</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="number">0xad5cff0a85ce4a5e9f7f8ad3a6c602f32502b1484c764c848238c3174d271433</span></span><br></pre></td></tr></table></figure>
+
+<p>到这里基本上就相当于拿到了微信数据库的 key 了，接下来就是用这个 key 打开 DB 文件了。</p>
+<p>TODO(smaug)</p>
+]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>mac</tag>
+        <tag>wechat</tag>
+        <tag>sql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker-hexo镜像测试</title>
+    <url>/2016/12/01/docker-test/</url>
+    <content><![CDATA[<h1 id="TEST"><a href="#TEST" class="headerlink" title="TEST"></a>TEST</h1><p>利用docker构建了hexo的镜像，迁移到另外的PC上构建博客。<br>success!!</p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>docker</tag>
       </tags>
   </entry>
   <entry>
@@ -577,7 +637,7 @@
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#105;&#110;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#111;&#x6d;">&#108;&#105;&#110;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#111;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#101;&#x32;&#110;&#105;&#107;&#105;&#64;&#103;&#109;&#97;&#x69;&#x6c;&#46;&#x63;&#111;&#109;">&#108;&#x69;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#101;&#x32;&#110;&#105;&#107;&#105;&#64;&#103;&#109;&#97;&#x69;&#x6c;&#46;&#x63;&#111;&#109;</a></p>
 </li>
 </ul>
 <p>2016-12-20 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -589,66 +649,6 @@
       <tags>
         <tag>hexo</tag>
         <tag>docker</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker-hexo镜像测试</title>
-    <url>/2016/12/01/docker-test/</url>
-    <content><![CDATA[<h1 id="TEST"><a href="#TEST" class="headerlink" title="TEST"></a>TEST</h1><p>利用docker构建了hexo的镜像，迁移到另外的PC上构建博客。<br>success!!</p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
-        <tag>docker</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>破解微信 DB, 导出 Mac 微信聊天记录</title>
-    <url>/2018/03/05/export_mac_wechat/</url>
-    <content><![CDATA[<h1 id="前头的话"><a href="#前头的话" class="headerlink" title="前头的话"></a>前头的话</h1><p>最近由于手机内存告急，打算对手机进行一下瘦身。其中手机微信占用了将近 5G，这个简直太可怕了，于是打算把微信聊天记录备份到电脑上。本来备份就备份了，也没啥好说的，不过突发奇想想知道 Mac Wechat 把聊天记录备份到哪了？或者说平常聊天的数据放在哪里了？能不能把这些聊天记录导出成 txt 文件呢？</p>
-<p>于是就有了这篇文章。</p>
-<h1 id="导出微信聊天记录为txt"><a href="#导出微信聊天记录为txt" class="headerlink" title="导出微信聊天记录为txt"></a>导出微信聊天记录为txt</h1><p>导出微信聊天记录最简单的一种方式应该是使用 itunes 对 iphone 进行<strong>不加密备份</strong>，然后找到备份文件里面的数据，据说聊天记录是以明文的方式存在 DB 中的。这种方法我没去试过，这里主要讲一下通过<strong>破解微信 DB，读取到聊天记录，然后导出聊天记录</strong>。</p>
-<h2 id="微信数据目录"><a href="#微信数据目录" class="headerlink" title="微信数据目录"></a>微信数据目录</h2><figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line"># 替换其中的 smaug 为你自己的用户名</span><br><span class="line">cd /Users/smaug/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/<span class="number">2.0b4</span><span class="number">.0</span><span class="number">.9</span></span><br><span class="line"></span><br><span class="line">find ./ -name <span class="string">"*.db"</span></span><br></pre></td></tr></table></figure>
-
-<p>以上目录就是微信数据存储的目录，可以看到有很多 db 文件：</p>
-<figure class="highlight 1c"><table><tr><td class="code"><pre><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/ChatSync/ChatSync.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_1.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_5.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_4.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_0.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/fts/ftsmessage.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_7.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_3.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_2.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_6.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_9.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Message/msg_8.db</span></span><br><span class="line">.<span class="comment">//37cc38007838aa28296af491b890575f/Sync/openim_oplog.db</span></span><br></pre></td></tr></table></figure>
-
-<p>其中类似于 msg_0.db、 msg_1.db 的就是聊天记录的数据文件，只不过是加过密的数据库，没法直接看。不过好在有各路大神，可以参考文末的参考链接。</p>
-<h2 id="破解步骤"><a href="#破解步骤" class="headerlink" title="破解步骤"></a>破解步骤</h2><p>1.打开 Mac Wechat，但是不要登录</p>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/export_mac_wechat/1.png" alt=""></p>
-<p>2.打开终端，输入命令</p>
-<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">lldb -p <span class="constructor">$(<span class="params">pgrep</span> WeChat)</span></span><br></pre></td></tr></table></figure>
-<p>lldb 是在 mac 上的一个调试工具，上面的意思是使用 lldb attach 到 WeChat 这个进程上，进行调试，回车之后进入 lldb 调试界面</p>
-<p>3.在 lldb 调试界面输入命令</p>
-<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line">br <span class="keyword">set</span> -n <span class="comment">sqlite3_key</span></span><br></pre></td></tr></table></figure>
-<p>然后回车。</p>
-<p><strong>这时调试屏幕上可能会出现一些 error，可以暂时忽略，不用管</strong>。</p>
-<p>4.输入 c  回车</p>
-<p>5.然后正常登录 Mac Wechat，点击登录，手机上点击允许（或者是扫码登录），不用关心此时 Mac Wechat 是否被卡住</p>
-<p>6.接着输入命令</p>
-<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">memory</span> <span class="keyword">read</span> --size 1 --<span class="keyword">format</span> x --<span class="keyword">count</span> 32 <span class="variable">$rsi</span></span><br></pre></td></tr></table></figure>
-<p>回车。</p>
-<p>读取内存中 寄存器 rsi 存储的值。大致回输出如下的字样：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/export_mac_wechat/2.png" alt=""></p>
-<p>其中下面的这段是我们关心的：</p>
-<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="number">0x604004c346a0</span>: <span class="number">0xad</span> <span class="number">0x5c</span> <span class="number">0xff</span> <span class="number">0x0a</span> <span class="number">0x85</span> <span class="number">0xce</span> <span class="number">0x4a</span> <span class="number">0x5e</span></span><br><span class="line"><span class="number">0x604004c346a8</span>: <span class="number">0x9f</span> <span class="number">0x7f</span> <span class="number">0x8a</span> <span class="number">0xd3</span> <span class="number">0xa6</span> <span class="number">0xc6</span> <span class="number">0x02</span> <span class="number">0xf3</span></span><br><span class="line"><span class="number">0x604004c346b0</span>: <span class="number">0x25</span> <span class="number">0x02</span> <span class="number">0xb1</span> <span class="number">0x48</span> <span class="number">0x4c</span> <span class="number">0x76</span> <span class="number">0x4c</span> <span class="number">0x84</span></span><br><span class="line"><span class="number">0x604004c346b8</span>: <span class="number">0x82</span> <span class="number">0x38</span> <span class="number">0xc3</span> <span class="number">0x17</span> <span class="number">0x4d</span> <span class="number">0x27</span> <span class="number">0x14</span> <span class="number">0x33</span></span><br></pre></td></tr></table></figure>
-<p>把前面 0x604004c346b0： 去掉，同时删除后面所有的 0x 和空格，拼接成一个字符串为 (总共 64 个字符）：</p>
-<figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">ad<span class="number">5</span>cff<span class="number">0</span>a<span class="number">85</span>ce<span class="number">4</span>a<span class="number">5e9</span>f<span class="number">7</span>f<span class="number">8</span>ad<span class="number">3</span>a<span class="number">6</span><span class="keyword">c</span><span class="number">602</span>f<span class="number">32502</span>b<span class="number">1484</span><span class="keyword">c</span><span class="number">764</span><span class="keyword">c</span><span class="number">848238</span><span class="keyword">c</span><span class="number">3174</span>d<span class="number">271433</span></span><br></pre></td></tr></table></figure>
-<p>前面加上 0x 就是我们用来破解 DB 的 key:</p>
-<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"><span class="number">0xad5cff0a85ce4a5e9f7f8ad3a6c602f32502b1484c764c848238c3174d271433</span></span><br></pre></td></tr></table></figure>
-
-<p>到这里基本上就相当于拿到了微信数据库的 key 了，接下来就是用这个 key 打开 DB 文件了。</p>
-<p>TODO(smaug)</p>
-]]></content>
-      <categories>
-        <category>python</category>
-      </categories>
-      <tags>
-        <tag>mac</tag>
-        <tag>wechat</tag>
-        <tag>sql</tag>
       </tags>
   </entry>
   <entry>
@@ -746,7 +746,7 @@
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#105;&#110;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#110;&#x69;&#107;&#105;&#x40;&#103;&#x6d;&#97;&#x69;&#108;&#x2e;&#x63;&#111;&#109;">&#108;&#105;&#110;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#110;&#x69;&#107;&#105;&#x40;&#103;&#x6d;&#97;&#x69;&#108;&#x2e;&#x63;&#111;&#109;</a></p>
+<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#117;&#120;&#x63;&#111;&#100;&#x65;&#50;&#110;&#x69;&#107;&#105;&#x40;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#x6d;">&#x6c;&#x69;&#x6e;&#117;&#120;&#x63;&#111;&#100;&#x65;&#50;&#110;&#x69;&#107;&#105;&#x40;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#x6d;</a></p>
 </li>
 </ul>
 <p>2016-11-22 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -1159,7 +1159,7 @@
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#117;&#120;&#99;&#x6f;&#100;&#x65;&#x32;&#x6e;&#105;&#x6b;&#105;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#111;&#x6d;">&#108;&#x69;&#110;&#117;&#120;&#99;&#x6f;&#100;&#x65;&#x32;&#x6e;&#105;&#x6b;&#105;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#111;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#x75;&#120;&#x63;&#111;&#x64;&#101;&#50;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#99;&#x6f;&#109;">&#108;&#105;&#x6e;&#x75;&#120;&#x63;&#111;&#x64;&#101;&#50;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#99;&#x6f;&#109;</a></p>
 </li>
 </ul>
 <p>2020-04-11 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -1174,8 +1174,8 @@
       </tags>
   </entry>
   <entry>
-    <title>浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</title>
-    <url>/2020/04/14/network_attack_of_blockchain_ddos_attack/</url>
+    <title>浅谈几种区块链网络攻击以及防御方案之其它网络攻击</title>
+    <url>/2020/04/16/network_attack_of_blockchain_other_attack/</url>
     <content><![CDATA[<h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
 <p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
 <p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
@@ -1184,75 +1184,50 @@
 <li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
 <li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
 <li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a> </li>
 </ul>
-<h1 id="拒绝服务攻击（Denial-of-Service-Attack"><a href="#拒绝服务攻击（Denial-of-Service-Attack" class="headerlink" title="拒绝服务攻击（Denial of Service Attack)"></a>拒绝服务攻击（Denial of Service Attack)</h1><h1 id="分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack"><a href="#分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack" class="headerlink" title="分布式拒绝服务攻击（Distributed Denial of Service Attack)"></a>分布式拒绝服务攻击（Distributed Denial of Service Attack)</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>信息安全的三要素——“保密性”、“完整性”和“可用性”中，拒绝服务攻击，针对的目标正是“可用性”。该攻击方式利用目标系统网络服务功能缺陷或者直接消耗其系统资源，使得该目标系统无法提供正常的服务。</p>
-<p>拒绝服务攻击（DoS) 问题一直得不到合理的解决，目前还是世界性难题，究其原因是因为这是由于网络协议本身的安全缺陷造成的，从而拒绝服务攻击也成为了攻击者的终极手法。攻击者进行拒绝服务攻击，实际上让服务器实现两种效果：一是迫使服务器的缓冲区满，不接收新的请求；二是使用IP欺骗，迫使服务器把合法用户的连接复位，影响合法用户的连接。</p>
-<p>而分布式拒绝服务攻击 (DDoS) 是指攻击者采用分布式攻击手法施行 DoS 攻击，通常是控制了多台机器向目标主机或者路由器发起 DoS 攻击。</p>
-<p>针对区块链来说，攻击者通过 DDoS 攻击试图减慢网络速度，或者迫使网络停止运作。也可用于针对矿池，使矿池脱机，或者针对特定的目标主机，使其从网络离线。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_ddos_attack/11.png" alt=""></p>
+<h1 id="异形攻击"><a href="#异形攻击" class="headerlink" title="异形攻击"></a>异形攻击</h1><p>异形攻击又称地址污染攻击，是指诱使同类链的节点之间互相发现、互联、侵入的一种攻击手法。同类链的意思是底层 P2P 网络使用了相同或者相似的 P2P 通信协议。这尤其针对比特币和以太坊系列的公链。</p>
+<p>众所周知，最近几年区块链行业蓬勃发展，又过于浮躁。其中很多劣质公链大量 COPY 以太坊、比特币的源码，甚至不做修改，仅仅修改下名字成为一条新的公链，这就导致大量的公链的底层是相同的或者兼容的。</p>
+<p>那么如果攻击者执行了异形攻击，就有可能导致同类链的节点之间互相缠绕在一起，影响公链节点内部的通信和路由，进而影响到交易、共识和安全。从而让攻击者有机会施行其他的攻击，比如 DDoS 攻击，网络分裂攻击。</p>
+<p>本质上还是由于伸手党的存在，并且不加以修饰和对节点的检测造成了异形攻击。应对办法也很简单，首先是拒绝做伸手党，即便伸手党，起码也要研究下别人的代码，做点创新和原创的东西；其次加强对本公链的节点类型的检测，比如节点地址不符合的一切拒绝，通信协议不一致的一切拒绝，通信报文头特殊字段不一致的一切拒绝等等。</p>
+<img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_other_attack/1.png" style="zoom:100%;margin:auto;"/>
+
+<center>配图与本文无关</center>
+
+
 <a id="more"></a>
 
-<h2 id="危害"><a href="#危害" class="headerlink" title="危害"></a>危害</h2><p>DDoS 攻击造成的危害自不必说，中心化场景下，通常针对网站或者主机施行攻击，造成网站无法访问，影响业务运作，造成巨大经济损失；</p>
-<p>在区块链场景下，攻击者目标通常是为了一定的利益才执行这样的攻击，导致网络速度变慢，或者影响矿工挖矿，从而方便攻击者对目标下手。</p>
-<p>DDoS 并非是区块链特有的攻击，在中心化场景下的攻击其实相对会更多。</p>
-<h2 id="攻击形式"><a href="#攻击形式" class="headerlink" title="攻击形式"></a>攻击形式</h2><h3 id="带宽攻击"><a href="#带宽攻击" class="headerlink" title="带宽攻击"></a>带宽攻击</h3><p>带宽攻击很好理解，通过攻击使受害者节点的网络带宽耗尽，从而造成拒绝服务的效果。</p>
-<p>区块链系统的底层构建于 P2P 网络，其中通信上广播占据了大部分通信，一次广播通常就是大于 N 倍的收包，随着网络规模的扩大，节点数量的增多，通信的压力也会很大。</p>
-<p>攻击者通过疯狂向节点通信端口发包，或者攻击者利用软件逻辑触发系统自动的大规模通信（比如触发同步），耗尽节点的带宽，最终从网络中离线。</p>
-<p>而一旦离线重启之后，往往又会伴随着其他的攻击，比如 日蚀攻击，详情可以参考之前的博文： <a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></p>
-<h3 id="CC-攻击"><a href="#CC-攻击" class="headerlink" title="CC 攻击"></a>CC 攻击</h3><p>DDoS 攻击是针对 IP 的攻击，而 CC 攻击的是服务器资源。</p>
-<blockquote>
-<p>CC攻击全称Challenge Collapsar，中文意思是挑战黑洞，因为以前的抵抗DDoS攻击的安全设备叫黑洞，顾名思义挑战黑洞就是说黑洞拿这种攻击没办法，新一代的抗DDoS设备已经改名为ADS(Anti-DDoS System)，基本上已经可以完美的抵御CC攻击了。CC攻击的原理是通过代理服务器或者大量肉鸡模拟多个用户访问目标网站的动态页面，制造大量的后台数据库查询动作，消耗目标CPU资源，造成拒绝服务。CC不像DDoS可以用硬件防火墙来过滤攻击，CC攻击本身的请求就是正常的请求。我们都知道网站的页面有静态和动态之分，动态网页是需要与后台数据库进行交互的，比如一些论坛用户登录的时候需要去数据库查询你的等级、权限等等，当你留言的时候又需要查询权限、同步数据等等，这就消耗很多CPU资源，造成静态网页能打开，但是需要和数据库交互的动态网页打开慢或者无法打开的现象。这种攻击方式相对于前两种实现要相对复杂一些，但是防御起来要简单的多，提供服务的企业只要尽量少用动态网页并且让一些操作提供验证码就能抵御一般的CC攻击。</p>
-<p>CC攻击的种类有三种，直接攻击，代理攻击，僵尸网络攻击，直接攻击主要针对有重要缺陷的 WEB 应用程序，一般说来是程序写的有问题的时候才会出现这种情况，比较少见。僵尸网络攻击有点类似于 DDOS 攻击了，从 WEB 应用程序层面上已经无法防御，所以代理攻击是CC 攻击者一般会操作一批代理服务器，比方说 100 个代理，然后每个代理同时发出 10 个请求，这样 WEB 服务器同时收到 1000 个并发请求的，并且在发出请求后，立刻断掉与代理的连接，避免代理返回的数据将本身的带宽堵死，而不能发动再次请求，这时 WEB 服务器会将响应这些请求的进程进行队列，数据库服务器也同样如此，这样一来，正常请求将会被排在很后被处理，就象本来你去食堂吃饭时，一般只有不到十个人在排队，今天前面却插了一千个人，那么轮到你的机会就很小很小了，这时就出现页面打开极其缓慢或者白屏。</p>
-</blockquote>
-<h3 id="SYN-洪泛攻击"><a href="#SYN-洪泛攻击" class="headerlink" title="SYN 洪泛攻击"></a>SYN 洪泛攻击</h3><p>SYN Flooding 攻击是指攻击者发送了大量的 TCP/SYN 包，并且以一个假的 IP 作为发送地址到达目标主机，由于 TCP 在建立连接的时候有 3 次握手，也就是建立连接需要发送 3 个包，当目标主机收到这个 SYN 建连包之后，会回复一个 SYN-ACK 包。</p>
-<p>但是由于攻击者恶意伪造了来源 IP，那么攻击者是收不到这个 ACK 包的，但是会导致目标主机打开了一个半开放的连接，如果攻击者发动了频繁的 SYN 洪泛攻击，那么会造成目标主机 TCP 资源消耗枯竭，导致无法与正常客户端建立连接，以达到拒绝服务的效果。</p>
-<h3 id="Land-攻击"><a href="#Land-攻击" class="headerlink" title="Land 攻击"></a>Land 攻击</h3><p>Land 攻击是 SYN 攻击的变种，攻击者此时伪造的来源 IP 就是目标主机的 IP，也就是说这个 TCP SYN 包的来源 IP  和 目的 IP 相同，都是目标主机，那么就会导致目标主机向自己发送大量的 SYN-ACK 包，从而消耗 TCP 资源，阻止正常客户端的连接建立。</p>
-<h2 id="攻击案例"><a href="#攻击案例" class="headerlink" title="攻击案例"></a>攻击案例</h2><h3 id="GitHub-遭受史上最大规模-DDoS-攻击"><a href="#GitHub-遭受史上最大规模-DDoS-攻击" class="headerlink" title="GitHub 遭受史上最大规模 DDoS 攻击"></a>GitHub 遭受史上最大规模 DDoS 攻击</h3><p><a href="https://github.com/" target="_blank" rel="noopener">GitHub</a> 想必大家都不陌生，全球最大的同性交友网站。在美国东部时间 2 月 28 日下午 17:28 分，几乎一瞬间收到了 1.35 Tbps 的流量访问。这是互联网有史以来规模最大、威力最大的分布式拒绝服务攻击 （DDos)。</p>
-<p>不到十分钟，GitHub 就不得不向 CDN 服务商 Akamai 请求协助。最终 Akamai 接管了GitHub 的所有信息流，并通过其清理中心发送数据以清除和阻止恶意数据包。8 分钟后，攻击者发现没什么效果，选择了撤退，停止了攻击。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_ddos_attack/2.png" alt=""></p>
-<p>详情可以查看 GitHub 的官方声明： <a href="https://github.blog/2018-03-01-ddos-incident-report/" target="_blank" rel="noopener">February 28th DDoS Incident Report</a></p>
-<p>此次的 DDoS 攻击是属于中心化世界里面的一次较为著名的攻击，而且类似于这样的攻击每天都在发生。</p>
-<p>大家可以看一下这个网站，来自卡巴斯基实验室的数据（多观看几分钟能看到 3D 攻击画面，还是挺震撼的）： <a href="https://cybermap.kaspersky.com/cn" target="_blank" rel="noopener">网络威胁实时地图</a></p>
-<h3 id="2016-年以太坊-DDoS-攻击"><a href="#2016-年以太坊-DDoS-攻击" class="headerlink" title="2016 年以太坊 DDoS 攻击"></a>2016 年以太坊 DDoS 攻击</h3><p>2016 年以太坊发生过一次严重的 DDoS 攻击，此次攻击也被称为 “EXTCODESIZE” 攻击。</p>
-<p>攻击者让矿工和节点需要花费很长的时间 （20 ~ 60 秒) 来处理一些区块。造成这次攻击的原因是一个 EXTCODESIZE 的操作码，它具有相当低的 gas 价格，需要节点从磁盘读取状态信息。攻击交易调用此操作码的频率大约是 50000 次每区块。这样的后果就是，网络大大放缓了，但没有共识故障或是内存超载发生。</p>
-<p>因为此次攻击事件，很多媒体都宣告了以太坊的末日。可见在区块链世界里，DDoS 攻击的后果是比较严重的。</p>
-<h3 id="以太坊-Fomo3D，黑客拿走-2200-万"><a href="#以太坊-Fomo3D，黑客拿走-2200-万" class="headerlink" title="以太坊 Fomo3D，黑客拿走 2200 万"></a>以太坊 Fomo3D，黑客拿走 2200 万</h3><p>Fomo3D 是以太坊上一个比较火爆的 Dapp，是一个类似于资金盘的游戏。此次攻击过程还是挺有趣的，各位可以往下看。</p>
-<p>首先，介绍一下 Fomo3D 这个游戏的规则：</p>
-<blockquote>
-<p>规则1： 每个人参与游戏需要购买一个 Key</p>
-<p>规则2： 在一轮游戏中，谁是最后一个购买 Key 的人，则可以拿走奖池中的大奖</p>
-<p>规则3： 只要有人购买一个 Key, 游戏倒计时就会增加 30 秒</p>
-<p>规则4： 游戏启动从 24 小时倒计时</p>
-</blockquote>
-<p>规则里面最吸引人的一条是，只要你是最后一个购买的人，你就是最终的大奖得主，是不是很有 Du博 的感觉？</p>
-<img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_ddos_attack/3.png" style="zoom:100%;margin:auto;"/>
-
-<p>所以看到规则后，你会怎么做？</p>
-<p>正常人一般都是在倒数的最后几分钟或者几秒钟去购买 Key，这样的话自己也许是倒计时结束后最后一个购买的人。但是这个想法是大多数人的想法，我们毕竟只是普通玩家。</p>
-<p>那么稍微高级一点的玩家呢，比如程序员，可能会写个脚本，自动化的方式来购买 Key，速度是不是比手工快多了。</p>
-<p><strong>那么来看看黑客玩家是怎么做的</strong>？</p>
-<p>我们都知道，购买 Key 之后，只要后面没有人再购买，你就是大奖得主，基于本文的探讨，如果你以前没有听说个这个事件的话，那么此刻你是不是已经有了一些想法？对的，没错，就是利用 DDoS 攻击，在你购买成功后，马上施行攻击，拖慢整个网络，造成矿工无法打包或者打包很慢，那么势必会影响到其他交易的正常进行。如果你比较幸运，正好导致其他正在购买 Key 的人的交易失败了，那么你就是大奖得主。</p>
-<p>但是说起来容易，实际做起来还是不太容易操作的。因为你要能确保你购买成功后的  DDos 攻击能让后续的交易都失败，不然弄巧成拙，帮助了某个漏网之鱼，别人恰好因为你的攻击成为了最后一个购买的人。</p>
-<p>了解以太坊的人应该听说过 gas 机制，可以理解为一个交易的手续费，而矿工通常会优先打包 gas 费用较高的交易，那么这位黑客利用自己的智能合约创建了大量的交易，并且具有高额的 gas 费用，几乎垄断了以太坊网络的所有算力，这样就造成了以太坊拥堵了接近 3 分钟，进而使其他的玩家无法打包购买 Key 的交易，从而成为大奖得主。</p>
-<p>该黑客此前还尝试过多次这样的攻击，直至最后一次才成功。</p>
-<p>是不是还是很有趣的？区块链公链本身具有比较致命的缺陷就是 tps 很低，单位时间处理的交易有限。后续的交易只能在排队，尤其是在网络被攻击拖慢的情况下，交易成功的时间会大大拉长。</p>
-<h2 id="DDoS-防御方案"><a href="#DDoS-防御方案" class="headerlink" title="DDoS 防御方案"></a>DDoS 防御方案</h2><h3 id="高防服务器"><a href="#高防服务器" class="headerlink" title="高防服务器"></a>高防服务器</h3><p>高防服务器就是指能独立硬防御 50Gbps 以上的服务器，本身就能抑制一定的 DDoS 攻击。这个没什么好说的，买就是了，只是比较贵。</p>
-<h3 id="CDN-加速"><a href="#CDN-加速" class="headerlink" title="CDN 加速"></a>CDN 加速</h3><p>CDN 本身就就有大带宽，多节点的优势，并且隐藏了真实的网站 IP。通过把流量分配到多地多节点降低攻击负载，防止源站崩溃。</p>
-<h3 id="配置防火墙"><a href="#配置防火墙" class="headerlink" title="配置防火墙"></a>配置防火墙</h3><p>防火墙能防御 DDoS 和其他的一些攻击。防火墙有软件防火墙和硬件防火墙之分。必要可以两者结合。</p>
-<h3 id="攻击检测和溯源"><a href="#攻击检测和溯源" class="headerlink" title="攻击检测和溯源"></a>攻击检测和溯源</h3><p>通过分析攻击的方法和手段，追踪攻击的路由，检测出恶意的 IP 和路由，做好相应的屏蔽，保护主机。</p>
-<h3 id="黑名单机制"><a href="#黑名单机制" class="headerlink" title="黑名单机制"></a>黑名单机制</h3><p>通过建立黑名单机制，限制黑名单的访问。</p>
-<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>DDoS 攻击每天都在发生，对于区块链系统来说，由于接入的节点性能参差不齐以及无许可的特征，想要利用中心化的防御机制去做好 DDoS 防御可能还是有难度。况且由于区块链本身的弊端，性能瓶颈，更容易被攻击者利用。</p>
-<h1 id="附"><a href="#附" class="headerlink" title="附"></a>附</h1><p><a href="https://bcsec.org/index/detail/tag/2/id/332" target="_blank" rel="noopener">BlockChain中DDos攻击的深入剖析</a></p>
-<p><a href="https://www.safedog.cn/news.html?id=1550" target="_blank" rel="noopener">DDOS攻击疯狂危害大 谈谈如何防御攻击</a></p>
+<h1 id="窃听攻击"><a href="#窃听攻击" class="headerlink" title="窃听攻击"></a>窃听攻击</h1><p>这不是区块链特有的攻击手法，本质上就是流量行为分析，通过分析流量，甚至可以把 IP 和家庭地址关联起来，从而知道某笔交易时来自某一个特定的客户端或者某个人。</p>
+<p>区块链的去中心化带来的一个好处就是匿名，或者说相对匿名，但是攻击者通过追踪某笔交易，分析流量等措施，锁定现实世界的具体某个人，然后执行一些违法犯罪的事情。</p>
+<h1 id="交易延展性攻击"><a href="#交易延展性攻击" class="headerlink" title="交易延展性攻击"></a>交易延展性攻击</h1><p>延展性攻击者侦听P2P网络中的交易，利用交易签名算法的特征修改原交易中的input 签名, 生成拥有一样input和output的新交易，然后广播到网络中形成双花，这样原来的交易就可能有一定的概率不能被确认，在虚拟货币交易的情况下，它可以被用来进行二次存款或双重提现。</p>
+<p>案例</p>
+<ol>
+<li><p>2014年8月，在线黑市Silk Road 2遭遇交易延展性攻击，部分比特币被盗，损失约260万美元</p>
+</li>
+<li><p>2013年11月，GHash.io矿池对赌博网站BetCoin Dice进行多次付款欺诈，实施双重支出攻击</p>
+</li>
+</ol>
+<h1 id="BGP劫持攻击"><a href="#BGP劫持攻击" class="headerlink" title="BGP劫持攻击"></a>BGP劫持攻击</h1><p>边界网关协议(BGP)是因特网的关键组成部分，用于确定路由路径。BGP劫持,即利用BGP操纵因特网路由路径，最近几年中已经变得越来越频繁。 无论是网络犯罪分子还是政府,都可以利用这种技术来达到自己的目的，如误导和拦截流量等，目前在区块链网络中节点的流量一但被接管又能对整个网络造成巨大的影响，如破坏共识机制，交易等各种信息。</p>
+<p>而对于BGP劫持攻击中，目前有安全研究者已经证明该攻击的概念可行性，从2015年11月5日至2016年11月15日通过对节点网络的分析统计目前大多数比特币节点都托管在少数特定的几个互联网服务提供商(ISPs)，而60%的比特币连接都是在这几个ISP。所以这几个ISP可以看到60%的比特币流量，所以也能够做到对目前比特币网络的流量控制权，研究者通过劫持的场景验证了至少如下两个攻击概念是可行的，同时给出了验证的代码[8]。</p>
+<p>分割攻击</p>
+<p>攻击者可以利用BGP劫持来讲区块链网络划分成两个或多个不相交的网络，此时的区块链会分叉为两条或多条并行链。攻击停止后，区块链会重新统一为一条链，以最长的链为主链，其他的链将被废弃，其上的交易、奖励等全部无效。</p>
+<p>攻击场景举例：</p>
+<p>1) 首先，攻击者发动BGP劫持，将网络分割为两部分，一个大网络、一个小网络。</p>
+<p>2) 在小网络中，攻击者发布交易卖出自己全部的加密货币，并兑换为法币。</p>
+<p>3) 经过小网络的“全网确认”，这笔交易生效，攻击者获得等值的法币。</p>
+<p>4) 攻击者释放BGP劫持，大网络与小网络互通，小网络上的一切交易被大网络否定，攻击者的加密货币全部回归到账户，而交易得来的法币，依然还在攻击者手中，完成获利。</p>
+<h1 id="路由攻击"><a href="#路由攻击" class="headerlink" title="路由攻击"></a>路由攻击</h1><p>路由攻击往往配合其他的攻击来施行，攻击者可以先利用女巫攻击或者日蚀攻击把网络分裂，然后篡改消息发送到网络当中。最终效果是影响了网络中的通信和路由。</p>
+<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>其实关于区块链系统的攻击方式还有很多，本系列主要偏重于网络层面的攻击。针对不同的攻击，需要采用不同的防御方案，并且很多攻击手法并非区块链特有。随着区块链的发展，黑客的攻击也不会停止，对于公链来说，还有很多挑战。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://www.leiphone.com/news/201805/wujKxkTTleb6kBef.html" target="_blank" rel="noopener">疯狂“搬运”币的黑客如何攻击区块链｜干货（一）</a></p>
 <p>Blog:</p>
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#105;&#110;&#x75;&#120;&#99;&#111;&#100;&#101;&#50;&#110;&#x69;&#x6b;&#105;&#x40;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#46;&#x63;&#x6f;&#109;">&#x6c;&#105;&#110;&#x75;&#120;&#99;&#111;&#100;&#101;&#50;&#110;&#x69;&#x6b;&#105;&#x40;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#46;&#x63;&#x6f;&#109;</a></p>
+<li><p>email: <a href="mailto:&#x6c;&#x69;&#110;&#117;&#x78;&#x63;&#x6f;&#x64;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#x40;&#103;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#109;">&#x6c;&#x69;&#110;&#117;&#x78;&#x63;&#x6f;&#x64;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#x40;&#103;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#109;</a></p>
 </li>
 </ul>
-<p>2020-04-14 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+<p>2020-04-16 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
 ]]></content>
       <categories>
         <category>blockchain</category>
@@ -1353,75 +1328,10 @@
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#x75;&#x78;&#99;&#111;&#x64;&#x65;&#x32;&#x6e;&#x69;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#108;&#x69;&#110;&#x75;&#x78;&#99;&#111;&#x64;&#x65;&#x32;&#x6e;&#x69;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#x75;&#x78;&#x63;&#111;&#x64;&#x65;&#50;&#x6e;&#x69;&#x6b;&#105;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#111;&#x6d;">&#108;&#105;&#110;&#x75;&#x78;&#x63;&#111;&#x64;&#x65;&#50;&#x6e;&#x69;&#x6b;&#105;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#111;&#x6d;</a></p>
 </li>
 </ul>
 <p>2020-04-12 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
-]]></content>
-      <categories>
-        <category>blockchain</category>
-      </categories>
-      <tags>
-        <tag>blockchain</tag>
-        <tag>attack</tag>
-        <tag>bitcoin</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>浅谈几种区块链网络攻击以及防御方案之其它网络攻击</title>
-    <url>/2020/04/16/network_attack_of_blockchain_other_attack/</url>
-    <content><![CDATA[<h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
-<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
-<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
-<p>同系列：</p>
-<ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a> </li>
-</ul>
-<h1 id="异形攻击"><a href="#异形攻击" class="headerlink" title="异形攻击"></a>异形攻击</h1><p>异形攻击又称地址污染攻击，是指诱使同类链的节点之间互相发现、互联、侵入的一种攻击手法。同类链的意思是底层 P2P 网络使用了相同或者相似的 P2P 通信协议。这尤其针对比特币和以太坊系列的公链。</p>
-<p>众所周知，最近几年区块链行业蓬勃发展，又过于浮躁。其中很多劣质公链大量 COPY 以太坊、比特币的源码，甚至不做修改，仅仅修改下名字成为一条新的公链，这就导致大量的公链的底层是相同的或者兼容的。</p>
-<p>那么如果攻击者执行了异形攻击，就有可能导致同类链的节点之间互相缠绕在一起，影响公链节点内部的通信和路由，进而影响到交易、共识和安全。从而让攻击者有机会施行其他的攻击，比如 DDoS 攻击，网络分裂攻击。</p>
-<p>本质上还是由于伸手党的存在，并且不加以修饰和对节点的检测造成了异形攻击。应对办法也很简单，首先是拒绝做伸手党，即便伸手党，起码也要研究下别人的代码，做点创新和原创的东西；其次加强对本公链的节点类型的检测，比如节点地址不符合的一切拒绝，通信协议不一致的一切拒绝，通信报文头特殊字段不一致的一切拒绝等等。</p>
-<img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_other_attack/1.png" style="zoom:100%;margin:auto;"/>
-
-<center>配图与本文无关</center>
-
-
-<a id="more"></a>
-
-<h1 id="窃听攻击"><a href="#窃听攻击" class="headerlink" title="窃听攻击"></a>窃听攻击</h1><p>这不是区块链特有的攻击手法，本质上就是流量行为分析，通过分析流量，甚至可以把 IP 和家庭地址关联起来，从而知道某笔交易时来自某一个特定的客户端或者某个人。</p>
-<p>区块链的去中心化带来的一个好处就是匿名，或者说相对匿名，但是攻击者通过追踪某笔交易，分析流量等措施，锁定现实世界的具体某个人，然后执行一些违法犯罪的事情。</p>
-<h1 id="交易延展性攻击"><a href="#交易延展性攻击" class="headerlink" title="交易延展性攻击"></a>交易延展性攻击</h1><p>延展性攻击者侦听P2P网络中的交易，利用交易签名算法的特征修改原交易中的input 签名, 生成拥有一样input和output的新交易，然后广播到网络中形成双花，这样原来的交易就可能有一定的概率不能被确认，在虚拟货币交易的情况下，它可以被用来进行二次存款或双重提现。</p>
-<p>案例</p>
-<ol>
-<li><p>2014年8月，在线黑市Silk Road 2遭遇交易延展性攻击，部分比特币被盗，损失约260万美元</p>
-</li>
-<li><p>2013年11月，GHash.io矿池对赌博网站BetCoin Dice进行多次付款欺诈，实施双重支出攻击</p>
-</li>
-</ol>
-<h1 id="BGP劫持攻击"><a href="#BGP劫持攻击" class="headerlink" title="BGP劫持攻击"></a>BGP劫持攻击</h1><p>边界网关协议(BGP)是因特网的关键组成部分，用于确定路由路径。BGP劫持,即利用BGP操纵因特网路由路径，最近几年中已经变得越来越频繁。 无论是网络犯罪分子还是政府,都可以利用这种技术来达到自己的目的，如误导和拦截流量等，目前在区块链网络中节点的流量一但被接管又能对整个网络造成巨大的影响，如破坏共识机制，交易等各种信息。</p>
-<p>而对于BGP劫持攻击中，目前有安全研究者已经证明该攻击的概念可行性，从2015年11月5日至2016年11月15日通过对节点网络的分析统计目前大多数比特币节点都托管在少数特定的几个互联网服务提供商(ISPs)，而60%的比特币连接都是在这几个ISP。所以这几个ISP可以看到60%的比特币流量，所以也能够做到对目前比特币网络的流量控制权，研究者通过劫持的场景验证了至少如下两个攻击概念是可行的，同时给出了验证的代码[8]。</p>
-<p>分割攻击</p>
-<p>攻击者可以利用BGP劫持来讲区块链网络划分成两个或多个不相交的网络，此时的区块链会分叉为两条或多条并行链。攻击停止后，区块链会重新统一为一条链，以最长的链为主链，其他的链将被废弃，其上的交易、奖励等全部无效。</p>
-<p>攻击场景举例：</p>
-<p>1) 首先，攻击者发动BGP劫持，将网络分割为两部分，一个大网络、一个小网络。</p>
-<p>2) 在小网络中，攻击者发布交易卖出自己全部的加密货币，并兑换为法币。</p>
-<p>3) 经过小网络的“全网确认”，这笔交易生效，攻击者获得等值的法币。</p>
-<p>4) 攻击者释放BGP劫持，大网络与小网络互通，小网络上的一切交易被大网络否定，攻击者的加密货币全部回归到账户，而交易得来的法币，依然还在攻击者手中，完成获利。</p>
-<h1 id="路由攻击"><a href="#路由攻击" class="headerlink" title="路由攻击"></a>路由攻击</h1><p>路由攻击往往配合其他的攻击来施行，攻击者可以先利用女巫攻击或者日蚀攻击把网络分裂，然后篡改消息发送到网络当中。最终效果是影响了网络中的通信和路由。</p>
-<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>其实关于区块链系统的攻击方式还有很多，本系列主要偏重于网络层面的攻击。针对不同的攻击，需要采用不同的防御方案，并且很多攻击手法并非区块链特有。随着区块链的发展，黑客的攻击也不会停止，对于公链来说，还有很多挑战。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://www.leiphone.com/news/201805/wujKxkTTleb6kBef.html" target="_blank" rel="noopener">疯狂“搬运”币的黑客如何攻击区块链｜干货（一）</a></p>
-<p>Blog:</p>
-<ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
-</li>
-<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#120;&#x63;&#111;&#x64;&#x65;&#50;&#x6e;&#105;&#107;&#x69;&#x40;&#103;&#109;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#108;&#105;&#110;&#117;&#120;&#x63;&#111;&#x64;&#x65;&#50;&#x6e;&#105;&#107;&#x69;&#x40;&#103;&#109;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
-</li>
-</ul>
-<p>2020-04-16 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
 ]]></content>
       <categories>
         <category>blockchain</category>
@@ -1472,7 +1382,7 @@
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#105;&#110;&#117;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#x40;&#103;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#111;&#x6d;">&#x6c;&#105;&#110;&#117;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#x40;&#103;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#111;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#x75;&#x78;&#x63;&#x6f;&#x64;&#x65;&#x32;&#110;&#105;&#x6b;&#105;&#64;&#103;&#109;&#97;&#105;&#108;&#x2e;&#x63;&#x6f;&#109;">&#108;&#x69;&#110;&#x75;&#x78;&#x63;&#x6f;&#x64;&#x65;&#x32;&#110;&#105;&#x6b;&#105;&#64;&#103;&#109;&#97;&#105;&#108;&#x2e;&#x63;&#x6f;&#109;</a></p>
 </li>
 </ul>
 <p>2020-04-12 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -1485,6 +1395,96 @@
         <tag>attack</tag>
         <tag>bitcoin</tag>
         <tag>ethereum</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</title>
+    <url>/2020/04/14/network_attack_of_blockchain_ddos_attack/</url>
+    <content><![CDATA[<h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></li>
+</ul>
+<h1 id="拒绝服务攻击（Denial-of-Service-Attack"><a href="#拒绝服务攻击（Denial-of-Service-Attack" class="headerlink" title="拒绝服务攻击（Denial of Service Attack)"></a>拒绝服务攻击（Denial of Service Attack)</h1><h1 id="分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack"><a href="#分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack" class="headerlink" title="分布式拒绝服务攻击（Distributed Denial of Service Attack)"></a>分布式拒绝服务攻击（Distributed Denial of Service Attack)</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>信息安全的三要素——“保密性”、“完整性”和“可用性”中，拒绝服务攻击，针对的目标正是“可用性”。该攻击方式利用目标系统网络服务功能缺陷或者直接消耗其系统资源，使得该目标系统无法提供正常的服务。</p>
+<p>拒绝服务攻击（DoS) 问题一直得不到合理的解决，目前还是世界性难题，究其原因是因为这是由于网络协议本身的安全缺陷造成的，从而拒绝服务攻击也成为了攻击者的终极手法。攻击者进行拒绝服务攻击，实际上让服务器实现两种效果：一是迫使服务器的缓冲区满，不接收新的请求；二是使用IP欺骗，迫使服务器把合法用户的连接复位，影响合法用户的连接。</p>
+<p>而分布式拒绝服务攻击 (DDoS) 是指攻击者采用分布式攻击手法施行 DoS 攻击，通常是控制了多台机器向目标主机或者路由器发起 DoS 攻击。</p>
+<p>针对区块链来说，攻击者通过 DDoS 攻击试图减慢网络速度，或者迫使网络停止运作。也可用于针对矿池，使矿池脱机，或者针对特定的目标主机，使其从网络离线。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_ddos_attack/11.png" alt=""></p>
+<a id="more"></a>
+
+<h2 id="危害"><a href="#危害" class="headerlink" title="危害"></a>危害</h2><p>DDoS 攻击造成的危害自不必说，中心化场景下，通常针对网站或者主机施行攻击，造成网站无法访问，影响业务运作，造成巨大经济损失；</p>
+<p>在区块链场景下，攻击者目标通常是为了一定的利益才执行这样的攻击，导致网络速度变慢，或者影响矿工挖矿，从而方便攻击者对目标下手。</p>
+<p>DDoS 并非是区块链特有的攻击，在中心化场景下的攻击其实相对会更多。</p>
+<h2 id="攻击形式"><a href="#攻击形式" class="headerlink" title="攻击形式"></a>攻击形式</h2><h3 id="带宽攻击"><a href="#带宽攻击" class="headerlink" title="带宽攻击"></a>带宽攻击</h3><p>带宽攻击很好理解，通过攻击使受害者节点的网络带宽耗尽，从而造成拒绝服务的效果。</p>
+<p>区块链系统的底层构建于 P2P 网络，其中通信上广播占据了大部分通信，一次广播通常就是大于 N 倍的收包，随着网络规模的扩大，节点数量的增多，通信的压力也会很大。</p>
+<p>攻击者通过疯狂向节点通信端口发包，或者攻击者利用软件逻辑触发系统自动的大规模通信（比如触发同步），耗尽节点的带宽，最终从网络中离线。</p>
+<p>而一旦离线重启之后，往往又会伴随着其他的攻击，比如 日蚀攻击，详情可以参考之前的博文： <a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></p>
+<h3 id="CC-攻击"><a href="#CC-攻击" class="headerlink" title="CC 攻击"></a>CC 攻击</h3><p>DDoS 攻击是针对 IP 的攻击，而 CC 攻击的是服务器资源。</p>
+<blockquote>
+<p>CC攻击全称Challenge Collapsar，中文意思是挑战黑洞，因为以前的抵抗DDoS攻击的安全设备叫黑洞，顾名思义挑战黑洞就是说黑洞拿这种攻击没办法，新一代的抗DDoS设备已经改名为ADS(Anti-DDoS System)，基本上已经可以完美的抵御CC攻击了。CC攻击的原理是通过代理服务器或者大量肉鸡模拟多个用户访问目标网站的动态页面，制造大量的后台数据库查询动作，消耗目标CPU资源，造成拒绝服务。CC不像DDoS可以用硬件防火墙来过滤攻击，CC攻击本身的请求就是正常的请求。我们都知道网站的页面有静态和动态之分，动态网页是需要与后台数据库进行交互的，比如一些论坛用户登录的时候需要去数据库查询你的等级、权限等等，当你留言的时候又需要查询权限、同步数据等等，这就消耗很多CPU资源，造成静态网页能打开，但是需要和数据库交互的动态网页打开慢或者无法打开的现象。这种攻击方式相对于前两种实现要相对复杂一些，但是防御起来要简单的多，提供服务的企业只要尽量少用动态网页并且让一些操作提供验证码就能抵御一般的CC攻击。</p>
+<p>CC攻击的种类有三种，直接攻击，代理攻击，僵尸网络攻击，直接攻击主要针对有重要缺陷的 WEB 应用程序，一般说来是程序写的有问题的时候才会出现这种情况，比较少见。僵尸网络攻击有点类似于 DDOS 攻击了，从 WEB 应用程序层面上已经无法防御，所以代理攻击是CC 攻击者一般会操作一批代理服务器，比方说 100 个代理，然后每个代理同时发出 10 个请求，这样 WEB 服务器同时收到 1000 个并发请求的，并且在发出请求后，立刻断掉与代理的连接，避免代理返回的数据将本身的带宽堵死，而不能发动再次请求，这时 WEB 服务器会将响应这些请求的进程进行队列，数据库服务器也同样如此，这样一来，正常请求将会被排在很后被处理，就象本来你去食堂吃饭时，一般只有不到十个人在排队，今天前面却插了一千个人，那么轮到你的机会就很小很小了，这时就出现页面打开极其缓慢或者白屏。</p>
+</blockquote>
+<h3 id="SYN-洪泛攻击"><a href="#SYN-洪泛攻击" class="headerlink" title="SYN 洪泛攻击"></a>SYN 洪泛攻击</h3><p>SYN Flooding 攻击是指攻击者发送了大量的 TCP/SYN 包，并且以一个假的 IP 作为发送地址到达目标主机，由于 TCP 在建立连接的时候有 3 次握手，也就是建立连接需要发送 3 个包，当目标主机收到这个 SYN 建连包之后，会回复一个 SYN-ACK 包。</p>
+<p>但是由于攻击者恶意伪造了来源 IP，那么攻击者是收不到这个 ACK 包的，但是会导致目标主机打开了一个半开放的连接，如果攻击者发动了频繁的 SYN 洪泛攻击，那么会造成目标主机 TCP 资源消耗枯竭，导致无法与正常客户端建立连接，以达到拒绝服务的效果。</p>
+<h3 id="Land-攻击"><a href="#Land-攻击" class="headerlink" title="Land 攻击"></a>Land 攻击</h3><p>Land 攻击是 SYN 攻击的变种，攻击者此时伪造的来源 IP 就是目标主机的 IP，也就是说这个 TCP SYN 包的来源 IP  和 目的 IP 相同，都是目标主机，那么就会导致目标主机向自己发送大量的 SYN-ACK 包，从而消耗 TCP 资源，阻止正常客户端的连接建立。</p>
+<h2 id="攻击案例"><a href="#攻击案例" class="headerlink" title="攻击案例"></a>攻击案例</h2><h3 id="GitHub-遭受史上最大规模-DDoS-攻击"><a href="#GitHub-遭受史上最大规模-DDoS-攻击" class="headerlink" title="GitHub 遭受史上最大规模 DDoS 攻击"></a>GitHub 遭受史上最大规模 DDoS 攻击</h3><p><a href="https://github.com/" target="_blank" rel="noopener">GitHub</a> 想必大家都不陌生，全球最大的同性交友网站。在美国东部时间 2 月 28 日下午 17:28 分，几乎一瞬间收到了 1.35 Tbps 的流量访问。这是互联网有史以来规模最大、威力最大的分布式拒绝服务攻击 （DDos)。</p>
+<p>不到十分钟，GitHub 就不得不向 CDN 服务商 Akamai 请求协助。最终 Akamai 接管了GitHub 的所有信息流，并通过其清理中心发送数据以清除和阻止恶意数据包。8 分钟后，攻击者发现没什么效果，选择了撤退，停止了攻击。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_ddos_attack/2.png" alt=""></p>
+<p>详情可以查看 GitHub 的官方声明： <a href="https://github.blog/2018-03-01-ddos-incident-report/" target="_blank" rel="noopener">February 28th DDoS Incident Report</a></p>
+<p>此次的 DDoS 攻击是属于中心化世界里面的一次较为著名的攻击，而且类似于这样的攻击每天都在发生。</p>
+<p>大家可以看一下这个网站，来自卡巴斯基实验室的数据（多观看几分钟能看到 3D 攻击画面，还是挺震撼的）： <a href="https://cybermap.kaspersky.com/cn" target="_blank" rel="noopener">网络威胁实时地图</a></p>
+<h3 id="2016-年以太坊-DDoS-攻击"><a href="#2016-年以太坊-DDoS-攻击" class="headerlink" title="2016 年以太坊 DDoS 攻击"></a>2016 年以太坊 DDoS 攻击</h3><p>2016 年以太坊发生过一次严重的 DDoS 攻击，此次攻击也被称为 “EXTCODESIZE” 攻击。</p>
+<p>攻击者让矿工和节点需要花费很长的时间 （20 ~ 60 秒) 来处理一些区块。造成这次攻击的原因是一个 EXTCODESIZE 的操作码，它具有相当低的 gas 价格，需要节点从磁盘读取状态信息。攻击交易调用此操作码的频率大约是 50000 次每区块。这样的后果就是，网络大大放缓了，但没有共识故障或是内存超载发生。</p>
+<p>因为此次攻击事件，很多媒体都宣告了以太坊的末日。可见在区块链世界里，DDoS 攻击的后果是比较严重的。</p>
+<h3 id="以太坊-Fomo3D，黑客拿走-2200-万"><a href="#以太坊-Fomo3D，黑客拿走-2200-万" class="headerlink" title="以太坊 Fomo3D，黑客拿走 2200 万"></a>以太坊 Fomo3D，黑客拿走 2200 万</h3><p>Fomo3D 是以太坊上一个比较火爆的 Dapp，是一个类似于资金盘的游戏。此次攻击过程还是挺有趣的，各位可以往下看。</p>
+<p>首先，介绍一下 Fomo3D 这个游戏的规则：</p>
+<blockquote>
+<p>规则1： 每个人参与游戏需要购买一个 Key</p>
+<p>规则2： 在一轮游戏中，谁是最后一个购买 Key 的人，则可以拿走奖池中的大奖</p>
+<p>规则3： 只要有人购买一个 Key, 游戏倒计时就会增加 30 秒</p>
+<p>规则4： 游戏启动从 24 小时倒计时</p>
+</blockquote>
+<p>规则里面最吸引人的一条是，只要你是最后一个购买的人，你就是最终的大奖得主，是不是很有 Du博 的感觉？</p>
+<img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_ddos_attack/3.png" style="zoom:100%;margin:auto;"/>
+
+<p>所以看到规则后，你会怎么做？</p>
+<p>正常人一般都是在倒数的最后几分钟或者几秒钟去购买 Key，这样的话自己也许是倒计时结束后最后一个购买的人。但是这个想法是大多数人的想法，我们毕竟只是普通玩家。</p>
+<p>那么稍微高级一点的玩家呢，比如程序员，可能会写个脚本，自动化的方式来购买 Key，速度是不是比手工快多了。</p>
+<p><strong>那么来看看黑客玩家是怎么做的</strong>？</p>
+<p>我们都知道，购买 Key 之后，只要后面没有人再购买，你就是大奖得主，基于本文的探讨，如果你以前没有听说个这个事件的话，那么此刻你是不是已经有了一些想法？对的，没错，就是利用 DDoS 攻击，在你购买成功后，马上施行攻击，拖慢整个网络，造成矿工无法打包或者打包很慢，那么势必会影响到其他交易的正常进行。如果你比较幸运，正好导致其他正在购买 Key 的人的交易失败了，那么你就是大奖得主。</p>
+<p>但是说起来容易，实际做起来还是不太容易操作的。因为你要能确保你购买成功后的  DDos 攻击能让后续的交易都失败，不然弄巧成拙，帮助了某个漏网之鱼，别人恰好因为你的攻击成为了最后一个购买的人。</p>
+<p>了解以太坊的人应该听说过 gas 机制，可以理解为一个交易的手续费，而矿工通常会优先打包 gas 费用较高的交易，那么这位黑客利用自己的智能合约创建了大量的交易，并且具有高额的 gas 费用，几乎垄断了以太坊网络的所有算力，这样就造成了以太坊拥堵了接近 3 分钟，进而使其他的玩家无法打包购买 Key 的交易，从而成为大奖得主。</p>
+<p>该黑客此前还尝试过多次这样的攻击，直至最后一次才成功。</p>
+<p>是不是还是很有趣的？区块链公链本身具有比较致命的缺陷就是 tps 很低，单位时间处理的交易有限。后续的交易只能在排队，尤其是在网络被攻击拖慢的情况下，交易成功的时间会大大拉长。</p>
+<h2 id="DDoS-防御方案"><a href="#DDoS-防御方案" class="headerlink" title="DDoS 防御方案"></a>DDoS 防御方案</h2><h3 id="高防服务器"><a href="#高防服务器" class="headerlink" title="高防服务器"></a>高防服务器</h3><p>高防服务器就是指能独立硬防御 50Gbps 以上的服务器，本身就能抑制一定的 DDoS 攻击。这个没什么好说的，买就是了，只是比较贵。</p>
+<h3 id="CDN-加速"><a href="#CDN-加速" class="headerlink" title="CDN 加速"></a>CDN 加速</h3><p>CDN 本身就就有大带宽，多节点的优势，并且隐藏了真实的网站 IP。通过把流量分配到多地多节点降低攻击负载，防止源站崩溃。</p>
+<h3 id="配置防火墙"><a href="#配置防火墙" class="headerlink" title="配置防火墙"></a>配置防火墙</h3><p>防火墙能防御 DDoS 和其他的一些攻击。防火墙有软件防火墙和硬件防火墙之分。必要可以两者结合。</p>
+<h3 id="攻击检测和溯源"><a href="#攻击检测和溯源" class="headerlink" title="攻击检测和溯源"></a>攻击检测和溯源</h3><p>通过分析攻击的方法和手段，追踪攻击的路由，检测出恶意的 IP 和路由，做好相应的屏蔽，保护主机。</p>
+<h3 id="黑名单机制"><a href="#黑名单机制" class="headerlink" title="黑名单机制"></a>黑名单机制</h3><p>通过建立黑名单机制，限制黑名单的访问。</p>
+<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>DDoS 攻击每天都在发生，对于区块链系统来说，由于接入的节点性能参差不齐以及无许可的特征，想要利用中心化的防御机制去做好 DDoS 防御可能还是有难度。况且由于区块链本身的弊端，性能瓶颈，更容易被攻击者利用。</p>
+<h1 id="附"><a href="#附" class="headerlink" title="附"></a>附</h1><p><a href="https://bcsec.org/index/detail/tag/2/id/332" target="_blank" rel="noopener">BlockChain中DDos攻击的深入剖析</a></p>
+<p><a href="https://www.safedog.cn/news.html?id=1550" target="_blank" rel="noopener">DDOS攻击疯狂危害大 谈谈如何防御攻击</a></p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#x6c;&#105;&#110;&#117;&#120;&#x63;&#111;&#100;&#101;&#50;&#x6e;&#x69;&#x6b;&#x69;&#64;&#103;&#109;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;">&#x6c;&#105;&#110;&#117;&#120;&#x63;&#111;&#100;&#101;&#50;&#x6e;&#x69;&#x6b;&#x69;&#64;&#103;&#109;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;</a></p>
+</li>
+</ul>
+<p>2020-04-14 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+]]></content>
+      <categories>
+        <category>blockchain</category>
+      </categories>
+      <tags>
+        <tag>blockchain</tag>
+        <tag>attack</tag>
+        <tag>bitcoin</tag>
       </tags>
   </entry>
   <entry>
@@ -1515,7 +1515,7 @@
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#x78;&#x63;&#x6f;&#x64;&#101;&#x32;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#97;&#105;&#108;&#46;&#x63;&#111;&#109;">&#x6c;&#105;&#x6e;&#x75;&#x78;&#x63;&#x6f;&#x64;&#101;&#x32;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#97;&#105;&#108;&#46;&#x63;&#111;&#109;</a></p>
+<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#117;&#120;&#99;&#111;&#100;&#x65;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;">&#108;&#x69;&#110;&#117;&#120;&#99;&#111;&#100;&#x65;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
 </li>
 </ul>
 <p>2018-02-13 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -1529,51 +1529,63 @@
       </tags>
   </entry>
   <entry>
-    <title>拉取小米监控(open-falcon)历史监控数据</title>
-    <url>/2017/10/16/pull_history_data_from_open-falcon/</url>
-    <content><![CDATA[<h1 id="杭州天气变冷了"><a href="#杭州天气变冷了" class="headerlink" title="杭州天气变冷了"></a>杭州天气变冷了</h1><p>最近杭州的温度下降的有点多，提前进入冬天的节奏，鼻涕不停的流。相对冷，我更喜欢热。冷真的让我受不了，杭州可还算是南方啊！</p>
-<p>好久也没写博客了，这段时间一直在忙工作的事情，甚至都没顾上自己的生活。也好久没去骑车了，天气变冷了，身体也越来越垮了。想想下个月5号还有一场180KM的骑行比赛，腿上顿时一阵抽搐，该练练腿了。</p>
-<p>该平衡下工作和生活了。没事骑骑车，写写博客了。好了废话不多说，今天分享的是拉取小米监控(open-falcon)历史监控数据。</p>
-<h1 id="open-falcon是个啥"><a href="#open-falcon是个啥" class="headerlink" title="open-falcon是个啥?"></a>open-falcon是个啥?</h1><p><img src="http://o8fj2jbwb.bkt.clouddn.com/open-falcon-main.png" alt=""><br>正如<a href="http://open-falcon.com/" target="_blank" rel="noopener">官网</a>介绍的那样，open-falcon是一个分布式的、高性能的互联网企业级监控系统。</p>
+    <title>切换博客从win到mac</title>
+    <url>/2017/03/22/rebuild_hexoblog_in_mac/</url>
+    <content><![CDATA[<h1 id="哎"><a href="#哎" class="headerlink" title="哎"></a>哎</h1><p>事实证明，之前做的那些自动化集成并没有很好的运用，现如今换了电脑，需要写博客，还是想重新再mac上搭建一个全新的hexo博客，哎，折腾的人生！</p>
+<p>搭建过程类似我之前写过的博客，请自行查阅。这篇博文为了测试！</p>
+<h1 id="还是简要记录下"><a href="#还是简要记录下" class="headerlink" title="还是简要记录下"></a>还是简要记录下</h1><p>重新换电脑搭建博客，相对来说快了很多，大概用了1个小时搞定（还是有点久？）下面简单记录下步骤吧~</p>
+<h2 id="安装hexo，安装node-js"><a href="#安装hexo，安装node-js" class="headerlink" title="安装hexo，安装node.js"></a>安装hexo，安装node.js</h2><p>步骤很简单。略。这里的就会埋下隐患，因为hexo是最新版，node.js也是，如果采用前面的博文<a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端同步编写博客</a>中的方法就会出现问题。原因是最初搭建博客时候的hexo和node.js的版本与现在的不一样了。</p>
+<p>好吧，我们另觅他径。</p>
+<h2 id="另外的办法"><a href="#另外的办法" class="headerlink" title="另外的办法"></a>另外的办法</h2><p>参照之前的博文<a href="http://rebootcat.com/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" target="_blank" rel="noopener">我的个人博客搭建记录</a>中的方法，<strong>配置好ssh key</strong>后，执行下方几个命令：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo npm install hexo-cli -g</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> hexo init blog</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> blog</span></span><br></pre></td></tr></table></figure>
+<p>完了之后你可以用hexo s命令看看是不是能看到helloworld的博文。能的话基本证明博客框架是没问题的。那么接下来怎么做呢？</p>
 <a id="more"></a>
-<p>我自己使用的感觉来说，还是很方便的。自定义插件，集群监控，报警等，能很好的发挥监控价值。</p>
-<p>通过小米监控的dashboard可以看到很多counter的监控数据曲线，但是往往有些关系是比较隐秘的关系，比如某几个counter之间的作用之后的数据是我们比较关心的，那么这里我们就可以拉取小米监控的历史数据，然后进行分析，进行处理。</p>
-<p>拉取历史数据，对于v0.1和v0.2有稍微不同，v2加了鉴权。</p>
-<h1 id="open-falcon-v0-1"><a href="#open-falcon-v0-1" class="headerlink" title="open-falcon v0.1"></a>open-falcon v0.1</h1><p><a href="https://book.open-falcon.org/zh/usage/query.html" target="_blank" rel="noopener">官方文档</a>中介绍的很明白，拉取代码很简单。这里就直接上代码吧。其中我使用了配置文件的方式配置endpoints/counters等。</p>
-<p>配置文件point-counter.json如下：</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"dimension"</span>:<span class="string">"http_s"</span>,</span><br><span class="line">  <span class="attr">"bandqps"</span>:<span class="string">"qps"</span>,</span><br><span class="line">  <span class="attr">"hour"</span>: <span class="number">24</span>,</span><br><span class="line">  <span class="attr">"compare"</span>:</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">"time"</span>:</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"before"</span>:<span class="string">"2017-09-13 18:30:00"</span>,</span><br><span class="line">      <span class="attr">"after"</span>:<span class="string">"2017-09-13 18:30:00"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"filesize"</span>:&#123;&#125;,</span><br><span class="line">    <span class="attr">"https"</span>:&#123;&#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"counters"</span>:[</span><br><span class="line">    <span class="string">"cpu_util"</span>,</span><br><span class="line">    <span class="string">"traffic_out_80"</span>,</span><br><span class="line">    <span class="string">"traffic_out_443"</span>,</span><br><span class="line">    <span class="string">"Nginx-Requests"</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"endpoints"</span>:</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">"default-point"</span>:[</span><br><span class="line">      <span class="string">"TCP-CDN"</span></span><br><span class="line">       ],</span><br><span class="line">    <span class="attr">"another-point"</span>:[</span><br><span class="line">      <span class="string">"TAZ-03"</span>,</span><br><span class="line">      <span class="string">"TAZ-04"</span></span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>拉取代码如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment">#-*- coding:utf8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> copy</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">pull history data of marco from  open-falcon(小米监控) and  write to Historydatafile</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># result:</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">[&#123;"endpoint":"hostname1","counter":"cpu_util","dstype":"GAUGE","step":60,"Values":[&#123;"timestamp":1492417260,"value":103.670000&#125;,&#123;"timestamp":1492417320,"value":106.060000&#125;]&#125;]</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">upyun = <span class="string">'smaug'</span></span><br><span class="line">endcounter_file = <span class="string">'./point-counter.json'</span></span><br><span class="line"></span><br><span class="line">example = &#123;</span><br><span class="line">    <span class="string">"start"</span>: <span class="string">""</span>,</span><br><span class="line">    <span class="string">"end"</span>: <span class="string">""</span>,</span><br><span class="line">    <span class="string">"cf"</span>: <span class="string">"AVERAGE"</span>,</span><br><span class="line">    <span class="string">"endpoint_counters"</span>: [</span><br><span class="line">    ],</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">queryload = []</span><br><span class="line">CONFIG = &#123;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">config_load</span><span class="params">(filename)</span>:</span></span><br><span class="line">  <span class="keyword">if</span> os.path.isfile(filename):</span><br><span class="line">    <span class="keyword">with</span> open(filename,<span class="string">'r'</span>) <span class="keyword">as</span> f:</span><br><span class="line">      <span class="keyword">return</span> json.load(f)</span><br><span class="line">  <span class="keyword">else</span>:</span><br><span class="line">    print(<span class="string">"%s not exist"</span> % filename)</span><br><span class="line">    sys.exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_endpointlist_And_counters</span><span class="params">(conf_dict)</span>:</span></span><br><span class="line">    <span class="comment">#print conf_dict</span></span><br><span class="line">    <span class="keyword">return</span> conf_dict.get(<span class="string">"endpoints"</span>), conf_dict.get(<span class="string">"counters"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">append</span><span class="params">(d,endpoint, counter)</span>:</span></span><br><span class="line">    endpoint_counter = &#123;</span><br><span class="line">        <span class="string">"endpoint"</span>: endpoint,</span><br><span class="line">        <span class="string">"counter"</span>: counter,</span><br><span class="line">    &#125;</span><br><span class="line">    d[<span class="string">'endpoint_counters'</span>].append(endpoint_counter)</span><br><span class="line">    </span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mkd</span><span class="params">(start,end,ep,counterlist)</span>:</span></span><br><span class="line">  d = copy.deepcopy(example)</span><br><span class="line">  d[<span class="string">'start'</span>]=start</span><br><span class="line">  d[<span class="string">'end'</span>] = end</span><br><span class="line">  <span class="keyword">for</span> cv <span class="keyword">in</span> counterlist[:]:</span><br><span class="line">    append(d,ep, cv)</span><br><span class="line">  queryload.append(d)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">start_end</span><span class="params">(endtime,hour)</span>:</span></span><br><span class="line">  <span class="comment">#endtime 格式为 "2017-04-16 23:59:59"</span></span><br><span class="line">  end = int(time.mktime(time.strptime(endtime,<span class="string">'%Y-%m-%d %H:%M:%S'</span>)))</span><br><span class="line">  ts = <span class="number">3600</span> * hour</span><br><span class="line">  start = end - ts <span class="comment"># 截至时间戳 （例子中为查询过去一个小时的数据）</span></span><br><span class="line">  <span class="keyword">return</span> start,end</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">time_is_dimension</span><span class="params">(CONF,hours,com)</span>:</span></span><br><span class="line">  endpointlists , counterlist = get_endpointlist_And_counters(CONF)</span><br><span class="line">  endpointlist = endpointlists.get(<span class="string">"default-point"</span>)</span><br><span class="line">  <span class="keyword">if</span> <span class="keyword">not</span> endpointlist <span class="keyword">or</span> <span class="keyword">not</span> counterlist :</span><br><span class="line">    sys.exit(<span class="number">1</span>)</span><br><span class="line">  before = com.get(<span class="string">"time"</span>).get(<span class="string">"before"</span>)</span><br><span class="line">  sb,eb= start_end(before,hours)</span><br><span class="line">  <span class="keyword">for</span> ep <span class="keyword">in</span> endpointlist[:]:</span><br><span class="line">    mkd(sb,eb,ep,counterlist)</span><br><span class="line"></span><br><span class="line">  after  = com.get(<span class="string">"time"</span>).get(<span class="string">"after"</span>)</span><br><span class="line">  sa,ea = start_end(after,hours)</span><br><span class="line">  <span class="keyword">for</span> ep <span class="keyword">in</span> endpointlist[:]:</span><br><span class="line">    mkd(sa,ea,ep,counterlist)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">filesize_is_dimension</span><span class="params">(CONF,hours)</span>:</span></span><br><span class="line">  endpointlists , counterlist = get_endpointlist_And_counters(CONF)</span><br><span class="line">  default_point = endpointlists.get(<span class="string">"default-point"</span>)</span><br><span class="line">  another_point = endpointlists.get(<span class="string">"another-point"</span>)</span><br><span class="line">  <span class="keyword">if</span> <span class="keyword">not</span> default_point <span class="keyword">or</span> <span class="keyword">not</span> another_point:</span><br><span class="line">    sys.exit(<span class="number">1</span>)</span><br><span class="line">  end = int(time.mktime(time.strptime(<span class="string">"2017-05-25 08:01:30"</span>,<span class="string">'%Y-%m-%d %H:%M:%S'</span>)))</span><br><span class="line">  <span class="comment">#end = int(time.time())</span></span><br><span class="line">  start = end - <span class="number">3600</span> * hours</span><br><span class="line">  <span class="keyword">for</span> ep <span class="keyword">in</span> default_point[:]:</span><br><span class="line">    mkd(start,end,ep,counterlist)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> ep <span class="keyword">in</span> another_point[:]:</span><br><span class="line">    mkd(start,end,ep,counterlist)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">CONFIG = config_load(endcounter_file)</span><br><span class="line">dimension = CONFIG.get(<span class="string">"dimension"</span>)</span><br><span class="line">hour = CONFIG.get(<span class="string">"hour"</span>)</span><br><span class="line">compare = CONFIG.get(<span class="string">"compare"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> dimension == <span class="string">"time"</span>:</span><br><span class="line">  time_is_dimension(CONFIG,hour,compare)</span><br><span class="line"><span class="keyword">elif</span> dimension == <span class="string">"filesize"</span>:</span><br><span class="line">  filesize_is_dimension(CONFIG,hour)</span><br><span class="line">  </span><br><span class="line">endname = endcounter_file[<span class="number">2</span>:<span class="number">-5</span>]</span><br><span class="line"></span><br><span class="line">Historydatafile = <span class="string">"./&#123;0&#125;_hist&#123;1&#125;h_&#123;2&#125;_&#123;3&#125;.data"</span>.format(upyun,hour,endname,dimension)</span><br><span class="line"></span><br><span class="line">query_api = <span class="string">"http://queryip:9966/graph/history"</span></span><br><span class="line"><span class="keyword">if</span> os.path.isfile(Historydatafile):</span><br><span class="line">  os.remove(Historydatafile)</span><br><span class="line"><span class="keyword">for</span> vd <span class="keyword">in</span> queryload[:]:</span><br><span class="line">  r = requests.post(query_api, data=json.dumps(vd))</span><br><span class="line">  <span class="comment">#print r.text</span></span><br><span class="line">  STORE = r.json()</span><br><span class="line">  <span class="keyword">with</span> open(Historydatafile, <span class="string">'aw'</span>) <span class="keyword">as</span> fout:</span><br><span class="line">    json.dump(STORE, fout)</span><br><span class="line">    fout.write(<span class="string">'\n'</span>)</span><br><span class="line">print(<span class="string">"pull %s hours historydata to %s"</span> % (hour, Historydatafile))</span><br></pre></td></tr></table></figure>
-
-<p>我上面代码实现的功能是能同时拉取不同的endpoint-counter对写入到文件中保存。</p>
-<h1 id="open-falcon-v0-2"><a href="#open-falcon-v0-2" class="headerlink" title="open-falcon v0.2"></a>open-falcon v0.2</h1><p>v0.2相比v0.1，加了一层鉴权。另外也修改了查询的json数据格式。</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">       <span class="attr">"start"</span>: start,</span><br><span class="line">       <span class="attr">"end"</span>: end,</span><br><span class="line">       <span class="attr">"cf"</span>: <span class="string">"AVERAGE"</span>,</span><br><span class="line">       <span class="attr">"endpoint_counters"</span>: [</span><br><span class="line">           &#123;</span><br><span class="line">               <span class="attr">"endpoint"</span>: <span class="string">"host1"</span>,</span><br><span class="line">               <span class="attr">"counter"</span>: <span class="string">"cpu.idle"</span>,</span><br><span class="line">           &#125;,</span><br><span class="line">           &#123;</span><br><span class="line">               <span class="attr">"endpoint"</span>: <span class="string">"host1"</span>,</span><br><span class="line">               <span class="attr">"counter"</span>: <span class="string">"load.1min"</span>,</span><br><span class="line">           &#125;,</span><br><span class="line">       ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>以上是v0.1版本的历史数据查询参数格式，对比v0.2版本：</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"step"</span>: <span class="number">60</span>,</span><br><span class="line">  <span class="attr">"start_time"</span>: <span class="number">1481854596</span>,</span><br><span class="line">  <span class="attr">"hostnames"</span>: [</span><br><span class="line">    <span class="string">"docker-a"</span>,</span><br><span class="line">    <span class="string">"docker-b"</span>,</span><br><span class="line">    <span class="string">"docker-c"</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"end_time"</span>: <span class="number">1481858193</span>,</span><br><span class="line">  <span class="attr">"counters"</span>: [</span><br><span class="line">    <span class="string">"cpu.idle"</span>,</span><br><span class="line">    <span class="string">"cpu.iowait"</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"consol_fun"</span>: <span class="string">"AVERAGE"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>官方API： <a href="http://open-falcon.org/falcon-plus/doc/graph.html" target="_blank" rel="noopener">POST : /api/v1/graph/history</a></p>
-<p>这里重点需要拿到的一个东西叫做”sig”。形如:</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;<span class="attr">"name"</span>:<span class="string">"root"</span>,<span class="attr">"sig"</span>:<span class="string">"427d6803b78311e68afd0242ac130006"</span>&#125;</span><br></pre></td></tr></table></figure>
-<p>拿取方式通过用户名和密码查询。核心代码如下：</p>
-<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line"><span class="comment">#username和password是v0.2版本新加的，前端dashboard需要注册。ip就是open-falcon运行的机器ip，具体应该是query组件的地址</span></span><br><span class="line"><span class="attr">mytoken</span> = token(<span class="string">"username"</span>, <span class="string">"password"</span>, <span class="string">"http://queryip:8080/api/v1"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def auth_requests(method, *args, **kwargs):</span><br><span class="line">  <span class="keyword">if</span> mytoken.<span class="attr">SIG</span> == None:</span><br><span class="line">    <span class="comment"># 定义一个要提交的数据数组(字典)</span></span><br><span class="line">    <span class="attr">data</span> = &#123;&#125;</span><br><span class="line">    data['name'] = mytoken.NAME</span><br><span class="line">    data['password'] = mytoken.PASSWORD</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 定义post的地址</span></span><br><span class="line">    <span class="attr">url</span> = mytoken.API_ADDR + '/user/login'</span><br><span class="line">    <span class="attr">post_data</span> = urllib.urlencode(data)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交，发送数据</span></span><br><span class="line">    <span class="attr">req</span> = urllib2.urlopen(url, post_data)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 获取提交后返回的信息</span></span><br><span class="line">    <span class="attr">content</span> = req.read()</span><br><span class="line"></span><br><span class="line">    <span class="attr">Name</span> = json.loads(content)['name']</span><br><span class="line">    <span class="attr">Sig</span> = json.loads(content)['sig']</span><br><span class="line">    <span class="attr">Admin</span> = json.loads(content)['admin']</span><br><span class="line"></span><br><span class="line">    print '&#123;<span class="string">"name: %s"</span>,<span class="string">"Sig: %s"</span>,<span class="string">"Admin: %s"</span>&#125;' % (Name, Sig, Admin)</span><br><span class="line">    mytoken.<span class="attr">SIG</span> = Sig</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> not content:</span><br><span class="line">      raise Exception(<span class="string">"no api token"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="attr">headers</span> = &#123;</span><br><span class="line">    <span class="string">"Apitoken"</span>: json.dumps(&#123;<span class="string">"name"</span>: mytoken.NAME, <span class="string">"sig"</span>: mytoken.SIG&#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> not kwargs:</span><br><span class="line">    <span class="attr">kwargs</span> = &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> <span class="string">"headers"</span> <span class="keyword">in</span> kwargs:</span><br><span class="line">    headers.update(kwargs[<span class="string">"headers"</span>])</span><br><span class="line">    del kwargs[<span class="string">"headers"</span>]</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> <span class="attr">method</span> == <span class="string">"POST"</span>:</span><br><span class="line">    return requests.post(*args, <span class="attr">headers=headers,</span> **kwargs)</span><br><span class="line">  <span class="keyword">else</span>:</span><br><span class="line">    raise Exception(<span class="string">"invalid http method"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def post_history(method,d):</span><br><span class="line">  <span class="attr">h</span> = &#123;<span class="string">"Content-type"</span>: <span class="string">"application/json"</span>,<span class="string">"X-Forwarded-For"</span>:<span class="string">"127.0.0.1"</span>&#125;</span><br><span class="line">  <span class="attr">r</span> = auth_requests(method, <span class="string">"%s/graph/history"</span> % (mytoken.API_ADDR), <span class="attr">headers=h,</span> <span class="attr">data=json.dumps(d))</span></span><br><span class="line">  <span class="attr">j</span> = r.json()</span><br><span class="line">  return j</span><br><span class="line">  </span><br><span class="line"><span class="comment">#省略了部分代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> os.path.isfile(Historydatafile):</span><br><span class="line">  os.remove(Historydatafile)</span><br><span class="line">for vd <span class="keyword">in</span> queryload[:]:</span><br><span class="line">  <span class="attr">STORE</span> = post_history(<span class="string">"POST"</span>,vd)</span><br><span class="line"><span class="comment">#  print STORE</span></span><br><span class="line">  <span class="keyword">with</span> open(Historydatafile, 'aw') as fout:</span><br><span class="line">    json.dump(STORE, fout)</span><br><span class="line">    fout.write('\n')</span><br><span class="line">print(<span class="string">"pull %s hours historydata to %s"</span> % (hour, Historydatafile))</span><br></pre></td></tr></table></figure>
-
-<p>官方相关链接:</p>
+<p>还记得之前说的我对博客框架的源代码进行了备份，在coding的私有仓库里？对，没错，找到后,只需要把博客源代码根目录下的几个文件/文件夹放到目前新建的blog目录下：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">Dockerfile</span> </span><br><span class="line"><span class="selector-tag">daocloud</span><span class="selector-class">.yml</span></span><br><span class="line"><span class="selector-tag">post</span><span class="selector-class">.sh</span> </span><br><span class="line"><span class="selector-tag">themes</span></span><br><span class="line">_<span class="selector-tag">config</span><span class="selector-class">.yml</span>        </span><br><span class="line"><span class="selector-tag">source</span></span><br></pre></td></tr></table></figure>
+<p>前3个是我自己特有的，你只需要注意后面三个就行。<br>然后关键的一步来了:</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">npm <span class="keyword">install</span></span><br><span class="line">npm <span class="keyword">install</span> hexo-generator-sitemap <span class="comment">--save</span></span><br><span class="line">npm <span class="keyword">install</span> hexo-generator-baidu-sitemap <span class="comment">--save</span></span><br><span class="line">npm <span class="keyword">install</span> hexo-generator-feed</span><br><span class="line">npm <span class="keyword">install</span> hexo-generator-searchdb <span class="comment">--save</span></span><br></pre></td></tr></table></figure>
+<p>这几个插件是最初搭建博客的时候独立安装的，如果还有其他的插件，也需要独立执行（why?前面说过了npm的版本不一样，重新独立执行后使用的是最新版的npm）</p>
+<p>以上就是新的方法，其实也类似吧。</p>
+<h2 id="推送到github-Pages-coding-Pages"><a href="#推送到github-Pages-coding-Pages" class="headerlink" title="推送到github Pages/coding Pages"></a>推送到github Pages/coding Pages</h2><p>很简单，执行:</p>
+<figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="attr">heox</span> <span class="string">clean </span></span><br><span class="line"><span class="attr">hexo</span> <span class="string">d -g</span></span><br></pre></td></tr></table></figure>
+<p>这里你如果碰到类似下面的错误：</p>
 <blockquote>
-<p><a href="http://open-falcon.org/falcon-plus/#/authentication" target="_blank" rel="noopener">http://open-falcon.org/falcon-plus/#/authentication</a></p>
-<p><a href="http://open-falcon.org/falcon-plus/doc/graph.html" target="_blank" rel="noopener">http://open-falcon.org/falcon-plus/doc/graph.html</a></p>
+<p>% hexo deploy<br>ERROR Deployer not found: github</p>
 </blockquote>
-<h1 id="历史数据用来做什么"><a href="#历史数据用来做什么" class="headerlink" title="历史数据用来做什么"></a>历史数据用来做什么</h1><p>通常单一的一个指标并不能反映我们需要的信息，往往好多指标是相互作用的，那么这些相互作用的指标并非很直观的显示，拉取历史数据，然后本地处理，采用另外的一些方式，可以更加精确的得到指标间的关系。</p>
-<p>下图是拉取历史监控数据后，分析某台机器上的某个服务CPU-BandWidth之间的关系：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/cpuband-a-sfile-oldnewversion.png" alt=""></p>
-<h1 id="周末骑行龙门古镇"><a href="#周末骑行龙门古镇" class="headerlink" title="周末骑行龙门古镇"></a>周末骑行龙门古镇</h1><p>骑行距离120KM ~ 150KM，好激动！</p>
+<p>解决办法：<a href="https://github.com/hexojs/hexo/issues/1040" target="_blank" rel="noopener">github #1040</a></p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">npm <span class="keyword">install</span> hexo-deployer-git <span class="comment">--save</span></span><br></pre></td></tr></table></figure>
+<p>重新执行hexo d -g 试试？</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>其实弄这个也不算折腾，我重新搭建的时间明显短了很多(废话),关键是需要对博客源代码目录下的结构需要了解，哪一个文件夹是做什么的，哪一个不能动，哪一个跟版本有关，哪一个动了也没事，等等。好了，废话不多说，总体看来，目前推送后看到的博客网站基本正确，有个小问题是原来的“搜索”功能没有了。这个我明天早晨再看看。该关电脑睡觉了，10:56了。😪</p>
+<h1 id="次日更新"><a href="#次日更新" class="headerlink" title="次日更新"></a>次日更新</h1><p>解决了之前碰到的小问题，比如rss订阅，sitemap.xml,baidusitemap.xml，local search等。<br>这里主要是想说，早上访问网站的时候出现了下面的提示：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/%E5%A4%9A%E8%AF%B4%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92.png" alt=""><br>没办法，只有早做打算。很多人都早已诟病多说了，我自己的感觉可能不太强烈，毕竟刚开始评论数也不是很多。不过还是打算做点调整。</p>
+<h2 id="从多说迁移到Disqus"><a href="#从多说迁移到Disqus" class="headerlink" title="从多说迁移到Disqus"></a>从多说迁移到Disqus</h2><p>首先从多说后台导出文章评论数据为export.json文件（步骤略）,其次注册<a href="https://disqus.com/" target="_blank" rel="noopener">Disqus</a>,填写博客网站地址，填写disqus_shortname，比如我的”rebootcatmh”,然后去next主题配置文件_config.yml中添加：</p>
+<figure class="highlight avrasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">disqus_shortname:</span> rebootcatmh</span><br></pre></td></tr></table></figure>
+<p>然后执行：</p>
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">hexo d -g</span></span><br></pre></td></tr></table></figure>
+<p>是不是看到了Disqus骚气的评论框了呢？😉<br><img src="http://o8fj2jbwb.bkt.clouddn.com/disqus.png" alt=""></p>
+<p>到这里只是把评论系统换成了Disqus，那么迁移多说的评论数据呢？<br>可以参考<a href="http://urouge.github.io/migrate-to-disqus/" target="_blank" rel="noopener">多说评论迁移至Disqus</a><br>我这里就把方法截个图，万一他的网站挂了呢？(捂脸)<br><img src="http://o8fj2jbwb.bkt.clouddn.com/jsontoxmldisqus.png" alt=""></p>
+<p>然后去看看是不是评论数据都还在呢？<br><img src="http://o8fj2jbwb.bkt.clouddn.com/dis.png" alt=""></p>
+<h2 id="Disqus迁移后小问题"><a href="#Disqus迁移后小问题" class="headerlink" title="Disqus迁移后小问题"></a>Disqus迁移后小问题</h2><p>可以看到上图，迁移后用户头像没有了，只是默认的头像。而且好像少了几条评论？这个具体我再看看。</p>
+<p>好，更新到这里完！(切换是成功了，但是Disqus在国内是被墙的，暂时打算用duoshuo到它停止那天）</p>
+<h1 id="再扯几句"><a href="#再扯几句" class="headerlink" title="再扯几句"></a>再扯几句</h1><p>这是我的第一台mac，说实话，入手两天了，我已经玩得很6了，确实不错。手势确实比较多，也很方便，很多功能也很人性化，没办法，这么多年一直在用windows,突然转过来，那种惊为天人的感觉很强烈！</p>
+<p>另外发现了一个小惊喜，现在推送到github pages/coding pages后，更新的速度比原来快了很多，几乎我本地hexo d后，chrome里访问博客就能看到了，真的还是挺惊奇的呢！</p>
+<p>好了，扯完了，睡觉~~</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#x65;&#x32;&#x6e;&#x69;&#107;&#105;&#x40;&#x67;&#x6d;&#97;&#105;&#108;&#x2e;&#99;&#111;&#x6d;">&#108;&#105;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#x65;&#x32;&#x6e;&#x69;&#107;&#105;&#x40;&#x67;&#x6d;&#97;&#105;&#108;&#x2e;&#99;&#111;&#x6d;</a></p>
+</li>
+</ul>
+<p>2017-03-22 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
 ]]></content>
       <categories>
-        <category>linux</category>
-        <category>python</category>
+        <category>blog</category>
+        <category>hexo</category>
       </categories>
       <tags>
-        <tag>python</tag>
-        <tag>open-falcon</tag>
+        <tag>hexo</tag>
+        <tag>mac</tag>
+        <tag>node</tag>
+        <tag>npm</tag>
       </tags>
   </entry>
   <entry>
@@ -1707,63 +1719,51 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
       </tags>
   </entry>
   <entry>
-    <title>切换博客从win到mac</title>
-    <url>/2017/03/22/rebuild_hexoblog_in_mac/</url>
-    <content><![CDATA[<h1 id="哎"><a href="#哎" class="headerlink" title="哎"></a>哎</h1><p>事实证明，之前做的那些自动化集成并没有很好的运用，现如今换了电脑，需要写博客，还是想重新再mac上搭建一个全新的hexo博客，哎，折腾的人生！</p>
-<p>搭建过程类似我之前写过的博客，请自行查阅。这篇博文为了测试！</p>
-<h1 id="还是简要记录下"><a href="#还是简要记录下" class="headerlink" title="还是简要记录下"></a>还是简要记录下</h1><p>重新换电脑搭建博客，相对来说快了很多，大概用了1个小时搞定（还是有点久？）下面简单记录下步骤吧~</p>
-<h2 id="安装hexo，安装node-js"><a href="#安装hexo，安装node-js" class="headerlink" title="安装hexo，安装node.js"></a>安装hexo，安装node.js</h2><p>步骤很简单。略。这里的就会埋下隐患，因为hexo是最新版，node.js也是，如果采用前面的博文<a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端同步编写博客</a>中的方法就会出现问题。原因是最初搭建博客时候的hexo和node.js的版本与现在的不一样了。</p>
-<p>好吧，我们另觅他径。</p>
-<h2 id="另外的办法"><a href="#另外的办法" class="headerlink" title="另外的办法"></a>另外的办法</h2><p>参照之前的博文<a href="http://rebootcat.com/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" target="_blank" rel="noopener">我的个人博客搭建记录</a>中的方法，<strong>配置好ssh key</strong>后，执行下方几个命令：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo npm install hexo-cli -g</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> hexo init blog</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> blog</span></span><br></pre></td></tr></table></figure>
-<p>完了之后你可以用hexo s命令看看是不是能看到helloworld的博文。能的话基本证明博客框架是没问题的。那么接下来怎么做呢？</p>
+    <title>拉取小米监控(open-falcon)历史监控数据</title>
+    <url>/2017/10/16/pull_history_data_from_open-falcon/</url>
+    <content><![CDATA[<h1 id="杭州天气变冷了"><a href="#杭州天气变冷了" class="headerlink" title="杭州天气变冷了"></a>杭州天气变冷了</h1><p>最近杭州的温度下降的有点多，提前进入冬天的节奏，鼻涕不停的流。相对冷，我更喜欢热。冷真的让我受不了，杭州可还算是南方啊！</p>
+<p>好久也没写博客了，这段时间一直在忙工作的事情，甚至都没顾上自己的生活。也好久没去骑车了，天气变冷了，身体也越来越垮了。想想下个月5号还有一场180KM的骑行比赛，腿上顿时一阵抽搐，该练练腿了。</p>
+<p>该平衡下工作和生活了。没事骑骑车，写写博客了。好了废话不多说，今天分享的是拉取小米监控(open-falcon)历史监控数据。</p>
+<h1 id="open-falcon是个啥"><a href="#open-falcon是个啥" class="headerlink" title="open-falcon是个啥?"></a>open-falcon是个啥?</h1><p><img src="http://o8fj2jbwb.bkt.clouddn.com/open-falcon-main.png" alt=""><br>正如<a href="http://open-falcon.com/" target="_blank" rel="noopener">官网</a>介绍的那样，open-falcon是一个分布式的、高性能的互联网企业级监控系统。</p>
 <a id="more"></a>
-<p>还记得之前说的我对博客框架的源代码进行了备份，在coding的私有仓库里？对，没错，找到后,只需要把博客源代码根目录下的几个文件/文件夹放到目前新建的blog目录下：</p>
-<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">Dockerfile</span> </span><br><span class="line"><span class="selector-tag">daocloud</span><span class="selector-class">.yml</span></span><br><span class="line"><span class="selector-tag">post</span><span class="selector-class">.sh</span> </span><br><span class="line"><span class="selector-tag">themes</span></span><br><span class="line">_<span class="selector-tag">config</span><span class="selector-class">.yml</span>        </span><br><span class="line"><span class="selector-tag">source</span></span><br></pre></td></tr></table></figure>
-<p>前3个是我自己特有的，你只需要注意后面三个就行。<br>然后关键的一步来了:</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">npm <span class="keyword">install</span></span><br><span class="line">npm <span class="keyword">install</span> hexo-generator-sitemap <span class="comment">--save</span></span><br><span class="line">npm <span class="keyword">install</span> hexo-generator-baidu-sitemap <span class="comment">--save</span></span><br><span class="line">npm <span class="keyword">install</span> hexo-generator-feed</span><br><span class="line">npm <span class="keyword">install</span> hexo-generator-searchdb <span class="comment">--save</span></span><br></pre></td></tr></table></figure>
-<p>这几个插件是最初搭建博客的时候独立安装的，如果还有其他的插件，也需要独立执行（why?前面说过了npm的版本不一样，重新独立执行后使用的是最新版的npm）</p>
-<p>以上就是新的方法，其实也类似吧。</p>
-<h2 id="推送到github-Pages-coding-Pages"><a href="#推送到github-Pages-coding-Pages" class="headerlink" title="推送到github Pages/coding Pages"></a>推送到github Pages/coding Pages</h2><p>很简单，执行:</p>
-<figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="attr">heox</span> <span class="string">clean </span></span><br><span class="line"><span class="attr">hexo</span> <span class="string">d -g</span></span><br></pre></td></tr></table></figure>
-<p>这里你如果碰到类似下面的错误：</p>
+<p>我自己使用的感觉来说，还是很方便的。自定义插件，集群监控，报警等，能很好的发挥监控价值。</p>
+<p>通过小米监控的dashboard可以看到很多counter的监控数据曲线，但是往往有些关系是比较隐秘的关系，比如某几个counter之间的作用之后的数据是我们比较关心的，那么这里我们就可以拉取小米监控的历史数据，然后进行分析，进行处理。</p>
+<p>拉取历史数据，对于v0.1和v0.2有稍微不同，v2加了鉴权。</p>
+<h1 id="open-falcon-v0-1"><a href="#open-falcon-v0-1" class="headerlink" title="open-falcon v0.1"></a>open-falcon v0.1</h1><p><a href="https://book.open-falcon.org/zh/usage/query.html" target="_blank" rel="noopener">官方文档</a>中介绍的很明白，拉取代码很简单。这里就直接上代码吧。其中我使用了配置文件的方式配置endpoints/counters等。</p>
+<p>配置文件point-counter.json如下：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"dimension"</span>:<span class="string">"http_s"</span>,</span><br><span class="line">  <span class="attr">"bandqps"</span>:<span class="string">"qps"</span>,</span><br><span class="line">  <span class="attr">"hour"</span>: <span class="number">24</span>,</span><br><span class="line">  <span class="attr">"compare"</span>:</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">"time"</span>:</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"before"</span>:<span class="string">"2017-09-13 18:30:00"</span>,</span><br><span class="line">      <span class="attr">"after"</span>:<span class="string">"2017-09-13 18:30:00"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"filesize"</span>:&#123;&#125;,</span><br><span class="line">    <span class="attr">"https"</span>:&#123;&#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"counters"</span>:[</span><br><span class="line">    <span class="string">"cpu_util"</span>,</span><br><span class="line">    <span class="string">"traffic_out_80"</span>,</span><br><span class="line">    <span class="string">"traffic_out_443"</span>,</span><br><span class="line">    <span class="string">"Nginx-Requests"</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"endpoints"</span>:</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">"default-point"</span>:[</span><br><span class="line">      <span class="string">"TCP-CDN"</span></span><br><span class="line">       ],</span><br><span class="line">    <span class="attr">"another-point"</span>:[</span><br><span class="line">      <span class="string">"TAZ-03"</span>,</span><br><span class="line">      <span class="string">"TAZ-04"</span></span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>拉取代码如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment">#-*- coding:utf8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> copy</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">pull history data of marco from  open-falcon(小米监控) and  write to Historydatafile</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># result:</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">[&#123;"endpoint":"hostname1","counter":"cpu_util","dstype":"GAUGE","step":60,"Values":[&#123;"timestamp":1492417260,"value":103.670000&#125;,&#123;"timestamp":1492417320,"value":106.060000&#125;]&#125;]</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">upyun = <span class="string">'smaug'</span></span><br><span class="line">endcounter_file = <span class="string">'./point-counter.json'</span></span><br><span class="line"></span><br><span class="line">example = &#123;</span><br><span class="line">    <span class="string">"start"</span>: <span class="string">""</span>,</span><br><span class="line">    <span class="string">"end"</span>: <span class="string">""</span>,</span><br><span class="line">    <span class="string">"cf"</span>: <span class="string">"AVERAGE"</span>,</span><br><span class="line">    <span class="string">"endpoint_counters"</span>: [</span><br><span class="line">    ],</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">queryload = []</span><br><span class="line">CONFIG = &#123;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">config_load</span><span class="params">(filename)</span>:</span></span><br><span class="line">  <span class="keyword">if</span> os.path.isfile(filename):</span><br><span class="line">    <span class="keyword">with</span> open(filename,<span class="string">'r'</span>) <span class="keyword">as</span> f:</span><br><span class="line">      <span class="keyword">return</span> json.load(f)</span><br><span class="line">  <span class="keyword">else</span>:</span><br><span class="line">    print(<span class="string">"%s not exist"</span> % filename)</span><br><span class="line">    sys.exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_endpointlist_And_counters</span><span class="params">(conf_dict)</span>:</span></span><br><span class="line">    <span class="comment">#print conf_dict</span></span><br><span class="line">    <span class="keyword">return</span> conf_dict.get(<span class="string">"endpoints"</span>), conf_dict.get(<span class="string">"counters"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">append</span><span class="params">(d,endpoint, counter)</span>:</span></span><br><span class="line">    endpoint_counter = &#123;</span><br><span class="line">        <span class="string">"endpoint"</span>: endpoint,</span><br><span class="line">        <span class="string">"counter"</span>: counter,</span><br><span class="line">    &#125;</span><br><span class="line">    d[<span class="string">'endpoint_counters'</span>].append(endpoint_counter)</span><br><span class="line">    </span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mkd</span><span class="params">(start,end,ep,counterlist)</span>:</span></span><br><span class="line">  d = copy.deepcopy(example)</span><br><span class="line">  d[<span class="string">'start'</span>]=start</span><br><span class="line">  d[<span class="string">'end'</span>] = end</span><br><span class="line">  <span class="keyword">for</span> cv <span class="keyword">in</span> counterlist[:]:</span><br><span class="line">    append(d,ep, cv)</span><br><span class="line">  queryload.append(d)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">start_end</span><span class="params">(endtime,hour)</span>:</span></span><br><span class="line">  <span class="comment">#endtime 格式为 "2017-04-16 23:59:59"</span></span><br><span class="line">  end = int(time.mktime(time.strptime(endtime,<span class="string">'%Y-%m-%d %H:%M:%S'</span>)))</span><br><span class="line">  ts = <span class="number">3600</span> * hour</span><br><span class="line">  start = end - ts <span class="comment"># 截至时间戳 （例子中为查询过去一个小时的数据）</span></span><br><span class="line">  <span class="keyword">return</span> start,end</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">time_is_dimension</span><span class="params">(CONF,hours,com)</span>:</span></span><br><span class="line">  endpointlists , counterlist = get_endpointlist_And_counters(CONF)</span><br><span class="line">  endpointlist = endpointlists.get(<span class="string">"default-point"</span>)</span><br><span class="line">  <span class="keyword">if</span> <span class="keyword">not</span> endpointlist <span class="keyword">or</span> <span class="keyword">not</span> counterlist :</span><br><span class="line">    sys.exit(<span class="number">1</span>)</span><br><span class="line">  before = com.get(<span class="string">"time"</span>).get(<span class="string">"before"</span>)</span><br><span class="line">  sb,eb= start_end(before,hours)</span><br><span class="line">  <span class="keyword">for</span> ep <span class="keyword">in</span> endpointlist[:]:</span><br><span class="line">    mkd(sb,eb,ep,counterlist)</span><br><span class="line"></span><br><span class="line">  after  = com.get(<span class="string">"time"</span>).get(<span class="string">"after"</span>)</span><br><span class="line">  sa,ea = start_end(after,hours)</span><br><span class="line">  <span class="keyword">for</span> ep <span class="keyword">in</span> endpointlist[:]:</span><br><span class="line">    mkd(sa,ea,ep,counterlist)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">filesize_is_dimension</span><span class="params">(CONF,hours)</span>:</span></span><br><span class="line">  endpointlists , counterlist = get_endpointlist_And_counters(CONF)</span><br><span class="line">  default_point = endpointlists.get(<span class="string">"default-point"</span>)</span><br><span class="line">  another_point = endpointlists.get(<span class="string">"another-point"</span>)</span><br><span class="line">  <span class="keyword">if</span> <span class="keyword">not</span> default_point <span class="keyword">or</span> <span class="keyword">not</span> another_point:</span><br><span class="line">    sys.exit(<span class="number">1</span>)</span><br><span class="line">  end = int(time.mktime(time.strptime(<span class="string">"2017-05-25 08:01:30"</span>,<span class="string">'%Y-%m-%d %H:%M:%S'</span>)))</span><br><span class="line">  <span class="comment">#end = int(time.time())</span></span><br><span class="line">  start = end - <span class="number">3600</span> * hours</span><br><span class="line">  <span class="keyword">for</span> ep <span class="keyword">in</span> default_point[:]:</span><br><span class="line">    mkd(start,end,ep,counterlist)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> ep <span class="keyword">in</span> another_point[:]:</span><br><span class="line">    mkd(start,end,ep,counterlist)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">CONFIG = config_load(endcounter_file)</span><br><span class="line">dimension = CONFIG.get(<span class="string">"dimension"</span>)</span><br><span class="line">hour = CONFIG.get(<span class="string">"hour"</span>)</span><br><span class="line">compare = CONFIG.get(<span class="string">"compare"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> dimension == <span class="string">"time"</span>:</span><br><span class="line">  time_is_dimension(CONFIG,hour,compare)</span><br><span class="line"><span class="keyword">elif</span> dimension == <span class="string">"filesize"</span>:</span><br><span class="line">  filesize_is_dimension(CONFIG,hour)</span><br><span class="line">  </span><br><span class="line">endname = endcounter_file[<span class="number">2</span>:<span class="number">-5</span>]</span><br><span class="line"></span><br><span class="line">Historydatafile = <span class="string">"./&#123;0&#125;_hist&#123;1&#125;h_&#123;2&#125;_&#123;3&#125;.data"</span>.format(upyun,hour,endname,dimension)</span><br><span class="line"></span><br><span class="line">query_api = <span class="string">"http://queryip:9966/graph/history"</span></span><br><span class="line"><span class="keyword">if</span> os.path.isfile(Historydatafile):</span><br><span class="line">  os.remove(Historydatafile)</span><br><span class="line"><span class="keyword">for</span> vd <span class="keyword">in</span> queryload[:]:</span><br><span class="line">  r = requests.post(query_api, data=json.dumps(vd))</span><br><span class="line">  <span class="comment">#print r.text</span></span><br><span class="line">  STORE = r.json()</span><br><span class="line">  <span class="keyword">with</span> open(Historydatafile, <span class="string">'aw'</span>) <span class="keyword">as</span> fout:</span><br><span class="line">    json.dump(STORE, fout)</span><br><span class="line">    fout.write(<span class="string">'\n'</span>)</span><br><span class="line">print(<span class="string">"pull %s hours historydata to %s"</span> % (hour, Historydatafile))</span><br></pre></td></tr></table></figure>
+
+<p>我上面代码实现的功能是能同时拉取不同的endpoint-counter对写入到文件中保存。</p>
+<h1 id="open-falcon-v0-2"><a href="#open-falcon-v0-2" class="headerlink" title="open-falcon v0.2"></a>open-falcon v0.2</h1><p>v0.2相比v0.1，加了一层鉴权。另外也修改了查询的json数据格式。</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">       <span class="attr">"start"</span>: start,</span><br><span class="line">       <span class="attr">"end"</span>: end,</span><br><span class="line">       <span class="attr">"cf"</span>: <span class="string">"AVERAGE"</span>,</span><br><span class="line">       <span class="attr">"endpoint_counters"</span>: [</span><br><span class="line">           &#123;</span><br><span class="line">               <span class="attr">"endpoint"</span>: <span class="string">"host1"</span>,</span><br><span class="line">               <span class="attr">"counter"</span>: <span class="string">"cpu.idle"</span>,</span><br><span class="line">           &#125;,</span><br><span class="line">           &#123;</span><br><span class="line">               <span class="attr">"endpoint"</span>: <span class="string">"host1"</span>,</span><br><span class="line">               <span class="attr">"counter"</span>: <span class="string">"load.1min"</span>,</span><br><span class="line">           &#125;,</span><br><span class="line">       ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上是v0.1版本的历史数据查询参数格式，对比v0.2版本：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"step"</span>: <span class="number">60</span>,</span><br><span class="line">  <span class="attr">"start_time"</span>: <span class="number">1481854596</span>,</span><br><span class="line">  <span class="attr">"hostnames"</span>: [</span><br><span class="line">    <span class="string">"docker-a"</span>,</span><br><span class="line">    <span class="string">"docker-b"</span>,</span><br><span class="line">    <span class="string">"docker-c"</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"end_time"</span>: <span class="number">1481858193</span>,</span><br><span class="line">  <span class="attr">"counters"</span>: [</span><br><span class="line">    <span class="string">"cpu.idle"</span>,</span><br><span class="line">    <span class="string">"cpu.iowait"</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"consol_fun"</span>: <span class="string">"AVERAGE"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>官方API： <a href="http://open-falcon.org/falcon-plus/doc/graph.html" target="_blank" rel="noopener">POST : /api/v1/graph/history</a></p>
+<p>这里重点需要拿到的一个东西叫做”sig”。形如:</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;<span class="attr">"name"</span>:<span class="string">"root"</span>,<span class="attr">"sig"</span>:<span class="string">"427d6803b78311e68afd0242ac130006"</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>拿取方式通过用户名和密码查询。核心代码如下：</p>
+<figure class="highlight nix"><table><tr><td class="code"><pre><span class="line"><span class="comment">#username和password是v0.2版本新加的，前端dashboard需要注册。ip就是open-falcon运行的机器ip，具体应该是query组件的地址</span></span><br><span class="line"><span class="attr">mytoken</span> = token(<span class="string">"username"</span>, <span class="string">"password"</span>, <span class="string">"http://queryip:8080/api/v1"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def auth_requests(method, *args, **kwargs):</span><br><span class="line">  <span class="keyword">if</span> mytoken.<span class="attr">SIG</span> == None:</span><br><span class="line">    <span class="comment"># 定义一个要提交的数据数组(字典)</span></span><br><span class="line">    <span class="attr">data</span> = &#123;&#125;</span><br><span class="line">    data['name'] = mytoken.NAME</span><br><span class="line">    data['password'] = mytoken.PASSWORD</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 定义post的地址</span></span><br><span class="line">    <span class="attr">url</span> = mytoken.API_ADDR + '/user/login'</span><br><span class="line">    <span class="attr">post_data</span> = urllib.urlencode(data)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交，发送数据</span></span><br><span class="line">    <span class="attr">req</span> = urllib2.urlopen(url, post_data)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 获取提交后返回的信息</span></span><br><span class="line">    <span class="attr">content</span> = req.read()</span><br><span class="line"></span><br><span class="line">    <span class="attr">Name</span> = json.loads(content)['name']</span><br><span class="line">    <span class="attr">Sig</span> = json.loads(content)['sig']</span><br><span class="line">    <span class="attr">Admin</span> = json.loads(content)['admin']</span><br><span class="line"></span><br><span class="line">    print '&#123;<span class="string">"name: %s"</span>,<span class="string">"Sig: %s"</span>,<span class="string">"Admin: %s"</span>&#125;' % (Name, Sig, Admin)</span><br><span class="line">    mytoken.<span class="attr">SIG</span> = Sig</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> not content:</span><br><span class="line">      raise Exception(<span class="string">"no api token"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="attr">headers</span> = &#123;</span><br><span class="line">    <span class="string">"Apitoken"</span>: json.dumps(&#123;<span class="string">"name"</span>: mytoken.NAME, <span class="string">"sig"</span>: mytoken.SIG&#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> not kwargs:</span><br><span class="line">    <span class="attr">kwargs</span> = &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> <span class="string">"headers"</span> <span class="keyword">in</span> kwargs:</span><br><span class="line">    headers.update(kwargs[<span class="string">"headers"</span>])</span><br><span class="line">    del kwargs[<span class="string">"headers"</span>]</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> <span class="attr">method</span> == <span class="string">"POST"</span>:</span><br><span class="line">    return requests.post(*args, <span class="attr">headers=headers,</span> **kwargs)</span><br><span class="line">  <span class="keyword">else</span>:</span><br><span class="line">    raise Exception(<span class="string">"invalid http method"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def post_history(method,d):</span><br><span class="line">  <span class="attr">h</span> = &#123;<span class="string">"Content-type"</span>: <span class="string">"application/json"</span>,<span class="string">"X-Forwarded-For"</span>:<span class="string">"127.0.0.1"</span>&#125;</span><br><span class="line">  <span class="attr">r</span> = auth_requests(method, <span class="string">"%s/graph/history"</span> % (mytoken.API_ADDR), <span class="attr">headers=h,</span> <span class="attr">data=json.dumps(d))</span></span><br><span class="line">  <span class="attr">j</span> = r.json()</span><br><span class="line">  return j</span><br><span class="line">  </span><br><span class="line"><span class="comment">#省略了部分代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> os.path.isfile(Historydatafile):</span><br><span class="line">  os.remove(Historydatafile)</span><br><span class="line">for vd <span class="keyword">in</span> queryload[:]:</span><br><span class="line">  <span class="attr">STORE</span> = post_history(<span class="string">"POST"</span>,vd)</span><br><span class="line"><span class="comment">#  print STORE</span></span><br><span class="line">  <span class="keyword">with</span> open(Historydatafile, 'aw') as fout:</span><br><span class="line">    json.dump(STORE, fout)</span><br><span class="line">    fout.write('\n')</span><br><span class="line">print(<span class="string">"pull %s hours historydata to %s"</span> % (hour, Historydatafile))</span><br></pre></td></tr></table></figure>
+
+<p>官方相关链接:</p>
 <blockquote>
-<p>% hexo deploy<br>ERROR Deployer not found: github</p>
+<p><a href="http://open-falcon.org/falcon-plus/#/authentication" target="_blank" rel="noopener">http://open-falcon.org/falcon-plus/#/authentication</a></p>
+<p><a href="http://open-falcon.org/falcon-plus/doc/graph.html" target="_blank" rel="noopener">http://open-falcon.org/falcon-plus/doc/graph.html</a></p>
 </blockquote>
-<p>解决办法：<a href="https://github.com/hexojs/hexo/issues/1040" target="_blank" rel="noopener">github #1040</a></p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">npm <span class="keyword">install</span> hexo-deployer-git <span class="comment">--save</span></span><br></pre></td></tr></table></figure>
-<p>重新执行hexo d -g 试试？</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>其实弄这个也不算折腾，我重新搭建的时间明显短了很多(废话),关键是需要对博客源代码目录下的结构需要了解，哪一个文件夹是做什么的，哪一个不能动，哪一个跟版本有关，哪一个动了也没事，等等。好了，废话不多说，总体看来，目前推送后看到的博客网站基本正确，有个小问题是原来的“搜索”功能没有了。这个我明天早晨再看看。该关电脑睡觉了，10:56了。😪</p>
-<h1 id="次日更新"><a href="#次日更新" class="headerlink" title="次日更新"></a>次日更新</h1><p>解决了之前碰到的小问题，比如rss订阅，sitemap.xml,baidusitemap.xml，local search等。<br>这里主要是想说，早上访问网站的时候出现了下面的提示：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/%E5%A4%9A%E8%AF%B4%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92.png" alt=""><br>没办法，只有早做打算。很多人都早已诟病多说了，我自己的感觉可能不太强烈，毕竟刚开始评论数也不是很多。不过还是打算做点调整。</p>
-<h2 id="从多说迁移到Disqus"><a href="#从多说迁移到Disqus" class="headerlink" title="从多说迁移到Disqus"></a>从多说迁移到Disqus</h2><p>首先从多说后台导出文章评论数据为export.json文件（步骤略）,其次注册<a href="https://disqus.com/" target="_blank" rel="noopener">Disqus</a>,填写博客网站地址，填写disqus_shortname，比如我的”rebootcatmh”,然后去next主题配置文件_config.yml中添加：</p>
-<figure class="highlight avrasm"><table><tr><td class="code"><pre><span class="line"><span class="symbol">disqus_shortname:</span> rebootcatmh</span><br></pre></td></tr></table></figure>
-<p>然后执行：</p>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">hexo d -g</span></span><br></pre></td></tr></table></figure>
-<p>是不是看到了Disqus骚气的评论框了呢？😉<br><img src="http://o8fj2jbwb.bkt.clouddn.com/disqus.png" alt=""></p>
-<p>到这里只是把评论系统换成了Disqus，那么迁移多说的评论数据呢？<br>可以参考<a href="http://urouge.github.io/migrate-to-disqus/" target="_blank" rel="noopener">多说评论迁移至Disqus</a><br>我这里就把方法截个图，万一他的网站挂了呢？(捂脸)<br><img src="http://o8fj2jbwb.bkt.clouddn.com/jsontoxmldisqus.png" alt=""></p>
-<p>然后去看看是不是评论数据都还在呢？<br><img src="http://o8fj2jbwb.bkt.clouddn.com/dis.png" alt=""></p>
-<h2 id="Disqus迁移后小问题"><a href="#Disqus迁移后小问题" class="headerlink" title="Disqus迁移后小问题"></a>Disqus迁移后小问题</h2><p>可以看到上图，迁移后用户头像没有了，只是默认的头像。而且好像少了几条评论？这个具体我再看看。</p>
-<p>好，更新到这里完！(切换是成功了，但是Disqus在国内是被墙的，暂时打算用duoshuo到它停止那天）</p>
-<h1 id="再扯几句"><a href="#再扯几句" class="headerlink" title="再扯几句"></a>再扯几句</h1><p>这是我的第一台mac，说实话，入手两天了，我已经玩得很6了，确实不错。手势确实比较多，也很方便，很多功能也很人性化，没办法，这么多年一直在用windows,突然转过来，那种惊为天人的感觉很强烈！</p>
-<p>另外发现了一个小惊喜，现在推送到github pages/coding pages后，更新的速度比原来快了很多，几乎我本地hexo d后，chrome里访问博客就能看到了，真的还是挺惊奇的呢！</p>
-<p>好了，扯完了，睡觉~~</p>
-<ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
-</li>
-<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#117;&#x78;&#99;&#x6f;&#x64;&#x65;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#103;&#x6d;&#97;&#105;&#108;&#x2e;&#99;&#111;&#x6d;">&#108;&#105;&#x6e;&#117;&#x78;&#99;&#x6f;&#x64;&#x65;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#103;&#x6d;&#97;&#105;&#108;&#x2e;&#99;&#111;&#x6d;</a></p>
-</li>
-</ul>
-<p>2017-03-22 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
+<h1 id="历史数据用来做什么"><a href="#历史数据用来做什么" class="headerlink" title="历史数据用来做什么"></a>历史数据用来做什么</h1><p>通常单一的一个指标并不能反映我们需要的信息，往往好多指标是相互作用的，那么这些相互作用的指标并非很直观的显示，拉取历史数据，然后本地处理，采用另外的一些方式，可以更加精确的得到指标间的关系。</p>
+<p>下图是拉取历史监控数据后，分析某台机器上的某个服务CPU-BandWidth之间的关系：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/cpuband-a-sfile-oldnewversion.png" alt=""></p>
+<h1 id="周末骑行龙门古镇"><a href="#周末骑行龙门古镇" class="headerlink" title="周末骑行龙门古镇"></a>周末骑行龙门古镇</h1><p>骑行距离120KM ~ 150KM，好激动！</p>
 ]]></content>
       <categories>
-        <category>blog</category>
-        <category>hexo</category>
+        <category>linux</category>
+        <category>python</category>
       </categories>
       <tags>
-        <tag>hexo</tag>
-        <tag>mac</tag>
-        <tag>node</tag>
-        <tag>npm</tag>
+        <tag>python</tag>
+        <tag>open-falcon</tag>
       </tags>
   </entry>
   <entry>
@@ -1922,7 +1922,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#x65;&#50;&#110;&#105;&#107;&#x69;&#x40;&#x67;&#109;&#x61;&#x69;&#x6c;&#46;&#x63;&#111;&#x6d;">&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#x65;&#50;&#110;&#105;&#107;&#x69;&#x40;&#x67;&#109;&#x61;&#x69;&#x6c;&#46;&#x63;&#111;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#x78;&#99;&#111;&#x64;&#101;&#50;&#x6e;&#105;&#107;&#105;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#x63;&#111;&#109;">&#108;&#105;&#110;&#117;&#x78;&#99;&#111;&#x64;&#101;&#50;&#x6e;&#105;&#107;&#105;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#x63;&#111;&#109;</a></p>
 </li>
 </ul>
 <p>2017-02-10 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -1997,7 +1997,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#117;&#x78;&#x63;&#x6f;&#100;&#x65;&#x32;&#110;&#x69;&#x6b;&#105;&#64;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#x63;&#111;&#109;">&#x6c;&#x69;&#x6e;&#117;&#x78;&#x63;&#x6f;&#100;&#x65;&#x32;&#110;&#x69;&#x6b;&#105;&#64;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#x63;&#111;&#109;</a></p>
+<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#x75;&#120;&#x63;&#111;&#x64;&#x65;&#x32;&#x6e;&#105;&#107;&#x69;&#x40;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#111;&#109;">&#108;&#x69;&#110;&#x75;&#120;&#x63;&#111;&#x64;&#x65;&#x32;&#x6e;&#105;&#107;&#x69;&#x40;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#111;&#109;</a></p>
 </li>
 </ul>
 <p>2016-12-13 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -2065,7 +2065,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#105;&#110;&#117;&#x78;&#x63;&#x6f;&#100;&#x65;&#x32;&#x6e;&#105;&#107;&#x69;&#64;&#103;&#109;&#x61;&#105;&#x6c;&#46;&#99;&#x6f;&#x6d;">&#x6c;&#105;&#110;&#117;&#x78;&#x63;&#x6f;&#100;&#x65;&#x32;&#x6e;&#105;&#107;&#x69;&#64;&#103;&#109;&#x61;&#105;&#x6c;&#46;&#99;&#x6f;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#x75;&#120;&#99;&#111;&#x64;&#101;&#50;&#x6e;&#x69;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#111;&#x6d;">&#108;&#105;&#110;&#x75;&#120;&#99;&#111;&#x64;&#101;&#50;&#x6e;&#x69;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#111;&#x6d;</a></p>
 </li>
 </ul>
 <p>2016-12-21 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -2156,7 +2156,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a> (<strong>默认</strong>)</p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#x69;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#x65;&#50;&#x6e;&#x69;&#107;&#x69;&#64;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#99;&#x6f;&#x6d;">&#x6c;&#x69;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#x65;&#50;&#x6e;&#x69;&#107;&#x69;&#64;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#99;&#x6f;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#117;&#120;&#x63;&#x6f;&#100;&#101;&#x32;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;">&#x6c;&#x69;&#x6e;&#117;&#120;&#x63;&#x6f;&#100;&#101;&#x32;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;</a></p>
 </li>
 </ul>
 <p>2017-03-17 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -2601,7 +2601,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <li><p><a href="http://reboot_cat.coding.me/" target="_blank" rel="noopener">http://reboot_cat.coding.me/</a> （原地址，备用）</p>
 </li>
 </ul>
-<p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#117;&#120;&#x63;&#111;&#x64;&#x65;&#50;&#110;&#105;&#107;&#x69;&#x40;&#103;&#109;&#97;&#105;&#108;&#x2e;&#99;&#x6f;&#x6d;">&#x6c;&#105;&#x6e;&#117;&#120;&#x63;&#111;&#x64;&#x65;&#50;&#110;&#105;&#107;&#x69;&#x40;&#103;&#109;&#97;&#105;&#108;&#x2e;&#99;&#x6f;&#x6d;</a></p>
+<p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#x65;&#x32;&#x6e;&#105;&#107;&#105;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;">&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#x65;&#x32;&#x6e;&#105;&#107;&#105;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
 <p>2016-6-11 于杭州</p>
 ]]></content>
       <categories>
@@ -2686,7 +2686,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <li><p><a href="http://reboot_cat.coding.me/" target="_blank" rel="noopener">http://reboot_cat.coding.me/</a> （原地址，备用）</p>
 </li>
 </ul>
-<p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#x64;&#101;&#x32;&#110;&#105;&#107;&#x69;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#111;&#x6d;">&#x6c;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#x64;&#101;&#x32;&#110;&#105;&#107;&#x69;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#111;&#x6d;</a></p>
+<p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#120;&#x63;&#x6f;&#x64;&#101;&#50;&#110;&#105;&#107;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#x6c;&#105;&#x6e;&#x75;&#120;&#x63;&#x6f;&#x64;&#101;&#50;&#110;&#105;&#107;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
 <p>2016-6-14 于杭州</p>
 ]]></content>
       <categories>
@@ -2713,7 +2713,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <li><p><a href="http://reboot_cat.coding.me/" target="_blank" rel="noopener">http://reboot_cat.coding.me/</a> （原地址，备用）</p>
 </li>
 </ul>
-<p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#110;&#105;&#107;&#x69;&#64;&#x67;&#x6d;&#x61;&#105;&#x6c;&#46;&#x63;&#111;&#109;">&#x6c;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#110;&#105;&#107;&#x69;&#64;&#x67;&#x6d;&#x61;&#105;&#x6c;&#46;&#x63;&#111;&#109;</a></p>
+<p>email: <a href="mailto:&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#x64;&#x65;&#50;&#x6e;&#x69;&#107;&#x69;&#x40;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;">&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#x64;&#x65;&#50;&#x6e;&#x69;&#107;&#x69;&#x40;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;</a></p>
 <p>2016-6-08 于杭州</p>
 ]]></content>
       <categories>
@@ -2868,7 +2868,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <li><p><a href="http://reboot_cat.coding.me/" target="_blank" rel="noopener">http://reboot_cat.coding.me/</a> （原地址，备用）</p>
 </li>
 </ul>
-<p>email: <a href="mailto:&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#x6f;&#100;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#x40;&#103;&#109;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#x6d;">&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#x6f;&#100;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#x40;&#103;&#109;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#x6d;</a></p>
+<p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#50;&#x6e;&#x69;&#107;&#105;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;">&#x6c;&#105;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#50;&#x6e;&#x69;&#107;&#105;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;</a></p>
 <p>2016-6-7 于杭州</p>
 ]]></content>
       <categories>
@@ -2979,7 +2979,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <li><p><a href="http://reboot_cat.coding.me/" target="_blank" rel="noopener">http://reboot_cat.coding.me/</a> （原地址，备用）</p>
 </li>
 </ul>
-<p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#x6e;&#105;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#111;&#109;">&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#x6e;&#105;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#111;&#109;</a></p>
+<p>email: <a href="mailto:&#108;&#105;&#x6e;&#117;&#120;&#x63;&#x6f;&#x64;&#101;&#50;&#x6e;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#97;&#x69;&#x6c;&#46;&#x63;&#111;&#x6d;">&#108;&#105;&#x6e;&#117;&#120;&#x63;&#x6f;&#x64;&#101;&#50;&#x6e;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#97;&#x69;&#x6c;&#46;&#x63;&#111;&#x6d;</a></p>
 <p>2016-6-11 于杭州</p>
 ]]></content>
       <categories>
@@ -3010,7 +3010,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <li><p><a href="http://reboot_cat.coding.me/" target="_blank" rel="noopener">http://reboot_cat.coding.me/</a> （原地址，备用）</p>
 </li>
 </ul>
-<p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#120;&#99;&#111;&#100;&#101;&#x32;&#110;&#x69;&#107;&#105;&#64;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#x63;&#x6f;&#109;">&#x6c;&#x69;&#x6e;&#x75;&#120;&#99;&#111;&#100;&#101;&#x32;&#110;&#x69;&#107;&#105;&#64;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#x63;&#x6f;&#109;</a></p>
+<p>email: <a href="mailto:&#x6c;&#x69;&#110;&#x75;&#x78;&#99;&#x6f;&#x64;&#x65;&#x32;&#x6e;&#x69;&#107;&#x69;&#x40;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#x63;&#111;&#x6d;">&#x6c;&#x69;&#110;&#x75;&#x78;&#99;&#x6f;&#x64;&#x65;&#x32;&#x6e;&#x69;&#107;&#x69;&#x40;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#x63;&#111;&#x6d;</a></p>
 <p>2016-6-12 于杭州</p>
 ]]></content>
       <categories>
