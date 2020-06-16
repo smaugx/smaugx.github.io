@@ -24,24 +24,25 @@
     var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="valgrind massif 分析内存问题    title: valgrind massif 分析内存问题date: 2020&#x2F;06&#x2F;16 8:23:58tags:    - valgrind    - massif    - ubuntun    - memorycategories:    - linuxcomments:   Valgrind Massifvalgrind 是什么，这里直">
+  <meta name="description" content="Valgrind Massifvalgrind 是什么，这里直接引用其他人的博客：  Valgrind是一套Linux下，开放源代码（GPLV2）的仿真调试工具的集合。Valgrind由内核（core）以及基于内核的其他调试工具组成。   内核类似于一个框架（framework），它模拟了一个CPU环境，并提供服务给其他工具；而其他工具则类似于插件 (plug-in)，利用内核提供的服务完成各种特">
 <meta property="og:type" content="article">
-<meta property="og:title" content="valgrind_massif_memory_analysing">
+<meta property="og:title" content="valgrind massif 分析内存问题">
 <meta property="og:url" content="http://www.rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/index.html">
 <meta property="og:site_name" content="林夕水共">
-<meta property="og:description" content="valgrind massif 分析内存问题    title: valgrind massif 分析内存问题date: 2020&#x2F;06&#x2F;16 8:23:58tags:    - valgrind    - massif    - ubuntun    - memorycategories:    - linuxcomments:   Valgrind Massifvalgrind 是什么，这里直">
+<meta property="og:description" content="Valgrind Massifvalgrind 是什么，这里直接引用其他人的博客：  Valgrind是一套Linux下，开放源代码（GPLV2）的仿真调试工具的集合。Valgrind由内核（core）以及基于内核的其他调试工具组成。   内核类似于一个框架（framework），它模拟了一个CPU环境，并提供服务给其他工具；而其他工具则类似于插件 (plug-in)，利用内核提供的服务完成各种特">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/valgrind_massif_memory_analysing/1.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/valgrind_massif_memory_analysing/2.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/valgrind_massif_memory_analysing/3.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/valgrind_massif_memory_analysing/4.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/valgrind_massif_memory_analysing/5.png">
-<meta property="article:published_time" content="2020-06-15T23:40:36.167Z">
-<meta property="article:modified_time" content="2020-06-15T23:55:48.613Z">
+<meta property="article:published_time" content="2020-06-16T00:23:58.000Z">
+<meta property="article:modified_time" content="2020-06-16T00:01:55.998Z">
 <meta property="article:author" content="Smaug">
-<meta property="article:tag" content="Linux">
-<meta property="article:tag" content="C++">
-<meta property="article:tag" content="Python">
+<meta property="article:tag" content="valgrind">
+<meta property="article:tag" content="massif">
+<meta property="article:tag" content="ubuntun">
+<meta property="article:tag" content="memory">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/valgrind_massif_memory_analysing/1.png">
 
@@ -58,7 +59,7 @@
   };
 </script>
 
-  <title>valgrind_massif_memory_analysing | 林夕水共</title>
+  <title>valgrind massif 分析内存问题 | 林夕水共</title>
   
 
 
@@ -239,7 +240,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          valgrind_massif_memory_analysing
+          valgrind massif 分析内存问题
         </h1>
 
         <div class="post-meta">
@@ -250,7 +251,16 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2020-06-16 07:40:36 / 修改时间：07:55:48" itemprop="dateCreated datePublished" datetime="2020-06-16T07:40:36+08:00">2020-06-16</time>
+              <time title="创建时间：2020-06-16 08:23:58 / 修改时间：08:01:55" itemprop="dateCreated datePublished" datetime="2020-06-16T08:23:58+08:00">2020-06-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
             </span>
 
           
@@ -285,12 +295,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <center>valgrind massif 分析内存问题 </center>
-
-<hr>
-<p>title: valgrind massif 分析内存问题<br>date: 2020/06/16 8:23:58<br>tags:<br>    - valgrind<br>    - massif<br>    - ubuntun<br>    - memory<br>categories:<br>    - linux<br>comments: </p>
-<hr>
-<h1 id="Valgrind-Massif"><a href="#Valgrind-Massif" class="headerlink" title="Valgrind Massif"></a>Valgrind Massif</h1><p>valgrind 是什么，这里直接引用其他人的博客：</p>
+        <h1 id="Valgrind-Massif"><a href="#Valgrind-Massif" class="headerlink" title="Valgrind Massif"></a>Valgrind Massif</h1><p>valgrind 是什么，这里直接引用其他人的博客：</p>
 <blockquote>
 <p>Valgrind是一套Linux下，开放源代码（GPL<br>V2）的仿真调试工具的集合。Valgrind由内核（core）以及基于内核的其他调试工具组成。</p>
 </blockquote>
@@ -358,7 +363,7 @@
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#x78;&#99;&#x6f;&#100;&#x65;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#108;&#105;&#110;&#117;&#x78;&#99;&#x6f;&#100;&#x65;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#120;&#x63;&#x6f;&#100;&#x65;&#50;&#x6e;&#x69;&#x6b;&#105;&#x40;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;">&#x6c;&#x69;&#x6e;&#x75;&#120;&#x63;&#x6f;&#100;&#x65;&#50;&#x6e;&#x69;&#x6b;&#105;&#x40;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;</a></p>
 </li>
 </ul>
 <p>2020-06-16 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -394,7 +399,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://www.rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/" title="valgrind_massif_memory_analysing">http://www.rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/</a>
+    <a href="http://www.rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/" title="valgrind massif 分析内存问题">http://www.rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -433,6 +438,12 @@
 
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/valgrind/" rel="tag"># valgrind</a>
+              <a href="/tags/massif/" rel="tag"># massif</a>
+              <a href="/tags/ubuntun/" rel="tag"># ubuntun</a>
+              <a href="/tags/memory/" rel="tag"># memory</a>
+          </div>
 
         
 
@@ -532,7 +543,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-count">63</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

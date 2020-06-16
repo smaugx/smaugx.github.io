@@ -3025,14 +3025,9 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
       </tags>
   </entry>
   <entry>
-    <title>valgrind_massif_memory_analysing</title>
+    <title>valgrind massif 分析内存问题</title>
     <url>/2020/06/16/valgrind_massif_memory_analysing/</url>
-    <content><![CDATA[<center>valgrind massif 分析内存问题 </center>
-
-<hr>
-<p>title: valgrind massif 分析内存问题<br>date: 2020/06/16 8:23:58<br>tags:<br>    - valgrind<br>    - massif<br>    - ubuntun<br>    - memory<br>categories:<br>    - linux<br>comments: </p>
-<hr>
-<h1 id="Valgrind-Massif"><a href="#Valgrind-Massif" class="headerlink" title="Valgrind Massif"></a>Valgrind Massif</h1><p>valgrind 是什么，这里直接引用其他人的博客：</p>
+    <content><![CDATA[<h1 id="Valgrind-Massif"><a href="#Valgrind-Massif" class="headerlink" title="Valgrind Massif"></a>Valgrind Massif</h1><p>valgrind 是什么，这里直接引用其他人的博客：</p>
 <blockquote>
 <p>Valgrind是一套Linux下，开放源代码（GPL<br>V2）的仿真调试工具的集合。Valgrind由内核（core）以及基于内核的其他调试工具组成。</p>
 </blockquote>
@@ -3100,10 +3095,19 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#x78;&#99;&#x6f;&#100;&#x65;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#108;&#105;&#110;&#117;&#x78;&#99;&#x6f;&#100;&#x65;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#120;&#x63;&#x6f;&#100;&#x65;&#50;&#x6e;&#x69;&#x6b;&#105;&#x40;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;">&#x6c;&#x69;&#x6e;&#x75;&#120;&#x63;&#x6f;&#100;&#x65;&#50;&#x6e;&#x69;&#x6b;&#105;&#x40;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;</a></p>
 </li>
 </ul>
 <p>2020-06-16 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
 ]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>valgrind</tag>
+        <tag>massif</tag>
+        <tag>ubuntun</tag>
+        <tag>memory</tag>
+      </tags>
   </entry>
 </search>
