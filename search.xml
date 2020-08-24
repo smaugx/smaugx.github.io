@@ -3203,4 +3203,34 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
         <tag>ecs</tag>
       </tags>
   </entry>
+  <entry>
+    <title>一键安装python3环境</title>
+    <url>/2018/04/15/python3_in_a_box/</url>
+    <content><![CDATA[<h1 id="一键安装python3环境"><a href="#一键安装python3环境" class="headerlink" title="一键安装python3环境"></a>一键安装python3环境</h1><p>由于现在逐步转移到 python3 进行开发，但是很多机器并没有预装 python3 环境，所以需要安装。</p>
+<p>所以分享一个我常用的，一键安装 python3.7 的脚本：</p>
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">#!/bin/<span class="keyword">sh</span></span><br><span class="line"></span><br><span class="line">which <span class="keyword">python3</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq <span class="number">1</span> ]</span><br><span class="line">then</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">"no python3 found, will try to install python3"</span></span><br><span class="line">    yum -<span class="keyword">y</span> install wget &amp;&amp;</span><br><span class="line">    yum -<span class="keyword">y</span> groupinstall <span class="string">"Development tools"</span> &amp;&amp;</span><br><span class="line">    yum -<span class="keyword">y</span> install zlib-devel libffi-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel &amp;&amp;</span><br><span class="line">    wget http<span class="variable">s:</span>//www.<span class="keyword">python</span>.org/ftp/<span class="keyword">python</span>/<span class="number">3.7</span>.<span class="number">2</span>/Python-<span class="number">3.7</span>.<span class="number">2</span>.tar.xz &amp;&amp;</span><br><span class="line">    <span class="built_in">mkdir</span>  /<span class="keyword">opt</span>/<span class="keyword">python3</span> &amp;&amp;</span><br><span class="line">    tar -xvJf  Python-<span class="number">3.7</span>.<span class="number">2</span>.tar.xz &amp;&amp;</span><br><span class="line">    <span class="keyword">cd</span> Python-<span class="number">3.7</span>.<span class="number">2</span> &amp;&amp;</span><br><span class="line">    ./configure --prefix=/<span class="keyword">opt</span>/<span class="keyword">python3</span> &amp;&amp;</span><br><span class="line">    <span class="keyword">make</span> &amp;&amp;</span><br><span class="line">    <span class="keyword">make</span> install</span><br><span class="line">    <span class="keyword">cd</span> -</span><br><span class="line"></span><br><span class="line">    <span class="keyword">ln</span> -s /<span class="keyword">opt</span>/<span class="keyword">python3</span>/bin/<span class="keyword">python3</span> /usr/bin/python37</span><br><span class="line">    <span class="keyword">ln</span> -s /<span class="keyword">opt</span>/<span class="keyword">python3</span>/bin/pip3 /usr/bin/pip3</span><br><span class="line">    yum -<span class="keyword">y</span> install epel-release &amp;&amp;</span><br><span class="line">    yum -<span class="keyword">y</span> install <span class="keyword">python</span>-pip</span><br><span class="line">    <span class="keyword">ln</span> -s /usr/bin/python37 /usr/bin/<span class="keyword">python3</span></span><br><span class="line"></span><br><span class="line">    yum  install -<span class="keyword">y</span> <span class="keyword">python</span>-virtualenv.noarch</span><br><span class="line"></span><br><span class="line">    rm -rf Python-<span class="number">3.7</span>.<span class="number">2</span>*</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="keyword">echo</span> <span class="string">'check python3 ################################## Yes'</span></span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+
+<p>脚本会探测环境是否已经安装了 python3，如果没有安装则进行安装。</p>
+<p>同时也把 virtualenv 工具安装了。</p>
+<p>脚本可以直接在 <a href="https://github.com/smaugx/dailytools/blob/master/python3_in_a_box.sh" target="_blank" rel="noopener">我的github</a> 进行下载。</p>
+<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>欢迎关注下我的其他脚本，平常可能会用到的一些脚本，整理了一下。</p>
+<p><a href="https://github.com/smaugx/dailytools" target="_blank" rel="noopener">https://github.com/smaugx/dailytools</a></p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2018-04-15 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+]]></content>
+      <categories>
+        <category>linux</category>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+        <tag>python3</tag>
+      </tags>
+  </entry>
 </search>

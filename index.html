@@ -977,6 +977,114 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/04/15/python3_in_a_box/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/04/15/python3_in_a_box/" class="post-title-link" itemprop="url">一键安装python3环境</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-15 11:23:58" itemprop="dateCreated datePublished" datetime="2018-04-15T11:23:58+08:00">2018-04-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-24 23:05:11" itemprop="dateModified" datetime="2020-08-24T23:05:11+08:00">2020-08-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/04/15/python3_in_a_box/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/04/15/python3_in_a_box/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="一键安装python3环境"><a href="#一键安装python3环境" class="headerlink" title="一键安装python3环境"></a>一键安装python3环境</h1><p>由于现在逐步转移到 python3 进行开发，但是很多机器并没有预装 python3 环境，所以需要安装。</p>
+<p>所以分享一个我常用的，一键安装 python3.7 的脚本：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/<span class="keyword">sh</span></span><br><span class="line"></span><br><span class="line">which <span class="keyword">python3</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq <span class="number">1</span> ]</span><br><span class="line">then</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">"no python3 found, will try to install python3"</span></span><br><span class="line">    yum -<span class="keyword">y</span> install wget &amp;&amp;</span><br><span class="line">    yum -<span class="keyword">y</span> groupinstall <span class="string">"Development tools"</span> &amp;&amp;</span><br><span class="line">    yum -<span class="keyword">y</span> install zlib-devel libffi-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel &amp;&amp;</span><br><span class="line">    wget http<span class="variable">s:</span>//www.<span class="keyword">python</span>.org/ftp/<span class="keyword">python</span>/<span class="number">3.7</span>.<span class="number">2</span>/Python-<span class="number">3.7</span>.<span class="number">2</span>.tar.xz &amp;&amp;</span><br><span class="line">    <span class="built_in">mkdir</span>  /<span class="keyword">opt</span>/<span class="keyword">python3</span> &amp;&amp;</span><br><span class="line">    tar -xvJf  Python-<span class="number">3.7</span>.<span class="number">2</span>.tar.xz &amp;&amp;</span><br><span class="line">    <span class="keyword">cd</span> Python-<span class="number">3.7</span>.<span class="number">2</span> &amp;&amp;</span><br><span class="line">    ./configure --prefix=/<span class="keyword">opt</span>/<span class="keyword">python3</span> &amp;&amp;</span><br><span class="line">    <span class="keyword">make</span> &amp;&amp;</span><br><span class="line">    <span class="keyword">make</span> install</span><br><span class="line">    <span class="keyword">cd</span> -</span><br><span class="line"></span><br><span class="line">    <span class="keyword">ln</span> -s /<span class="keyword">opt</span>/<span class="keyword">python3</span>/bin/<span class="keyword">python3</span> /usr/bin/python37</span><br><span class="line">    <span class="keyword">ln</span> -s /<span class="keyword">opt</span>/<span class="keyword">python3</span>/bin/pip3 /usr/bin/pip3</span><br><span class="line">    yum -<span class="keyword">y</span> install epel-release &amp;&amp;</span><br><span class="line">    yum -<span class="keyword">y</span> install <span class="keyword">python</span>-pip</span><br><span class="line">    <span class="keyword">ln</span> -s /usr/bin/python37 /usr/bin/<span class="keyword">python3</span></span><br><span class="line"></span><br><span class="line">    yum  install -<span class="keyword">y</span> <span class="keyword">python</span>-virtualenv.noarch</span><br><span class="line"></span><br><span class="line">    rm -rf Python-<span class="number">3.7</span>.<span class="number">2</span>*</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="keyword">echo</span> <span class="string">'check python3 ################################## Yes'</span></span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+
+<p>脚本会探测环境是否已经安装了 python3，如果没有安装则进行安装。</p>
+<p>同时也把 virtualenv 工具安装了。</p>
+<p>脚本可以直接在 <a href="https://github.com/smaugx/dailytools/blob/master/python3_in_a_box.sh" target="_blank" rel="noopener">我的github</a> 进行下载。</p>
+<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>欢迎关注下我的其他脚本，平常可能会用到的一些脚本，整理了一下。</p>
+<p><a href="https://github.com/smaugx/dailytools" target="_blank" rel="noopener">https://github.com/smaugx/dailytools</a></p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2018-04-15 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/03/05/export_mac_wechat/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1207,115 +1315,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/01/16/using-iostat-dialectically/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/01/16/using-iostat-dialectically/" class="post-title-link" itemprop="url">辩证看待 iostat</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-01-16 11:23:58" itemprop="dateCreated datePublished" datetime="2018-01-16T11:23:58+08:00">2018-01-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/%E7%A3%81%E7%9B%98/" itemprop="url" rel="index"><span itemprop="name">磁盘</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2018/01/16/using-iostat-dialectically/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2018/01/16/using-iostat-dialectically/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>经常做系统分析会接触到很多有用的工具，比如 iostat,它是用来分析磁盘性能、系统 I/O 的利器。</p>
-<p>本文将重点<strong>介绍 iostat 命令的使用，并分析容易引起误解的几个指标</strong>。</p>
-<h1 id="iostat"><a href="#iostat" class="headerlink" title="iostat"></a>iostat</h1><blockquote>
-<p>iostat - Report Central Processing Unit (CPU) statistics and input/output statistics for devices and partitions.</p>
-</blockquote>
-<p>上面是 man 手册关于 iostat 命令的介绍，非常简单明了。iostat 是我们经常用来分析 cpu 负载和磁盘 I/O 情况的工具。</p>
-<h2 id="iostat-基本使用"><a href="#iostat-基本使用" class="headerlink" title="iostat 基本使用"></a>iostat 基本使用</h2><p>常用命令（个人习惯）：</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iostat -xk <span class="number">2</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
-<p>参数的解释可以查看 man 手册：</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">OPTIONS</span><br><span class="line">       -c     Display the CPU utilization report.</span><br><span class="line"></span><br><span class="line">       -d     Display the device utilization report.</span><br><span class="line"></span><br><span class="line">       -g group_name &#123; device [<span class="built_in">..</span>.] | ALL &#125;</span><br><span class="line">              Display statistics <span class="keyword">for</span> a<span class="built_in"> group </span>of devices.  The iostat command reports statistics <span class="keyword">for</span> each individual device <span class="keyword">in</span> the list then a line of global statistics <span class="keyword">for</span> the<span class="built_in"> group </span>displayed as group_name <span class="keyword">and</span> made  up  of  all  the</span><br><span class="line">              devices <span class="keyword">in</span> the list. The ALL keyword means that all the block devices defined by the<span class="built_in"> system </span>shall be included <span class="keyword">in</span> the group.</span><br><span class="line"></span><br><span class="line">       -h     Make the Device Utilization Report easier <span class="keyword">to</span> read by a human.</span><br><span class="line"></span><br><span class="line">       -j &#123; ID | LABEL | PATH | UUID | <span class="built_in">..</span>. &#125; [ device [<span class="built_in">..</span>.] | ALL ]</span><br><span class="line">              Display  persistent  device  names.  Options  ID,  LABEL,  etc.  specify  the<span class="built_in"> type </span>of the persistent name. These options are <span class="keyword">not</span> limited, only prerequisite is that directory with required persistent names is present <span class="keyword">in</span></span><br><span class="line">              /dev/disk.  Optionally, multiple devices can be specified <span class="keyword">in</span> the chosen persistent name type.  Because persistent device names are usually long, option -h is enabled implicitly with this option.</span><br><span class="line"></span><br><span class="line">       -k     Display statistics <span class="keyword">in</span> kilobytes per second.</span><br><span class="line"></span><br><span class="line">       -m     Display statistics <span class="keyword">in</span> megabytes per second.</span><br><span class="line"></span><br><span class="line">       -N     Display the registered device mapper names <span class="keyword">for</span> any device mapper devices.  Useful <span class="keyword">for</span> viewing LVM2 statistics.</span><br><span class="line"></span><br><span class="line">       -p [ &#123; device [,<span class="built_in">..</span>.] | ALL &#125; ]</span><br><span class="line">              The -p option displays statistics <span class="keyword">for</span> block devices <span class="keyword">and</span> all their partitions that are used by the system.  <span class="keyword">If</span> a device name is entered on the command line, then statistics <span class="keyword">for</span> it <span class="keyword">and</span> all its partitions  are  displayed.</span><br><span class="line">              Last,  the  ALL  keyword  indicates  that  statistics  have <span class="keyword">to</span> be displayed <span class="keyword">for</span> all the block devices <span class="keyword">and</span> partitions defined by the system, including those that have never been used. <span class="keyword">If</span> option -j is defined before this</span><br><span class="line">              option, devices entered on the command line can be specified with the chosen persistent name type.</span><br><span class="line"></span><br><span class="line">       -T     This option must be used with option -g <span class="keyword">and</span> indicates that only global statistics <span class="keyword">for</span> the<span class="built_in"> group </span>are <span class="keyword">to</span> be displayed, <span class="keyword">and</span> <span class="keyword">not</span> statistics <span class="keyword">for</span> individual devices <span class="keyword">in</span> the group.</span><br><span class="line"></span><br><span class="line">       -t     <span class="builtin-name">Print</span> the time <span class="keyword">for</span> each report displayed. The timestamp format may depend on the value of the S_TIME_FORMAT environment variable (see below).</span><br><span class="line"></span><br><span class="line">       -V     <span class="builtin-name">Print</span> version number then exit.</span><br><span class="line"></span><br><span class="line">       -x     Display extended statistics.</span><br><span class="line"></span><br><span class="line">       -y     Omit first report with statistics since<span class="built_in"> system </span>boot, <span class="keyword">if</span> displaying multiple records at given interval.</span><br><span class="line"></span><br><span class="line">       -z     Tell iostat <span class="keyword">to</span> omit output <span class="keyword">for</span> any devices <span class="keyword">for</span> which there was <span class="literal">no</span> activity during the sample period.</span><br></pre></td></tr></table></figure>
-<p>简单讲，-x 参数能比较详细的给出一些指标，2 代表间隔时间为 2s，统计输出 10 次。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/01/16/using-iostat-dialectically/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1387,7 +1386,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-count">39</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1400,7 +1399,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-count">67</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
