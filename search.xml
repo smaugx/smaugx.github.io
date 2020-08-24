@@ -3110,4 +3110,96 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
         <tag>memory</tag>
       </tags>
   </entry>
+  <entry>
+    <title>自动创建阿里云抢占式实例</title>
+    <url>/2020/08/24/auto_run_aliyun_spot/</url>
+    <content><![CDATA[<h1 id="aliyun-spot"><a href="#aliyun-spot" class="headerlink" title="aliyun_spot"></a>aliyun_spot</h1><p>自动创建阿里云抢占式实例。</p>
+<h1 id="支持一下作者，购买阿里云"><a href="#支持一下作者，购买阿里云" class="headerlink" title="支持一下作者，购买阿里云"></a><a href="https://www.aliyun.com/minisite/goods?userCode=c5nuzwoj" target="_blank" rel="noopener">支持一下作者，购买阿里云</a></h1><h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>阿里云抢占式实例应该属于阿里云的一种闲置资源利用，性价比非常高，每小时的价格在 0.01 ~ 0.05 每小时，具体根据不同的配置和地域有差别，流量价格小于 1元/G.</p>
+<p>抢占式实例最高可以以<strong>一折的价格购买 ECS 实例，并能稳定持有该实例至少一个小时</strong>。一个小时后，当市场价格高于您的出价或资源供需关系变化时，<strong>抢占式实例会被自动释放</strong>，请做好数据备份工作。</p>
+<p><strong>非常适合爬虫</strong></p>
+<p><strong>非常适合爬虫</strong></p>
+<p><strong>非常适合爬虫</strong></p>
+<p>也适合程序员个人日常开发使用，上班来创建，下班释放，开销基本可以控制在在 1毛 ~ 2 毛。</p>
+<p>对于我来说，最近在写一个爬虫，看了很多代理都很贵，免费的又不稳定，正好了解到阿里云的抢占式实例，所以非常满足我的需求。</p>
+<p>但是要注意，这个实例是有可能被释放的，但是不用担心，比如<strong>香港地区的释放率最近（2020-08-19）小于 3%. 另外，每个人可以最大创建 100 个实例</strong>，所以还是不用太担心。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/auto_run_aliyun_spot/1.png" alt=""></p>
+<a id="more"></a>
+
+
+<h1 id="脚本功能"><a href="#脚本功能" class="headerlink" title="脚本功能"></a>脚本功能</h1><h2 id="自动创建阿里云抢占式实例"><a href="#自动创建阿里云抢占式实例" class="headerlink" title="自动创建阿里云抢占式实例"></a>自动创建阿里云抢占式实例</h2><p>支持以下一些参数：</p>
+<ul>
+<li>实例所属地域</li>
+<li>创建的实例数量</li>
+<li>公网出口带宽最大值</li>
+<li>实例付费的策略和每小时最大价格</li>
+<li>系统盘大小</li>
+<li>释放时间（hours）</li>
+<li>实例规格(cpu/mem/localdisk/net/ipv6)</li>
+</ul>
+<h2 id="手动释放一个或者多个实例"><a href="#手动释放一个或者多个实例" class="headerlink" title="手动释放一个或者多个实例"></a>手动释放一个或者多个实例</h2><p>可以使用脚本提前释放一个或者多个实例。</p>
+<p><strong>创建的时候可以设置自动释放时间，当然也支持随时手动释放</strong>。</p>
+<h1 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h1><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">$ python run_aliyunspot.py</span><br><span class="line">usage: run_aliyunspot.py [-h] [-c [CREATE]] [-r [RELEASE]] [-l [LIST]] [-s [SPOTID [SPOTID <span class="built_in">..</span>.]]]</span><br><span class="line"></span><br><span class="line">aliyunspot, 自动创建阿里云抢占式实例,支持自动/手动释放</span><br><span class="line"></span><br><span class="line">optional arguments:</span><br><span class="line">  -h, --help            show this help message <span class="keyword">and</span> exit</span><br><span class="line">  -c [CREATE], --create [CREATE]</span><br><span class="line">                        create aliyun spot<span class="built_in"> instance </span><span class="keyword">and</span> <span class="builtin-name">run</span> instance</span><br><span class="line">  -r [RELEASE], --release [RELEASE]</span><br><span class="line">                        release aliyun spot instance</span><br><span class="line">  -l [LIST], --list [LIST]</span><br><span class="line">                        list local record aliyun spot instance</span><br><span class="line">  -s [SPOTID [SPOTID <span class="built_in">..</span>.]], --spotid [SPOTID [SPOTID <span class="built_in">..</span>.]]</span><br><span class="line">                        aliyun spot instance_id <span class="keyword">for</span> release, you can give more than one</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="1-克隆仓库"><a href="#1-克隆仓库" class="headerlink" title="1 克隆仓库"></a>1 克隆仓库</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> git <span class="built_in">clone</span> https://github.com/smaugx/aliyun_spot.git</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> aliyun_spot</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> virtualenv -p python3 vv</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">source</span> vv/bin/activate</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> pip install -r requirements.txt</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="2-调整配置"><a href="#2-调整配置" class="headerlink" title="2  调整配置"></a>2  调整配置</h2><figure class="highlight vim"><table><tr><td class="code"><pre><span class="line">$ <span class="keyword">cp</span> test_config.<span class="keyword">py</span> config.<span class="keyword">py</span></span><br><span class="line"># 打开配置文件，根据你自己的需求修改里面的配置选项</span><br><span class="line">$ <span class="keyword">vim</span> config.<span class="keyword">py</span></span><br></pre></td></tr></table></figure>
+
+<p>当然你也可以不用修改其他配置，只需要把你的 <strong>access_id</strong> 和 <strong>access_secret</strong> 填进去就可以，以及 <strong>key_pair_name</strong> 填进去。（见后文章节 <strong>#阿里云官网操作#</strong> ）</p>
+<p><strong>默认创建的是香港地区的抢占式实例，内存 500MB, 1 CPU, 系统盘 20GB, 按流量计费（1元/G), 公网出口带宽 10Mbps, 1 小时候自动释放。</strong></p>
+<blockquote>
+<p>2020-08-19 上述默认配置的实例价格在 ￥ 0.018 /时。</p>
+</blockquote>
+<p>如果你觉得这个配置(cpu/mem)无法满足你的要求，那么可以调整 <strong>instance_type</strong> 这个参数，表示实例规格，详细可以查看阿里云官网页面 <a href="https://help.aliyun.com/document_detail/25378.html" target="_blank" rel="noopener">云服务器 ECS &gt; 实例 &gt; 实例规格族</a></p>
+<h2 id="3-创建实例"><a href="#3-创建实例" class="headerlink" title="3 创建实例"></a>3 创建实例</h2><figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">$ python run_aliyunspot.py -c</span><br><span class="line">will create <span class="keyword">and</span> <span class="builtin-name">run</span> aliyun spot instance, please wait<span class="built_in">..</span>.</span><br><span class="line">Success.<span class="built_in"> Instance </span>creation succeed. InstanceIds: i-j6cfhcbb3o2pepduwgfk</span><br><span class="line">Instance boot successfully: i-j6cfhcbb3o2pepduwgfk</span><br><span class="line">Instances all boot successfully</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">InstanceId:i-j6cfhcbb3o2pepduwgfk</span><br><span class="line">InstanceName:smaug-000-aliyun-8242148</span><br><span class="line">HostName:smaug-000-aliyun-8242148</span><br><span class="line">PublicIp:47.242.33.179</span><br><span class="line">KeyPairName:aliyunspot</span><br><span class="line">CreationTime:2020-08-24T13:48Z</span><br><span class="line">AutoReleaseTime:2020-08-24T22:48Z</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">instance <span class="builtin-name">info</span> saved <span class="keyword">in</span> file:./ecs/ecs.i-j6cfhcbb3o2pepduwgfk</span><br><span class="line">now you can use ssh: ssh -i ~/.ssh/aliyunspot.pem root@47.242.33.179</span><br></pre></td></tr></table></figure>
+
+<p>如上，创建成功。然后接下来就可以使用 ssh 登录：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">$ ssh -i ~/.ssh/~/.ssh/aliyunspot.pem <span class="symbol">root@</span><span class="number">8.210</span><span class="number">.245</span><span class="number">.226</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="4-列出实例"><a href="#4-列出实例" class="headerlink" title="4 列出实例"></a>4 列出实例</h2><figure class="highlight sml"><table><tr><td class="code"><pre><span class="line">$ python run_aliyunspot.py -l</span><br><span class="line"><span class="built_in">list</span> all <span class="keyword">local</span> record instance:</span><br><span class="line">[<span class="symbol">'i</span>-j6caz353cisgl3fzenwi', <span class="symbol">'i</span>-j6cbyis12fb1fpzk59fv', <span class="symbol">'i</span>-j6cfhcbb3o2pepduwgfk']</span><br></pre></td></tr></table></figure>
+
+<p>注意，上面仅仅是把之前创建并保存的实例信息从文件当中读取出来，并没有与 aliyun 交互。</p>
+<h2 id="5-释放实例"><a href="#5-释放实例" class="headerlink" title="5 释放实例"></a>5 释放实例</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">$ python run_aliyunspot.py -r -s i-j6caz353cisgl3fzenwi i-j6cbyis12fb1fpzk59fv</span><br><span class="line">will <span class="keyword">release</span> aliyun spot <span class="keyword">instance</span>:</span><br><span class="line">[<span class="string">'i-j6caz353cisgl3fzenwi'</span>, <span class="string">'i-j6cbyis12fb1fpzk59fv'</span>]</span><br><span class="line">please wait...</span><br><span class="line"></span><br><span class="line"><span class="keyword">release</span> <span class="keyword">instance</span>:[<span class="string">"i-j6caz353cisgl3fzenwi"</span>, <span class="string">"i-j6cbyis12fb1fpzk59fv"</span>] done</span><br></pre></td></tr></table></figure>
+
+<h1 id="阿里云官网操作"><a href="#阿里云官网操作" class="headerlink" title="阿里云官网操作"></a><a href="https://www.aliyun.com/minisite/goods?userCode=c5nuzwoj" target="_blank" rel="noopener">阿里云官网操作</a></h1><p>上面提到了几个配置是需要在阿里云官网操作的。</p>
+<p><strong>阿里云官网的使用还是挺复杂的，因为功能太多了，花费了我至少一个上午的时间才熟悉了整个操作，完成了整个脚本</strong></p>
+<p><strong>所以整理了这个脚本方便大家使用，对阿里云的操作只需要下面几个：</strong></p>
+<ul>
+<li>注册一个阿里云账号，这个不用说了吧</li>
+<li>充值 100 元以上，比如 130 元。因为创建实例账号里至少要 100 元</li>
+<li>点击 <a href="https://ram.console.aliyun.com/overview" target="_blank" rel="noopener">https://ram.console.aliyun.com/overview</a> 创建一个用户组，分配权限 AliyunECSFullAccess 和 AliyunVPCFullAccess</li>
+<li>还是上一步的页面，添加 ram 子账号，添加到刚才创建的用户组，这个账号会用来编程访问 aliyun API</li>
+<li>还是上一步的页面，为这个ram 子账号创建 AccessKey。<strong>记得保存好</strong>。</li>
+<li>在 <a href="https://ecs.console.aliyun.com/" target="_blank" rel="noopener">https://ecs.console.aliyun.com/</a> 页面选择 网络与安全-密钥对，创建密钥对 aliyunspot (名字任意），会自动下载这个私钥，<strong>记得保存好，一般要放到 ~/.ssh 目录下，并且记得  <code>chmod 600 aliyunspot.pem</code></strong></li>
+</ul>
+<p>OK, 到这里基本上得到了我们脚本里需要的几个配置：</p>
+<ul>
+<li>access_id</li>
+<li>access_secret</li>
+<li>key_pair_name</li>
+</ul>
+<p>把上述几个配置填到 config.py 中即可。</p>
+<h1 id="然后开始创建和管理你的实例吧！！"><a href="#然后开始创建和管理你的实例吧！！" class="headerlink" title="然后开始创建和管理你的实例吧！！"></a>然后开始创建和管理你的实例吧！！</h1><h1 id="然后开始创建和管理你的实例吧！！-1"><a href="#然后开始创建和管理你的实例吧！！-1" class="headerlink" title="然后开始创建和管理你的实例吧！！"></a>然后开始创建和管理你的实例吧！！</h1><h1 id="然后开始创建和管理你的实例吧！！-2"><a href="#然后开始创建和管理你的实例吧！！-2" class="headerlink" title="然后开始创建和管理你的实例吧！！"></a>然后开始创建和管理你的实例吧！！</h1><p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#x65;&#50;&#110;&#x69;&#107;&#105;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#x65;&#50;&#110;&#x69;&#107;&#105;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
+</li>
+</ul>
+<p>2020-08-24 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+<h1 id="附"><a href="#附" class="headerlink" title="附"></a>附</h1><ul>
+<li><a href="https://www.aliyun.com/minisite/goods?userCode=c5nuzwoj" target="_blank" rel="noopener">阿里云官网</a></li>
+<li><a href="https://api.aliyun.com" target="_blank" rel="noopener">Aliyun OpenAPI Explorer</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+        <tag>aliyun</tag>
+        <tag>spot</tag>
+        <tag>ecs</tag>
+      </tags>
+  </entry>
 </search>

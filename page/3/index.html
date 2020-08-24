@@ -218,6 +218,112 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/03/22/rebuild_hexoblog_in_mac/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/03/22/rebuild_hexoblog_in_mac/" class="post-title-link" itemprop="url">切换博客从win到mac</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-22 11:23:58" itemprop="dateCreated datePublished" datetime="2017-03-22T11:23:58+08:00">2017-03-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blog/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/03/22/rebuild_hexoblog_in_mac/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/03/22/rebuild_hexoblog_in_mac/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="哎"><a href="#哎" class="headerlink" title="哎"></a>哎</h1><p>事实证明，之前做的那些自动化集成并没有很好的运用，现如今换了电脑，需要写博客，还是想重新再mac上搭建一个全新的hexo博客，哎，折腾的人生！</p>
+<p>搭建过程类似我之前写过的博客，请自行查阅。这篇博文为了测试！</p>
+<h1 id="还是简要记录下"><a href="#还是简要记录下" class="headerlink" title="还是简要记录下"></a>还是简要记录下</h1><p>重新换电脑搭建博客，相对来说快了很多，大概用了1个小时搞定（还是有点久？）下面简单记录下步骤吧~</p>
+<h2 id="安装hexo，安装node-js"><a href="#安装hexo，安装node-js" class="headerlink" title="安装hexo，安装node.js"></a>安装hexo，安装node.js</h2><p>步骤很简单。略。这里的就会埋下隐患，因为hexo是最新版，node.js也是，如果采用前面的博文<a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端同步编写博客</a>中的方法就会出现问题。原因是最初搭建博客时候的hexo和node.js的版本与现在的不一样了。</p>
+<p>好吧，我们另觅他径。</p>
+<h2 id="另外的办法"><a href="#另外的办法" class="headerlink" title="另外的办法"></a>另外的办法</h2><p>参照之前的博文<a href="http://rebootcat.com/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" target="_blank" rel="noopener">我的个人博客搭建记录</a>中的方法，<strong>配置好ssh key</strong>后，执行下方几个命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo npm install hexo-cli -g</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> hexo init blog</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> blog</span></span><br></pre></td></tr></table></figure>
+<p>完了之后你可以用hexo s命令看看是不是能看到helloworld的博文。能的话基本证明博客框架是没问题的。那么接下来怎么做呢？</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/03/22/rebuild_hexoblog_in_mac/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1134,111 +1240,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/" class="post-title-link" itemprop="url">Hessian源码分析(java)</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2016-11-18 11:23:58" itemprop="dateCreated datePublished" datetime="2016-11-18T11:23:58+08:00">2016-11-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/hessian/" itemprop="url" rel="index"><span itemprop="name">hessian</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="先扯一扯"><a href="#先扯一扯" class="headerlink" title="先扯一扯"></a>先扯一扯</h1><p>前一篇博文<a href="http://rebootcat.com/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/" target="_blank" rel="noopener">Hessian通信案例(java)</a>简单实现了Java版的Hessian客户端和服务端的通信，总体看来，实现起来比较简单，整个基于Hessian的远程调用过程也显得很方便。但是知其然还要知其所以然，Hessian的底层是怎么实现远程调用的？是怎么序列化的？又是怎么反序列化的？又是如何通信的？</p>
-<h1 id="还记得吗"><a href="#还记得吗" class="headerlink" title="还记得吗"></a>还记得吗</h1><p>下面这段代码你还记得吗？</p>
-<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">String</span> url = <span class="string">"http://localhost:8080/hessian_server/ServerMachineTest"</span>;   </span><br><span class="line">HessianProxyFactory <span class="keyword">factory</span> = <span class="keyword">new</span> HessianProxyFactory();   </span><br><span class="line">IBasic basic = (IBasic) <span class="keyword">factory</span>.create(IBasic<span class="class">.<span class="keyword">class</span>, <span class="title">url</span>); </span></span><br><span class="line"><span class="class"><span class="title">String</span> <span class="title">helloreturn</span> = <span class="title">basic</span>.<span class="title">hello</span>();</span></span><br></pre></td></tr></table></figure>
-
-<p>上面这段代码就是前一篇博文中实现的客户端的代码，实现远程过程调用就短短的四行代码，如此简单。但是new HessianProxyFactory()是做什么的？factory.create()又是怎么实现的？</p>
-<h1 id="一层层的剥去外衣"><a href="#一层层的剥去外衣" class="headerlink" title="一层层的剥去外衣"></a>一层层的剥去外衣</h1><h2 id="项目姿势微调"><a href="#项目姿势微调" class="headerlink" title="项目姿势微调"></a>项目姿势微调</h2><p>为了探究new HessianProyFactory()具体实现了什么，需要对之前博文中实现的案例进行一点调整。案例中是直接导入了hessian-4.0.7.jar作为lib库的方式，为了在Eclipse中进行单步调试，需要用源码(<a href="http://hessian.caucho.com/#Java" target="_blank" rel="noopener">hessian-4.0.7-src.jar</a>)来替代这个jar包。这里需要注意的是版本，可能会出现兼容性的问题，具体情况可以试错。</p>
-<p>导入源码包替换了jar包之后的效果：<img src="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118102326.png" alt=""></p>
-<p><img src="http://o8fj2jbwb.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161118104308.png" alt=""></p>
-<p><strong>client包主要是client端使用的功能，里面就是动态代理和http连接等操作，io包则是处理序列化。</strong><br>这里需要注意的是，可能会出现一些错误，可能需要添加commons-io-2.4.jar这个包以及Tomcat的runtime环境。具体的话自行解决。</p>
-<p>调整成这样后，启动Tomcat，启动Hessian服务端就可以对客户端进行单步调试了！O(∩_∩)O哈哈~</p>
-<h2 id="启动Hessian服务端"><a href="#启动Hessian服务端" class="headerlink" title="启动Hessian服务端"></a>启动Hessian服务端</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1310,7 +1311,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-count">38</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1323,7 +1324,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">63</span>
+        <span class="site-state-item-count">66</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
