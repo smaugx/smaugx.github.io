@@ -3113,7 +3113,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
   <entry>
     <title>自动创建阿里云抢占式实例</title>
     <url>/2020/08/24/auto_run_aliyun_spot/</url>
-    <content><![CDATA[<h1 id="aliyun-spot"><a href="#aliyun-spot" class="headerlink" title="aliyun_spot"></a>aliyun_spot</h1><p>自动创建阿里云抢占式实例。</p>
+    <content><![CDATA[<h1 id="aliyun-spot"><a href="#aliyun-spot" class="headerlink" title="aliyun_spot"></a><a href="https://github.com/smaugx/aliyun_spot" target="_blank" rel="noopener">aliyun_spot</a></h1><p>自动创建阿里云抢占式实例。</p>
 <h1 id="支持一下作者，购买阿里云"><a href="#支持一下作者，购买阿里云" class="headerlink" title="支持一下作者，购买阿里云"></a><a href="https://www.aliyun.com/minisite/goods?userCode=c5nuzwoj" target="_blank" rel="noopener">支持一下作者，购买阿里云</a></h1><h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>阿里云抢占式实例应该属于阿里云的一种闲置资源利用，性价比非常高，每小时的价格在 0.01 ~ 0.05 每小时，具体根据不同的配置和地域有差别，流量价格小于 1元/G.</p>
 <p>抢占式实例最高可以以<strong>一折的价格购买 ECS 实例，并能稳定持有该实例至少一个小时</strong>。一个小时后，当市场价格高于您的出价或资源供需关系变化时，<strong>抢占式实例会被自动释放</strong>，请做好数据备份工作。</p>
 <p><strong>非常适合爬虫</strong></p>
@@ -3126,7 +3126,8 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <a id="more"></a>
 
 
-<h1 id="脚本功能"><a href="#脚本功能" class="headerlink" title="脚本功能"></a>脚本功能</h1><h2 id="自动创建阿里云抢占式实例"><a href="#自动创建阿里云抢占式实例" class="headerlink" title="自动创建阿里云抢占式实例"></a>自动创建阿里云抢占式实例</h2><p>支持以下一些参数：</p>
+<h1 id="脚本功能"><a href="#脚本功能" class="headerlink" title="脚本功能"></a>脚本功能</h1><p>脚本仓库: <a href="https://github.com/smaugx/aliyun_spot" target="_blank" rel="noopener">https://github.com/smaugx/aliyun_spot</a></p>
+<h2 id="自动创建阿里云抢占式实例"><a href="#自动创建阿里云抢占式实例" class="headerlink" title="自动创建阿里云抢占式实例"></a>自动创建阿里云抢占式实例</h2><p>支持以下一些参数：</p>
 <ul>
 <li>实例所属地域</li>
 <li>创建的实例数量</li>
@@ -3183,7 +3184,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#x65;&#50;&#110;&#x69;&#107;&#105;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#108;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#x65;&#50;&#110;&#x69;&#107;&#105;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#120;&#99;&#111;&#100;&#101;&#x32;&#x6e;&#x69;&#107;&#x69;&#x40;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#108;&#105;&#110;&#117;&#120;&#99;&#111;&#100;&#101;&#x32;&#x6e;&#x69;&#107;&#x69;&#x40;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
 </li>
 </ul>
 <p>2020-08-24 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
