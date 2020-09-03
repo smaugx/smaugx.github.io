@@ -3406,13 +3406,14 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>cmake 的构建其实认真熟悉之后，也还是能快速上手的，不要产生排斥心理，不然学起来就很慢很费劲。所以建议第一次接触 cmake 的或者以前一直抵触 cmake 的童鞋，静下心来，认认真真的看完本文或者其他的入门例子，那么你也能快速写一个多目录，多层次结构的 cmake 工程。</p>
 <p>cmake 中其他的一些用法，建议随时查看官方的 <a href="https://cmake.org/cmake/help/latest/index.html" target="_blank" rel="noopener">cook book</a>.</p>
 <p>加油，少年，别怕！</p>
+<p>另外，文中涉及到的项目可以在<a href="https://github.com/smaugx/epoll" target="_blank" rel="noopener">我的github</a> 找到。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://aiden-dong.github.io/2019/07/20/CMake%E6%95%99%E7%A8%8B%E4%B9%8BCMake%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%BA%94%E7%94%A8/" target="_blank" rel="noopener">CMake 教程 | CMake 从入门到应用</a></p>
 <p><a href="https://juejin.im/post/6844903558861553672" target="_blank" rel="noopener">cmake使用教程</a></p>
 <p>Blog:</p>
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#117;&#x78;&#99;&#111;&#x64;&#101;&#x32;&#x6e;&#105;&#107;&#105;&#64;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;">&#x6c;&#105;&#x6e;&#117;&#x78;&#99;&#111;&#x64;&#101;&#x32;&#x6e;&#105;&#107;&#105;&#64;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#x65;&#50;&#x6e;&#105;&#107;&#x69;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#46;&#x63;&#111;&#x6d;">&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#x65;&#50;&#x6e;&#105;&#107;&#x69;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#46;&#x63;&#111;&#x6d;</a></p>
 </li>
 </ul>
 <p>2020-09-02 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -3549,11 +3550,13 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>scons 使用 python 脚本来构建项目，如果对 python 熟悉的话，那么编写编译构建脚本将会大大提高效率，再也不用局限在 Makefile 的蛋疼语法里面了。</p>
 <p>当然 scons 的缺点也有，据说在大型项目的时候，可能会很慢。这个我还没碰到过，因为没有用到大型项目中。</p>
 <p>下一篇，分享下 cmake 构建 C++ 项目的一些语法和步骤。</p>
+<p><a href="http://rebootcat.com/2020/09/02/cmake/" target="_blank" rel="noopener">cmake教程|cmake入门实战</a></p>
+<p>另外，文中涉及到的项目可以在<a href="https://github.com/smaugx/epoll" target="_blank" rel="noopener">我的github</a> 找到。</p>
 <p>Blog:</p>
 <ul>
 <li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#x6e;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#109;">&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#x6e;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#109;</a></p>
+<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#x75;&#x78;&#99;&#x6f;&#x64;&#101;&#x32;&#x6e;&#105;&#x6b;&#x69;&#64;&#103;&#109;&#x61;&#105;&#108;&#x2e;&#99;&#x6f;&#x6d;">&#108;&#x69;&#110;&#x75;&#x78;&#99;&#x6f;&#x64;&#101;&#x32;&#x6e;&#105;&#x6b;&#x69;&#64;&#103;&#109;&#x61;&#105;&#108;&#x2e;&#99;&#x6f;&#x6d;</a></p>
 </li>
 </ul>
 <p>2020-08-30 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
