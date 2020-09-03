@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+<meta name="google-site-verification" content="IpNgA5aPb7fAewOpvbq-eVkYwuCplcLKol7cG2itN5M" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？ 对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Scons构建C++项目">
+<meta property="og:url" content="http://www.rebootcat.com/2020/08/30/scons/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="前言我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？ 对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-08-30T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-09-03T13:25:25.193Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="cmake">
+<meta property="article:tag" content="scons">
+<meta property="article:tag" content="makefile">
+<meta property="article:tag" content="make">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://www.rebootcat.com/2020/08/30/scons/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Scons构建C++项目 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+	<script data-ad-client="ca-pub-1980033281129568" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/08/30/scons/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Scons构建C++项目
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-30 11:23:58" itemprop="dateCreated datePublished" datetime="2020-08-30T11:23:58+08:00">2020-08-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-03 21:25:25" itemprop="dateModified" datetime="2020-09-03T21:25:25+08:00">2020-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/08/30/scons/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/08/30/scons/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？</p>
+<p>对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建呢？</p>
+<p>答案是有的，Scons 就是答案。</p>
+<h1 id="Scons"><a href="#Scons" class="headerlink" title="Scons"></a>Scons</h1><h2 id="什么是-scons"><a href="#什么是-scons" class="headerlink" title="什么是 scons"></a>什么是 scons</h2><p>这里直接引用官网的解释：</p>
+<blockquote>
+<p>What is SCons?</p>
+<blockquote>
+<p>SCons is an Open Source software construction tool—that is, a next-generation build tool. Think of SCons as an improved, cross-platform substitute for the classic Make utility with integrated functionality similar to autoconf/automake and compiler caches such as ccache. In short, SCons is an easier, more reliable and faster way to build software.</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<p>What makes SCons better?</p>
+</blockquote>
+<blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>Configuration files are Python scripts–use the power of a real programming language to solve build problems.</li>
+<li>Reliable, automatic dependency analysis built-in for C, C++ and Fortran–no more “make depend” or “make clean” to get all of the dependencies. Dependency analysis is easily extensible through user-defined dependency Scanners for other languages or file types.</li>
+<li>Built-in support for C, C++, D, Java, Fortran, Yacc, Lex, Qt and SWIG, and building TeX and LaTeX documents. Easily extensible through user-defined Builders for other languages or file types.</li>
+<li>Building from central repositories of source code and/or pre-built targets.</li>
+<li>Built-in support for fetching source files from SCCS, RCS, CVS, BitKeeper and Perforce.</li>
+<li>Built-in support for Microsoft Visual Studio .NET and past Visual Studio versions, including generation of .dsp, .dsw, .sln and .vcproj files.</li>
+<li>Reliable detection of build changes using MD5 signatures; optional, configurable support for traditional timestamps.</li>
+<li>Improved support for parallel builds–like make -j but keeps N jobs running simultaneously regardless of directory hierarchy.</li>
+<li>Integrated Autoconf-like support for finding #include files, libraries, functions and typedefs.</li>
+<li>Global view of all dependencies–no more multiple build passes or reordering targets to build everything.</li>
+<li>Ability to share built files in a cache to speed up multiple builds–like ccache but for any type of target file, not just C/C++ compilation.</li>
+<li>Designed from the ground up for cross-platform builds, and known to work on Linux, other POSIX systems (including AIX, BSD systems, HP/UX, IRIX and Solaris), Windows NT, Mac OS X, and OS/2.</li>
+</ul>
+<p>最大特点就是使用 Python 语法来编写编译构建脚本，并且支持依赖自动推导，支持编译 C/C++/D/Java/Fortran等项目，并且是跨平台的(因为 python 是跨平台的）。</p>
+<a id="more"></a>
+
+<p>所以如果你对 python 熟悉的话，而且你和我对 C++  Makefile 有一样的烦恼，那么这对你将是一个好消息。 你将可以用 python 来编写构建脚本，而且会很简单，对于复杂的大型项目也能快速构建好。（也许只要 30 分钟）</p>
+<h2 id="安装-scons"><a href="#安装-scons" class="headerlink" title="安装 scons"></a>安装 scons</h2><p>因为 scons 是基于 python 来构建的，所以毋容置疑，首先是需要准备好 python 环境，然后使用下述命令安装 scons 工具。</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip <span class="keyword">install</span> scons</span><br></pre></td></tr></table></figure>
+
+<h2 id="scons-使用语法"><a href="#scons-使用语法" class="headerlink" title="scons 使用语法"></a>scons 使用语法</h2><p>scons 构建脚本由一个 SConstruct 文件和多个 SConscript 文件构成。</p>
+<p>SConstruct 通常位于项目顶层目录，然后 SConscript 通常位于子目录（子模块）。</p>
+<p>那么来看一下 SConstruct 脚本长啥样?</p>
+<h3 id="SConstruct"><a href="#SConstruct" class="headerlink" title="SConstruct"></a>SConstruct</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/env python</span><br><span class="line">#-*- coding:utf-<span class="number">8</span> -*-</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">import sys</span><br><span class="line">import os</span><br><span class="line">import platform</span><br><span class="line">import re</span><br><span class="line"></span><br><span class="line">env = Environment()</span><br><span class="line">abs_path = os.getcwd()</span><br><span class="line"><span class="function"><span class="title">print</span><span class="params">(<span class="string">'workspace path:&#123;0&#125;'</span>.format(abs_path)</span></span>)</span><br><span class="line"></span><br><span class="line">sbuild_dir = <span class="string">'sbuild'</span></span><br><span class="line"></span><br><span class="line">headers = [<span class="string">'.'</span>, <span class="string">'third-party/include'</span>]</span><br><span class="line">libs = [<span class="string">'./third-party/lib'</span>]</span><br><span class="line"></span><br><span class="line">abs_headers = []</span><br><span class="line">abs_libs = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> item <span class="keyword">in</span> headers:</span><br><span class="line">    abs_item = os<span class="selector-class">.path</span>.join(abs_path, item)</span><br><span class="line">    abs_headers.append(abs_item)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> item <span class="keyword">in</span> libs:</span><br><span class="line">    abs_item = os<span class="selector-class">.path</span>.join(abs_path, item)</span><br><span class="line">    abs_libs.append(abs_item)</span><br><span class="line"></span><br><span class="line">build_dir = os<span class="selector-class">.path</span>.join(abs_path, sbuild_dir)</span><br><span class="line">abs_libs.append(os<span class="selector-class">.path</span>.join(build_dir, <span class="string">'lib'</span>))</span><br><span class="line"></span><br><span class="line">CCFLAGS = <span class="string">'-ggdb -std=c++11'</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">print</span><span class="params">(<span class="string">'\nheaders path:'</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">print</span><span class="params">(abs_headers)</span></span></span><br><span class="line"><span class="function"><span class="title">print</span><span class="params">(<span class="string">'\n'</span>)</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">print</span><span class="params">(<span class="string">'libs path:'</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">print</span><span class="params">(abs_libs)</span></span></span><br><span class="line"><span class="function"><span class="title">print</span><span class="params">(<span class="string">'\n'</span>)</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">print</span><span class="params">(<span class="string">"begin load SConscript"</span>)</span></span></span><br><span class="line"></span><br><span class="line">env[<span class="string">"headers"</span>] = abs_headers</span><br><span class="line">env[<span class="string">"libs"</span>]    = abs_libs</span><br><span class="line">env[<span class="string">"MUX_DIR"</span>] = abs_path</span><br><span class="line">env[<span class="string">'ccflags'</span>] = CCFLAGS</span><br><span class="line">env[<span class="string">'build_dir'</span>] = build_dir</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">Export</span><span class="params">(<span class="string">'env'</span>)</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">SConscript</span><span class="params">([<span class="string">'./mbase/SConscript'</span>])</span></span></span><br><span class="line"><span class="function"><span class="title">SConscript</span><span class="params">([<span class="string">'./message_handle/SConscript'</span>])</span></span></span><br><span class="line"><span class="function"><span class="title">SConscript</span><span class="params">([<span class="string">'./epoll/SConscript'</span>])</span></span></span><br><span class="line"><span class="function"><span class="title">SConscript</span><span class="params">([<span class="string">'./transport/SConscript'</span>])</span></span></span><br><span class="line"><span class="function"><span class="title">SConscript</span><span class="params">([<span class="string">'./demo/bench/SConscript'</span>])</span></span></span><br><span class="line"><span class="function"><span class="title">SConscript</span><span class="params">([<span class="string">'./demo/echo/SConscript'</span>])</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">print</span><span class="params">(<span class="string">"\n All Done, Please Check &#123;0&#125;"</span>.format(env[<span class="string">'build_dir'</span>])</span></span>)</span><br></pre></td></tr></table></figure>
+
+<p>来分析一下这个文件，源文件可以直接在 <a href="https://github.com/smaugx/mux/blob/master/SConstruct" target="_blank" rel="noopener">我的github</a>下载。</p>
+<p>SConstruct 文件主要做了两件事：</p>
+<ul>
+<li>env 环境变量的构造，主要是头文件路径，库路径，编译参数，自定义的一些变量等</li>
+<li>使用 SConscript 函数解析执行子模块的 SConscript 文件 </li>
+</ul>
+<p>需要注意的是 SConstruct 和 SConscript 共享变量使用的就是 env 这个变量，你可以看到上面有一句：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">Export</span><span class="params">(<span class="string">'env'</span>)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>这句很重要。</p>
+<h3 id="SConscript"><a href="#SConscript" class="headerlink" title="SConscript"></a>SConscript</h3><p>那么位于子模块或者子目录的 SConscript 文件长啥样呢？</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/env python</span><br><span class="line">#-*- coding:utf<span class="number">-8</span> -*-</span><br><span class="line"></span><br><span class="line">import <span class="built_in">os</span></span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">Import(<span class="string">'env'</span>)</span><br><span class="line">project_dir  = env[<span class="string">'MUX_DIR'</span>]</span><br><span class="line"></span><br><span class="line">epoll_lib  = <span class="string">'epoll'</span></span><br><span class="line"></span><br><span class="line">epoll_src_path = <span class="built_in">os</span>.<span class="built_in">path</span>.join(project_dir, <span class="string">'epoll/src'</span>)</span><br><span class="line">epoll_sources = []</span><br><span class="line"><span class="keyword">for</span> item <span class="keyword">in</span> <span class="built_in">os</span>.listdir(epoll_src_path):</span><br><span class="line">    <span class="keyword">if</span> item.endswith(<span class="string">'.cc'</span>) <span class="keyword">or</span> item.endswith(<span class="string">'.cpp'</span>) <span class="keyword">or</span> item.endswith(<span class="string">'.cxx'</span>):</span><br><span class="line">        abs_item = <span class="built_in">os</span>.<span class="built_in">path</span>.join(epoll_src_path, item)</span><br><span class="line">        epoll_sources.append(abs_item)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">'\nbuild target:lib&#123;0&#125;.a'</span>.<span class="built_in">format</span>(epoll_lib))</span><br><span class="line"><span class="built_in">print</span>(epoll_sources)</span><br><span class="line"></span><br><span class="line">lib_dir = <span class="built_in">os</span>.<span class="built_in">path</span>.join(env[<span class="string">'build_dir'</span>], <span class="string">'lib'</span>)</span><br><span class="line"></span><br><span class="line">link_libraries = [<span class="string">'mbase'</span>]</span><br><span class="line"><span class="keyword">for</span> lib_name <span class="keyword">in</span> link_libraries:</span><br><span class="line">    lib_name = <span class="string">"&#123;0&#125;&#123;1&#125;&#123;2&#125;"</span>.<span class="built_in">format</span>(env[<span class="string">'LIBPREFIX'</span>], lib_name, env[<span class="string">'LIBSUFFIX'</span>])</span><br><span class="line">    abs_lib_name = <span class="built_in">os</span>.<span class="built_in">path</span>.join(lib_dir, lib_name)</span><br><span class="line">    epoll_sources.append(abs_lib_name)</span><br><span class="line"></span><br><span class="line">env.StaticLibrary(target = <span class="built_in">os</span>.<span class="built_in">path</span>.join(lib_dir, epoll_lib),</span><br><span class="line">        source  = epoll_sources,</span><br><span class="line">        CPPPATH = env[<span class="string">'headers'</span>], # include</span><br><span class="line">        LIBPATH = env[<span class="string">'libs'</span>],    # lib <span class="built_in">path</span></span><br><span class="line">        LIBS    = [<span class="string">'pthread'</span>],    # link lib</span><br><span class="line">        CCFLAGS = env[<span class="string">'ccflags'</span>]</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+
+<p>来分析一下这个文件，源文件可以直接在 <a href="https://github.com/smaugx/mux/blob/master/epoll/SConscript" target="_blank" rel="noopener">我的github</a>下载。</p>
+<p>SConscript 主要做了两件事：</p>
+<ul>
+<li>构造一个源文件列表（用来构建 target 所需要使用的源文件）</li>
+<li>根据需要构建 static_lib/dynamic_lib/binary</li>
+</ul>
+<p>当然，还有一点很重要，上面其实提到了，SConscript 和 SConstruct 用来共享变量使用的是 env 这个变量，所以你可以看到一句很重要的：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">Import</span><span class="params">(<span class="string">'env'</span>)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>构造源文件列表，对于 Python 来说，简直是小菜一碟，太简单了；</p>
+<p>然后如何生成目标文件呢？</p>
+<p>1 生成二进制文件</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">env</span>.Program(target = os.path.join(bin_dir, echo_server_bin),</span><br><span class="line">        <span class="keyword">source</span>  = echo_server_sources,</span><br><span class="line">        CPPPATH = <span class="keyword">env</span>[<span class="string">'headers'</span>],</span><br><span class="line">        LIBPATH = <span class="keyword">env</span>[<span class="string">'libs'</span>],</span><br><span class="line">        LIBS    = [<span class="string">'transport'</span>,<span class="string">'msghandler'</span>,<span class="string">'epoll'</span>, <span class="string">'mbase'</span>, <span class="string">'pthread'</span>],</span><br><span class="line">        CCFLAGS = <span class="keyword">env</span>[<span class="string">'ccflags'</span>]</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+
+<p>2  生成静态库</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">env</span>.StaticLibrary(target = os.path.join(lib_dir, epoll_lib),</span><br><span class="line">        source  = epoll_sources,</span><br><span class="line">        CPPPATH = <span class="keyword">env</span>[<span class="string">'headers'</span>], <span class="comment"># include</span></span><br><span class="line">        LIBPATH = <span class="keyword">env</span>[<span class="string">'libs'</span>],    <span class="comment"># lib path</span></span><br><span class="line">        LIBS    = [<span class="string">'pthread'</span>],    <span class="comment"># link lib</span></span><br><span class="line">        CCFLAGS = <span class="keyword">env</span>[<span class="string">'ccflags'</span>]</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+
+<p>3 生成动态库</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">env</span>.SharedLibrary(target = os.path.join(lib_dir, epoll_lib),</span><br><span class="line">        source  = epoll_sources,</span><br><span class="line">        CPPPATH = <span class="keyword">env</span>[<span class="string">'headers'</span>], <span class="comment"># include</span></span><br><span class="line">        LIBPATH = <span class="keyword">env</span>[<span class="string">'libs'</span>],    <span class="comment"># lib path</span></span><br><span class="line">        LIBS    = [<span class="string">'pthread'</span>],    <span class="comment"># link lib</span></span><br><span class="line">        CCFLAGS = <span class="keyword">env</span>[<span class="string">'ccflags'</span>]</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+
+<p>上面 3 个函数的参数都是类似的：</p>
+<ul>
+<li>target: 指定需要生成的目标文件，通常我自己会写一个绝对路径；对于 lib 来说只需要写名字就行，前缀和后缀不需要写。(eg. target = ‘/root/scons_repo/sbuild/lib/test’ ，会生成 /root/scons_repo/sbuild/lib/libtest.a)</li>
+<li>source: 编译目标文件需要的源文件列表</li>
+<li>CPPPATH: 通常就是需要 Include 的头文件路径</li>
+<li>LIBPATH: 通常就是需要链接的库路径</li>
+<li>LIBS: 需要链接的库列表</li>
+<li>CCFLAGS: 编译参数</li>
+</ul>
+<p><strong>attention:</strong></p>
+<p><strong>上面有一个坑我自己碰到的，当我构建目标生成一个静态库的时候，需要链接其他的静态库，如果使用 $LIBPATH 和 $LIBS 指定链接库的话，scons 并没有链接这些库。尝试了很多方法，搜索了很多，也没有解决这个问题</strong>。</p>
+<p><strong>最后是这样解决的。把需要链接的静态库添加到 source 参数中，和其他 cc/cpp 源文件一样放在一起，并且这些库需要使用绝对路径</strong>。</p>
+<p>通常为了跨平台的方便，需要考虑lib 的前后缀，可以这样写：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">link_libraries = [<span class="string">'test1'</span>, <span class="string">'test2'</span>]</span><br><span class="line"><span class="keyword">for</span> lib_name <span class="keyword">in</span> link_libraries:</span><br><span class="line">    lib_name = <span class="string">"&#123;0&#125;&#123;1&#125;&#123;2&#125;"</span>.<span class="built_in">format</span>(env[<span class="string">'LIBPREFIX'</span>], lib_name, env[<span class="string">'LIBSUFFIX'</span>])</span><br><span class="line">    abs_lib_name = <span class="built_in">os</span>.<span class="built_in">path</span>.join(lib_dir, lib_name)</span><br><span class="line">    sources.append(abs_lib_name)</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="scons-命令"><a href="#scons-命令" class="headerlink" title="scons 命令"></a>scons 命令</h2><p>上面详细讲解了如何使用 python 编写构建脚本，那么写好之后怎么用呢？</p>
+<p>常用的几个命令：</p>
+<p><strong>编译</strong>：</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">scons</span></span><br></pre></td></tr></table></figure>
+
+<p>如果需要并行编译：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">scons </span>-<span class="keyword">j4</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>清理</strong>：</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">scons -c</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就会按照你脚本里写的方式去构建目标了。</p>
+<p>这里贴一下 <a href="https://github.com/smaugx/mux" target="_blank" rel="noopener">我的项目</a> 编译的输出：</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">$ scons</span><br><span class="line"><span class="symbol">scons:</span> Reading SConscript files ...</span><br><span class="line">workspace <span class="symbol">path:</span>/mnt/centos-share/workspace/mux</span><br><span class="line"></span><br><span class="line">headers <span class="symbol">path:</span></span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/.'</span>, <span class="string">'/mnt/centos-share/workspace/mux/third-party/include'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">libs <span class="symbol">path:</span></span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/./third-party/lib'</span>, <span class="string">'/mnt/centos-share/workspace/mux/sbuild/lib'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">begin</span> load SConscript</span><br><span class="line"></span><br><span class="line">build <span class="symbol">target:</span>libmbase.a</span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/mbase/src/packet.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="symbol">target:</span>libmsghandler.a</span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/message_handle/src/message_handler.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="symbol">target:</span>libepoll.a</span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/epoll/src/epoll_tcp_client.cc'</span>, <span class="string">'/mnt/centos-share/workspace/mux/epoll/src/epoll_tcp_server.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="symbol">target:</span>libtransport.a</span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/transport/src/tcp_transport.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="symbol">target:</span>bench_server</span><br><span class="line">[<span class="string">'bench_server.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="symbol">target:</span>bench_client</span><br><span class="line">[<span class="string">'client.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="symbol">target:</span>echo_server</span><br><span class="line">[<span class="string">'echo_server.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="symbol">target:</span>echo_client</span><br><span class="line">[<span class="string">'client.cc'</span>]</span><br><span class="line"></span><br><span class="line"> All Done, Please Check /mnt/centos-share/workspace/mux/sbuild</span><br><span class="line"><span class="symbol">scons:</span> done reading SConscript files.</span><br><span class="line"><span class="symbol">scons:</span> Building targets ...</span><br><span class="line">g++ -o demo/bench/bench_server.o -c -ggdb -std=c++<span class="number">11</span> -I. -Ithird-party/<span class="keyword">include</span> demo/bench/bench_server.cc</span><br><span class="line">g++ -o demo/bench/client.o -c -ggdb -std=c++<span class="number">11</span> -I. -Ithird-party/<span class="keyword">include</span> demo/bench/client.cc</span><br><span class="line">g++ -o demo/echo/client.o -c -ggdb -std=c++<span class="number">11</span> -I. -Ithird-party/<span class="keyword">include</span> demo/echo/client.cc</span><br><span class="line">g++ -o demo/echo/echo_server.o -c -ggdb -std=c++<span class="number">11</span> -I. -Ithird-party/<span class="keyword">include</span> demo/echo/echo_server.cc</span><br><span class="line">g++ -o epoll/src/epoll_tcp_client.o -c -ggdb -std=c++<span class="number">11</span> -I. -Ithird-party/<span class="keyword">include</span> epoll/src/epoll_tcp_client.cc</span><br><span class="line">g++ -o epoll/src/epoll_tcp_server.o -c -ggdb -std=c++<span class="number">11</span> -I. -Ithird-party/<span class="keyword">include</span> epoll/src/epoll_tcp_server.cc</span><br><span class="line">g++ -o mbase/src/packet.o -c -ggdb -std=c++<span class="number">11</span> -I. -Ithird-party/<span class="keyword">include</span> mbase/src/packet.cc</span><br><span class="line">g++ -o message_handle/src/message_handler.o -c -ggdb -std=c++<span class="number">11</span> -I. -Ithird-party/<span class="keyword">include</span> message_handle/src/message_handler.cc</span><br><span class="line">g++ -o transport/src/tcp_transport.o -c -ggdb -std=c++<span class="number">11</span> -I. -Ithird-party/<span class="keyword">include</span> transport/src/tcp_transport.cc</span><br><span class="line">ar rc sbuild/<span class="class"><span class="keyword">lib</span>/<span class="title">libmbase</span>.<span class="title">a</span> <span class="title">mbase</span>/<span class="title">src</span>/<span class="title">packet</span>.<span class="title">o</span></span></span><br><span class="line">ranlib sbuild/<span class="class"><span class="keyword">lib</span>/<span class="title">libmbase</span>.<span class="title">a</span></span></span><br><span class="line">ar rc sbuild/<span class="class"><span class="keyword">lib</span>/<span class="title">libepoll</span>.<span class="title">a</span> <span class="title">epoll</span>/<span class="title">src</span>/<span class="title">epoll_tcp_client</span>.<span class="title">o</span> <span class="title">epoll</span>/<span class="title">src</span>/<span class="title">epoll_tcp_server</span>.<span class="title">o</span> <span class="title">sbuild</span>/<span class="title">lib</span>/<span class="title">libmbase</span>.<span class="title">a</span></span></span><br><span class="line">ranlib sbuild/<span class="class"><span class="keyword">lib</span>/<span class="title">libepoll</span>.<span class="title">a</span></span></span><br><span class="line">ar rc sbuild/<span class="class"><span class="keyword">lib</span>/<span class="title">libtransport</span>.<span class="title">a</span> <span class="title">transport</span>/<span class="title">src</span>/<span class="title">tcp_transport</span>.<span class="title">o</span> <span class="title">sbuild</span>/<span class="title">lib</span>/<span class="title">libepoll</span>.<span class="title">a</span> <span class="title">sbuild</span>/<span class="title">lib</span>/<span class="title">libmbase</span>.<span class="title">a</span></span></span><br><span class="line">ranlib sbuild/<span class="class"><span class="keyword">lib</span>/<span class="title">libtransport</span>.<span class="title">a</span></span></span><br><span class="line">ar rc sbuild/<span class="class"><span class="keyword">lib</span>/<span class="title">libmsghandler</span>.<span class="title">a</span> <span class="title">message_handle</span>/<span class="title">src</span>/<span class="title">message_handler</span>.<span class="title">o</span> <span class="title">sbuild</span>/<span class="title">lib</span>/<span class="title">libmbase</span>.<span class="title">a</span></span></span><br><span class="line">ranlib sbuild/<span class="class"><span class="keyword">lib</span>/<span class="title">libmsghandler</span>.<span class="title">a</span></span></span><br><span class="line">g++ -o sbuild/bin/bench_client demo/bench/client.o -Lthird-party/<span class="class"><span class="keyword">lib</span> -<span class="title">Lsbuild</span>/<span class="title">lib</span> -<span class="title">ltransport</span> -<span class="title">lmsghandler</span> -<span class="title">lepoll</span> -<span class="title">lmbase</span> -<span class="title">lpthread</span></span></span><br><span class="line">g++ -o sbuild/bin/bench_server demo/bench/bench_server.o -Lthird-party/<span class="class"><span class="keyword">lib</span> -<span class="title">Lsbuild</span>/<span class="title">lib</span> -<span class="title">ltransport</span> -<span class="title">lmsghandler</span> -<span class="title">lepoll</span> -<span class="title">lmbase</span> -<span class="title">lpthread</span></span></span><br><span class="line">g++ -o sbuild/bin/echo_client demo/echo/client.o -Lthird-party/<span class="class"><span class="keyword">lib</span> -<span class="title">Lsbuild</span>/<span class="title">lib</span> -<span class="title">ltransport</span> -<span class="title">lmsghandler</span> -<span class="title">lepoll</span> -<span class="title">lmbase</span> -<span class="title">lpthread</span></span></span><br><span class="line">g++ -o sbuild/bin/echo_server demo/echo/echo_server.o -Lthird-party/<span class="class"><span class="keyword">lib</span> -<span class="title">Lsbuild</span>/<span class="title">lib</span> -<span class="title">ltransport</span> -<span class="title">lmsghandler</span> -<span class="title">lepoll</span> -<span class="title">lmbase</span> -<span class="title">lpthread</span></span></span><br><span class="line"><span class="symbol">scons:</span> done building targets.</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">$ scons -c</span><br><span class="line"><span class="string">scons:</span> Reading SConscript files ...</span><br><span class="line">workspace <span class="string">path:</span><span class="regexp">/mnt/</span>centos-share<span class="regexp">/workspace/</span>mux</span><br><span class="line"></span><br><span class="line">headers <span class="string">path:</span></span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/.'</span>, <span class="string">'/mnt/centos-share/workspace/mux/third-party/include'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">libs <span class="string">path:</span></span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/./third-party/lib'</span>, <span class="string">'/mnt/centos-share/workspace/mux/sbuild/lib'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">begin load SConscript</span><br><span class="line"></span><br><span class="line">build <span class="string">target:</span>libmbase.a</span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/mbase/src/packet.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="string">target:</span>libmsghandler.a</span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/message_handle/src/message_handler.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="string">target:</span>libepoll.a</span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/epoll/src/epoll_tcp_client.cc'</span>, <span class="string">'/mnt/centos-share/workspace/mux/epoll/src/epoll_tcp_server.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="string">target:</span>libtransport.a</span><br><span class="line">[<span class="string">'/mnt/centos-share/workspace/mux/transport/src/tcp_transport.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="string">target:</span>bench_server</span><br><span class="line">[<span class="string">'bench_server.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="string">target:</span>bench_client</span><br><span class="line">[<span class="string">'client.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="string">target:</span>echo_server</span><br><span class="line">[<span class="string">'echo_server.cc'</span>]</span><br><span class="line"></span><br><span class="line">build <span class="string">target:</span>echo_client</span><br><span class="line">[<span class="string">'client.cc'</span>]</span><br><span class="line"></span><br><span class="line"> All Done, Please Check <span class="regexp">/mnt/</span>centos-share<span class="regexp">/workspace/</span>mux/sbuild</span><br><span class="line"><span class="string">scons:</span> done reading SConscript files.</span><br><span class="line"><span class="string">scons:</span> Cleaning targets ...</span><br><span class="line">Removed demo<span class="regexp">/bench/</span>bench_server.o</span><br><span class="line">Removed demo<span class="regexp">/bench/</span>client.o</span><br><span class="line">Removed demo<span class="regexp">/echo/</span>client.o</span><br><span class="line">Removed demo<span class="regexp">/echo/</span>echo_server.o</span><br><span class="line">Removed epoll<span class="regexp">/src/</span>epoll_tcp_client.o</span><br><span class="line">Removed epoll<span class="regexp">/src/</span>epoll_tcp_server.o</span><br><span class="line">Removed mbase<span class="regexp">/src/</span>packet.o</span><br><span class="line">Removed message_handle<span class="regexp">/src/</span>message_handler.o</span><br><span class="line">Removed transport<span class="regexp">/src/</span>tcp_transport.o</span><br><span class="line">Removed sbuild<span class="regexp">/lib/</span>libmbase.a</span><br><span class="line">Removed sbuild<span class="regexp">/lib/</span>libepoll.a</span><br><span class="line">Removed sbuild<span class="regexp">/lib/</span>libtransport.a</span><br><span class="line">Removed sbuild<span class="regexp">/lib/</span>libmsghandler.a</span><br><span class="line">Removed sbuild<span class="regexp">/bin/</span>bench_client</span><br><span class="line">Removed sbuild<span class="regexp">/bin/</span>bench_server</span><br><span class="line">Removed sbuild<span class="regexp">/bin/</span>echo_client</span><br><span class="line">Removed sbuild<span class="regexp">/bin/</span>echo_server</span><br><span class="line"><span class="string">scons:</span> done cleaning targets.</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>scons 使用 python 脚本来构建项目，如果对 python 熟悉的话，那么编写编译构建脚本将会大大提高效率，再也不用局限在 Makefile 的蛋疼语法里面了。</p>
+<p>当然 scons 的缺点也有，据说在大型项目的时候，可能会很慢。这个我还没碰到过，因为没有用到大型项目中。</p>
+<p>下一篇，分享下 cmake 构建 C++ 项目的一些语法和步骤。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#x6e;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#109;">&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#101;&#x32;&#x6e;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2020-08-30 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/02/cmake/" rel="bookmark">cmake教程|cmake入门实战</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/22/hessiancpp编译和使用——C++版/" rel="bookmark">hessiancpp编译和使用(C++版)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/02/10/sourcecode-of-quickfix/" rel="bookmark">Quickfix源代码分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/03/17/use-gcov-in-hugeprogram/" rel="bookmark">c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/06/08/定义自己的rmcommand/" rel="bookmark">定义自己的命令</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2020/08/30/scons/" title="Scons构建C++项目">http://www.rebootcat.com/2020/08/30/scons/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/cmake/" rel="tag"># cmake</a>
+              <a href="/tags/scons/" rel="tag"># scons</a>
+              <a href="/tags/makefile/" rel="tag"># makefile</a>
+              <a href="/tags/make/" rel="tag"># make</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/24/auto_run_aliyun_spot/" rel="prev" title="自动创建阿里云抢占式实例">
+      <i class="fa fa-chevron-left"></i> 自动创建阿里云抢占式实例
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/02/cmake/" rel="next" title="cmake教程|cmake入门实战">
+      cmake教程|cmake入门实战 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Scons"><span class="nav-number">2.</span> <span class="nav-text">Scons</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是-scons"><span class="nav-number">2.1.</span> <span class="nav-text">什么是 scons</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-scons"><span class="nav-number">2.2.</span> <span class="nav-text">安装 scons</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#scons-使用语法"><span class="nav-number">2.3.</span> <span class="nav-text">scons 使用语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SConstruct"><span class="nav-number">2.3.1.</span> <span class="nav-text">SConstruct</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SConscript"><span class="nav-number">2.3.2.</span> <span class="nav-text">SConscript</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#scons-命令"><span class="nav-number">2.4.</span> <span class="nav-text">scons 命令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#写在最后"><span class="nav-number">3.</span> <span class="nav-text">写在最后</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">77</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://loveyxq.online/" title="http:&#x2F;&#x2F;loveyxq.online&#x2F;" rel="noopener" target="_blank">子不语</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://rebootcat.com/wiki" title="http:&#x2F;&#x2F;rebootcat.com&#x2F;wiki" rel="noopener" target="_blank">我的wiki</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'd5vhXhrHKkiBVVpR1WJJLgQP-gzGzoHsz',
+      appKey     : 'BRzIFYxjcm34z68pyNalDPtw',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

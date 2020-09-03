@@ -218,6 +218,237 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/09/02/cmake/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/02/cmake/" class="post-title-link" itemprop="url">cmake教程|cmake入门实战</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-02 11:23:58" itemprop="dateCreated datePublished" datetime="2020-09-02T11:23:58+08:00">2020-09-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-03 21:27:28" itemprop="dateModified" datetime="2020-09-03T21:27:28+08:00">2020-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/02/cmake/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/02/cmake/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？</p>
+<p>对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建呢？</p>
+<p>答案是有的，上一篇博文 <a href="http://rebootcat.com/2020/08/30/scons/" target="_blank" rel="noopener">scons构建C++项目</a> 介绍了 使用 scons 来构建 C++ 项目，大大提高了编写构建脚本的效率，使用起来也极为方便，对于熟悉 python 的童鞋来说真的是大大的福音；但 scons 的问题就是在大型项目的时候构建起来可能会很慢（听说的）。那么有没有其他的工具呢？</p>
+<p>当然有，cmake 就是这样的一个工具，既能满足跨平台的编译，并且屏蔽了 Makefile 蛋疼的语法，使用一种更加简单的语法编写构建脚本，用在大型项目也毫无压力。</p>
+<p>当然，对于我个人来说，cmake 的使用还是有门槛的，刚接触 cmake 可能还是会被它的语法搞的头疼（cmake 的语法也还是挺折腾的）。但是别急，沉下心来，本篇博文就带你从 cmake 入门到编写一个复杂工程的实战。</p>
+<h1 id="CMake"><a href="#CMake" class="headerlink" title="CMake"></a>CMake</h1><h2 id="什么是-cmake"><a href="#什么是-cmake" class="headerlink" title="什么是 cmake"></a>什么是 cmake</h2><p>这里直接引用官网的解释：</p>
+<blockquote>
+<p>CMake is an open-source, cross-platform family of tools designed to build, test and package software. CMake is used to control the software compilation process using simple platform and compiler independent configuration files, and generate native makefiles and workspaces that can be used in the compiler environment of your choice. The suite of CMake tools were created by Kitware in response to the need for a powerful, cross-platform build environment for open-source projects such as ITK and VTK.</p>
+</blockquote>
+<p>CMake 是一个开源你跨平台的构建工具，语法简单，编译独立，并且很多知名大型项目也在用 CMake,比如 KDE、Netflix 、ReactOS等。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cmake/1.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/02/cmake/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/08/30/scons/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/08/30/scons/" class="post-title-link" itemprop="url">Scons构建C++项目</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-30 11:23:58" itemprop="dateCreated datePublished" datetime="2020-08-30T11:23:58+08:00">2020-08-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-03 21:25:25" itemprop="dateModified" datetime="2020-09-03T21:25:25+08:00">2020-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/08/30/scons/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/08/30/scons/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？</p>
+<p>对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建呢？</p>
+<p>答案是有的，Scons 就是答案。</p>
+<h1 id="Scons"><a href="#Scons" class="headerlink" title="Scons"></a>Scons</h1><h2 id="什么是-scons"><a href="#什么是-scons" class="headerlink" title="什么是 scons"></a>什么是 scons</h2><p>这里直接引用官网的解释：</p>
+<blockquote>
+<p>What is SCons?</p>
+<blockquote>
+<p>SCons is an Open Source software construction tool—that is, a next-generation build tool. Think of SCons as an improved, cross-platform substitute for the classic Make utility with integrated functionality similar to autoconf/automake and compiler caches such as ccache. In short, SCons is an easier, more reliable and faster way to build software.</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<p>What makes SCons better?</p>
+</blockquote>
+<blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>Configuration files are Python scripts–use the power of a real programming language to solve build problems.</li>
+<li>Reliable, automatic dependency analysis built-in for C, C++ and Fortran–no more “make depend” or “make clean” to get all of the dependencies. Dependency analysis is easily extensible through user-defined dependency Scanners for other languages or file types.</li>
+<li>Built-in support for C, C++, D, Java, Fortran, Yacc, Lex, Qt and SWIG, and building TeX and LaTeX documents. Easily extensible through user-defined Builders for other languages or file types.</li>
+<li>Building from central repositories of source code and/or pre-built targets.</li>
+<li>Built-in support for fetching source files from SCCS, RCS, CVS, BitKeeper and Perforce.</li>
+<li>Built-in support for Microsoft Visual Studio .NET and past Visual Studio versions, including generation of .dsp, .dsw, .sln and .vcproj files.</li>
+<li>Reliable detection of build changes using MD5 signatures; optional, configurable support for traditional timestamps.</li>
+<li>Improved support for parallel builds–like make -j but keeps N jobs running simultaneously regardless of directory hierarchy.</li>
+<li>Integrated Autoconf-like support for finding #include files, libraries, functions and typedefs.</li>
+<li>Global view of all dependencies–no more multiple build passes or reordering targets to build everything.</li>
+<li>Ability to share built files in a cache to speed up multiple builds–like ccache but for any type of target file, not just C/C++ compilation.</li>
+<li>Designed from the ground up for cross-platform builds, and known to work on Linux, other POSIX systems (including AIX, BSD systems, HP/UX, IRIX and Solaris), Windows NT, Mac OS X, and OS/2.</li>
+</ul>
+<p>最大特点就是使用 Python 语法来编写编译构建脚本，并且支持依赖自动推导，支持编译 C/C++/D/Java/Fortran等项目，并且是跨平台的(因为 python 是跨平台的）。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/08/30/scons/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/08/24/auto_run_aliyun_spot/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1080,221 +1311,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/05/20/analyze_cpu/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/05/20/analyze_cpu/" class="post-title-link" itemprop="url">python采集cpu信息</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-05-20 11:23:58" itemprop="dateCreated datePublished" datetime="2018-05-20T11:23:58+08:00">2018-05-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-08-24 23:21:18" itemprop="dateModified" datetime="2020-08-24T23:21:18+08:00">2020-08-24</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2018/05/20/analyze_cpu/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2018/05/20/analyze_cpu/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="python脚本采集cpu"><a href="#python脚本采集cpu" class="headerlink" title="python脚本采集cpu"></a>python脚本采集cpu</h1><p>经常要做一些 linux 系统上的性能分析或者采集 cpu/mem/bandwidth 上报到监控系统。</p>
-<p>分享一个我平常常用到的 cpu 采集脚本，原理是分析 /proc/stat 文件， 脚本如下：</p>
-<figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding:utf8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> copy</span><br><span class="line"></span><br><span class="line">class <span class="type">CpuWatch</span>(<span class="keyword">object</span>):</span><br><span class="line">    def __init__(self, time_step):</span><br><span class="line">        self.cpufile_ = '/<span class="keyword">proc</span>/stat'</span><br><span class="line">        self.watch_time_step_ = time_step  <span class="comment"># 60 s</span></span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 采集cpu信息</span></span><br><span class="line">    def read_cpu(self):</span><br><span class="line">        cpu_info = &#123;&#125;</span><br><span class="line">        cpufile = self.cpufile_</span><br><span class="line">        <span class="keyword">with</span> open(cpufile, 'r') <span class="keyword">as</span> fin:</span><br><span class="line">            <span class="keyword">for</span> line <span class="keyword">in</span> fin:</span><br><span class="line">                line_fields = line.split()</span><br><span class="line">                <span class="keyword">if</span> line_fields[<span class="number">0</span>] != <span class="string">"cpu"</span>:</span><br><span class="line">                    <span class="keyword">continue</span></span><br><span class="line">                total = <span class="number">0</span></span><br><span class="line">                <span class="keyword">for</span> field <span class="keyword">in</span> line_fields:</span><br><span class="line">                    <span class="keyword">if</span> field == <span class="string">"cpu"</span>:</span><br><span class="line">                        <span class="keyword">continue</span></span><br><span class="line">                    total += <span class="built_in">int</span>(field)</span><br><span class="line"></span><br><span class="line">                cpu_info = &#123;</span><br><span class="line">                    <span class="string">"User"</span>: <span class="built_in">int</span>(line_fields[<span class="number">1</span>]),</span><br><span class="line">                    <span class="string">"Sys"</span>: <span class="built_in">int</span>(line_fields[<span class="number">3</span>]),</span><br><span class="line">                    <span class="string">"Idle"</span>: <span class="built_in">int</span>(line_fields[<span class="number">4</span>]),</span><br><span class="line">                    <span class="string">"Steal"</span>: <span class="built_in">int</span>(line_fields[<span class="number">8</span>]),</span><br><span class="line">                    <span class="string">"Wait"</span>: <span class="built_in">int</span>(line_fields[<span class="number">5</span>]),</span><br><span class="line">                    <span class="string">"Total"</span>: total</span><br><span class="line">                &#125;</span><br><span class="line">            fin.close()</span><br><span class="line">        <span class="keyword">return</span> cpu_info</span><br><span class="line"></span><br><span class="line">    def get_avg_cpu(self, cpu_info_old, cpu_info):</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> cpu_info_old <span class="keyword">or</span> <span class="keyword">not</span> cpu_info:</span><br><span class="line">            <span class="keyword">return</span> <span class="type">None</span></span><br><span class="line"></span><br><span class="line">        <span class="literal">result</span> = &#123;&#125;</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">set</span>(cpu_info.keys()) != <span class="built_in">set</span>(cpu_info_old.keys()):</span><br><span class="line">            <span class="keyword">return</span> <span class="type">None</span></span><br><span class="line"></span><br><span class="line">        delta_total = cpu_info[<span class="string">"Total"</span>]  -   cpu_info_old[<span class="string">"Total"</span>]</span><br><span class="line">        delta_user  = cpu_info[<span class="string">"User"</span>]   -   cpu_info_old[<span class="string">"User"</span>]</span><br><span class="line">        delta_sys   = cpu_info[<span class="string">"Sys"</span>]    -   cpu_info_old[<span class="string">"Sys"</span>]</span><br><span class="line">        delta_idle  = cpu_info[<span class="string">"Idle"</span>]   -   cpu_info_old[<span class="string">"Idle"</span>]</span><br><span class="line">        delta_wait  = cpu_info[<span class="string">"Wait"</span>]   -   cpu_info_old[<span class="string">"Wait"</span>]</span><br><span class="line">        delta_steal = cpu_info[<span class="string">"Steal"</span>]  -   cpu_info_old[<span class="string">"Steal"</span>]</span><br><span class="line"></span><br><span class="line">        last_cpu_info = cpu_info</span><br><span class="line">        <span class="literal">result</span> = &#123;</span><br><span class="line">            <span class="string">"cpu_user"</span>: <span class="built_in">int</span>(<span class="built_in">float</span>(delta_user)/<span class="built_in">float</span>(delta_total) * <span class="number">100</span>),</span><br><span class="line">            <span class="string">"cpu_sys"</span>: <span class="built_in">int</span>(<span class="built_in">float</span>(delta_sys)/<span class="built_in">float</span>(delta_total) * <span class="number">100</span>),</span><br><span class="line">            <span class="string">"cpu_wait"</span>: <span class="built_in">int</span>(<span class="built_in">float</span>(delta_wait)/<span class="built_in">float</span>(delta_total) * <span class="number">100</span>),</span><br><span class="line">            <span class="string">"cpu_steal"</span>: <span class="built_in">int</span>(<span class="built_in">float</span>(delta_steal)/<span class="built_in">float</span>(delta_total) * <span class="number">100</span>),</span><br><span class="line">            <span class="string">"cpu_idle"</span>: <span class="built_in">int</span>(<span class="built_in">float</span>(delta_idle)/<span class="built_in">float</span>(delta_total) * <span class="number">100</span>),</span><br><span class="line">            <span class="string">"cpu_util"</span>: <span class="built_in">int</span>(<span class="built_in">float</span>(delta_total - delta_idle - delta_wait - delta_steal)/<span class="built_in">float</span>(delta_total) * <span class="number">100</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        print(<span class="literal">result</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">result</span></span><br><span class="line"></span><br><span class="line">    def run(self):</span><br><span class="line">        cpu_info_old = &#123;&#125;</span><br><span class="line">        <span class="keyword">while</span> <span class="type">True</span>:</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> cpu_info_old:</span><br><span class="line">                cpu_info_old = self.read_cpu()</span><br><span class="line">            time.sleep(self.watch_time_step_)</span><br><span class="line">            cpu_info = self.read_cpu()</span><br><span class="line"></span><br><span class="line">            <span class="literal">result</span> = self.get_avg_cpu(cpu_info_old, cpu_info)</span><br><span class="line">            cpu_info_old = copy.deepcopy(cpu_info)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == '__main__':</span><br><span class="line">    cpu_watcher = <span class="type">CpuWatch</span>(time_step = <span class="number">5</span>)</span><br><span class="line">    cpu_watcher.run()</span><br></pre></td></tr></table></figure>
-
-
-<p>脚本可以直接在 <a href="https://github.com/smaugx/dailytools/blob/master/cpu.py" target="_blank" rel="noopener">我的github</a> 进行下载。</p>
-<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>欢迎关注下我的其他脚本，平常可能会用到的一些脚本，整理了一下。</p>
-<p><a href="https://github.com/smaugx/dailytools" target="_blank" rel="noopener">https://github.com/smaugx/dailytools</a></p>
-<p>Blog:</p>
-<ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
-</li>
-<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#x6b;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;">&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#x6b;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
-</li>
-</ul>
-<p>2018-05-20 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/04/15/python3_in_a_box/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/04/15/python3_in_a_box/" class="post-title-link" itemprop="url">一键安装python3环境</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-04-15 11:23:58" itemprop="dateCreated datePublished" datetime="2018-04-15T11:23:58+08:00">2018-04-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-08-24 23:05:11" itemprop="dateModified" datetime="2020-08-24T23:05:11+08:00">2020-08-24</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2018/04/15/python3_in_a_box/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2018/04/15/python3_in_a_box/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="一键安装python3环境"><a href="#一键安装python3环境" class="headerlink" title="一键安装python3环境"></a>一键安装python3环境</h1><p>由于现在逐步转移到 python3 进行开发，但是很多机器并没有预装 python3 环境，所以需要安装。</p>
-<p>所以分享一个我常用的，一键安装 python3.7 的脚本：</p>
-<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/<span class="keyword">sh</span></span><br><span class="line"></span><br><span class="line">which <span class="keyword">python3</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq <span class="number">1</span> ]</span><br><span class="line">then</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">"no python3 found, will try to install python3"</span></span><br><span class="line">    yum -<span class="keyword">y</span> install wget &amp;&amp;</span><br><span class="line">    yum -<span class="keyword">y</span> groupinstall <span class="string">"Development tools"</span> &amp;&amp;</span><br><span class="line">    yum -<span class="keyword">y</span> install zlib-devel libffi-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel &amp;&amp;</span><br><span class="line">    wget http<span class="variable">s:</span>//www.<span class="keyword">python</span>.org/ftp/<span class="keyword">python</span>/<span class="number">3.7</span>.<span class="number">2</span>/Python-<span class="number">3.7</span>.<span class="number">2</span>.tar.xz &amp;&amp;</span><br><span class="line">    <span class="built_in">mkdir</span>  /<span class="keyword">opt</span>/<span class="keyword">python3</span> &amp;&amp;</span><br><span class="line">    tar -xvJf  Python-<span class="number">3.7</span>.<span class="number">2</span>.tar.xz &amp;&amp;</span><br><span class="line">    <span class="keyword">cd</span> Python-<span class="number">3.7</span>.<span class="number">2</span> &amp;&amp;</span><br><span class="line">    ./configure --prefix=/<span class="keyword">opt</span>/<span class="keyword">python3</span> &amp;&amp;</span><br><span class="line">    <span class="keyword">make</span> &amp;&amp;</span><br><span class="line">    <span class="keyword">make</span> install</span><br><span class="line">    <span class="keyword">cd</span> -</span><br><span class="line"></span><br><span class="line">    <span class="keyword">ln</span> -s /<span class="keyword">opt</span>/<span class="keyword">python3</span>/bin/<span class="keyword">python3</span> /usr/bin/python37</span><br><span class="line">    <span class="keyword">ln</span> -s /<span class="keyword">opt</span>/<span class="keyword">python3</span>/bin/pip3 /usr/bin/pip3</span><br><span class="line">    yum -<span class="keyword">y</span> install epel-release &amp;&amp;</span><br><span class="line">    yum -<span class="keyword">y</span> install <span class="keyword">python</span>-pip</span><br><span class="line">    <span class="keyword">ln</span> -s /usr/bin/python37 /usr/bin/<span class="keyword">python3</span></span><br><span class="line"></span><br><span class="line">    yum  install -<span class="keyword">y</span> <span class="keyword">python</span>-virtualenv.noarch</span><br><span class="line"></span><br><span class="line">    rm -rf Python-<span class="number">3.7</span>.<span class="number">2</span>*</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="keyword">echo</span> <span class="string">'check python3 ################################## Yes'</span></span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
-
-<p>脚本会探测环境是否已经安装了 python3，如果没有安装则进行安装。</p>
-<p>同时也把 virtualenv 工具安装了。</p>
-<p>脚本可以直接在 <a href="https://github.com/smaugx/dailytools/blob/master/python3_in_a_box.sh" target="_blank" rel="noopener">我的github</a> 进行下载。</p>
-<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>欢迎关注下我的其他脚本，平常可能会用到的一些脚本，整理了一下。</p>
-<p><a href="https://github.com/smaugx/dailytools" target="_blank" rel="noopener">https://github.com/smaugx/dailytools</a></p>
-<p>Blog:</p>
-<ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
-</li>
-<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a></p>
-</li>
-</ul>
-<p>2018-04-15 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1366,20 +1382,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-count">20</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">69</span>
+        <span class="site-state-item-count">77</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

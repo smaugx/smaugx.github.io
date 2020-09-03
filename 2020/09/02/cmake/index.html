@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+<meta name="google-site-verification" content="IpNgA5aPb7fAewOpvbq-eVkYwuCplcLKol7cG2itN5M" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？ 对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cmake教程|cmake入门实战">
+<meta property="og:url" content="http://www.rebootcat.com/2020/09/02/cmake/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="前言我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？ 对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cmake/1.png">
+<meta property="article:published_time" content="2020-09-02T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-09-03T13:27:28.106Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="cmake">
+<meta property="article:tag" content="CMakeLists.txt">
+<meta property="article:tag" content="scons">
+<meta property="article:tag" content="c">
+<meta property="article:tag" content="makefile">
+<meta property="article:tag" content="compile">
+<meta property="article:tag" content="build">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cmake/1.png">
+
+<link rel="canonical" href="http://www.rebootcat.com/2020/09/02/cmake/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>cmake教程|cmake入门实战 | 林夕水共</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+	<script data-ad-client="ca-pub-1980033281129568" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2020/09/02/cmake/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          cmake教程|cmake入门实战
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-02 11:23:58" itemprop="dateCreated datePublished" datetime="2020-09-02T11:23:58+08:00">2020-09-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-03 21:27:28" itemprop="dateModified" datetime="2020-09-03T21:27:28+08:00">2020-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/02/cmake/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/02/cmake/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？</p>
+<p>对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建呢？</p>
+<p>答案是有的，上一篇博文 <a href="http://rebootcat.com/2020/08/30/scons/" target="_blank" rel="noopener">scons构建C++项目</a> 介绍了 使用 scons 来构建 C++ 项目，大大提高了编写构建脚本的效率，使用起来也极为方便，对于熟悉 python 的童鞋来说真的是大大的福音；但 scons 的问题就是在大型项目的时候构建起来可能会很慢（听说的）。那么有没有其他的工具呢？</p>
+<p>当然有，cmake 就是这样的一个工具，既能满足跨平台的编译，并且屏蔽了 Makefile 蛋疼的语法，使用一种更加简单的语法编写构建脚本，用在大型项目也毫无压力。</p>
+<p>当然，对于我个人来说，cmake 的使用还是有门槛的，刚接触 cmake 可能还是会被它的语法搞的头疼（cmake 的语法也还是挺折腾的）。但是别急，沉下心来，本篇博文就带你从 cmake 入门到编写一个复杂工程的实战。</p>
+<h1 id="CMake"><a href="#CMake" class="headerlink" title="CMake"></a>CMake</h1><h2 id="什么是-cmake"><a href="#什么是-cmake" class="headerlink" title="什么是 cmake"></a>什么是 cmake</h2><p>这里直接引用官网的解释：</p>
+<blockquote>
+<p>CMake is an open-source, cross-platform family of tools designed to build, test and package software. CMake is used to control the software compilation process using simple platform and compiler independent configuration files, and generate native makefiles and workspaces that can be used in the compiler environment of your choice. The suite of CMake tools were created by Kitware in response to the need for a powerful, cross-platform build environment for open-source projects such as ITK and VTK.</p>
+</blockquote>
+<p>CMake 是一个开源你跨平台的构建工具，语法简单，编译独立，并且很多知名大型项目也在用 CMake,比如 KDE、Netflix 、ReactOS等。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cmake/1.png" alt=""></p>
+<a id="more"></a>
+
+<p>OK，话不多说，如何使用呢？</p>
+<h2 id="安装-cmake"><a href="#安装-cmake" class="headerlink" title="安装 cmake"></a>安装 cmake</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum <span class="keyword">install</span>  cmake3.x86_64</span><br></pre></td></tr></table></figure>
+
+<p>现在最新版的 cmake 已经到 3.18.2 了。我使用的是 3.17.2 版本。</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ cmake <span class="comment">--version</span></span><br><span class="line">cmake <span class="built_in">version</span> <span class="number">3.17</span><span class="number">.2</span></span><br><span class="line"></span><br><span class="line">CMake suite maintained <span class="keyword">and</span> supported <span class="keyword">by</span> Kitware (kitware.com/cmake).</span><br></pre></td></tr></table></figure>
+
+<h2 id="初识-cmake"><a href="#初识-cmake" class="headerlink" title="初识 cmake"></a>初识 cmake</h2><p>使用 cmake 来构建 C++ 项目，需要先编写 cmake 构建脚本，文件名为  CMakeLists.txt，项目顶层目录需要放一个 CMakeLists.txt，同时子目录可以根据需要放置 CMakeLists.txt。</p>
+<p>那么先来看看 CMakeLists.txt 长啥样?</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.8</span>.<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD_REQUIRED <span class="keyword">ON</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_EXTENSIONS <span class="keyword">OFF</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_STANDARD <span class="number">99</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_STANDARD_REQUIRED <span class="keyword">ON</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_EXTENSIONS <span class="keyword">OFF</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">project</span>(MUX CXX C)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_definitions</span>(</span><br><span class="line">    -DTEST1   <span class="comment"># define marco</span></span><br><span class="line">    -DTEST2   <span class="comment"># define marco</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># common compiling options</span></span><br><span class="line"><span class="keyword">add_compile_options</span>(</span><br><span class="line">    -Wl,--no-as-needed</span><br><span class="line">    -fno-strict-aliasing</span><br><span class="line">    -fthreadsafe-statics</span><br><span class="line">    -pthread</span><br><span class="line">    <span class="comment">#-fstack-protector-strong</span></span><br><span class="line">    -fno-short-enums</span><br><span class="line">    -fPIC</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">option</span>(XENABLE_TEST3  <span class="string">"enable test3 marco"</span> <span class="keyword">OFF</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(EXECUTABLE_OUTPUT_PATH <span class="variable">$&#123;MUX_BINARY_DIR&#125;</span>/bin)</span><br><span class="line"><span class="keyword">set</span>(LIBRARY_OUTPUT_PATH <span class="variable">$&#123;MUX_BINARY_DIR&#125;</span>/lib)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (XENABLE_TEST3)</span><br><span class="line">    <span class="keyword">add_definitions</span>(-DTEST3)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">NOT</span> CMAKE_BUILD_TYPE)</span><br><span class="line">    <span class="keyword">set</span>(CMAKE_BUILD_TYPE Debug)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">message</span>(STATUS <span class="string">"CMAKE_BUILD_TYPE:"</span> <span class="variable">$&#123;CMAKE_BUILD_TYPE&#125;</span>)</span><br><span class="line"><span class="keyword">message</span>(STATUS <span class="string">"CMAKE_SYSTEM_NAME:"</span> <span class="variable">$&#123;CMAKE_SYSTEM_NAME&#125;</span>)</span><br><span class="line"><span class="keyword">message</span>(STATUS <span class="string">"XENABLE_TEST3:"</span> <span class="variable">$&#123;XENABLE_TEST3&#125;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">find_package</span>(Threads REQUIRED)</span><br><span class="line"></span><br><span class="line"><span class="comment"># include header dirs</span></span><br><span class="line"><span class="keyword">include_directories</span>(<span class="variable">$&#123;CMAKE_SOURCE_DIR&#125;</span>)   <span class="comment"># project dir</span></span><br><span class="line"><span class="keyword">include_directories</span>(<span class="variable">$&#123;CMAKE_SOURCE_DIR&#125;</span>/third-party/<span class="keyword">include</span>)   <span class="comment"># project dir</span></span><br><span class="line"><span class="keyword">include_directories</span>(<span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span>)  <span class="comment"># current CMakeLists.txt dir (including sub dir)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># link lib dirs</span></span><br><span class="line"><span class="keyword">link_directories</span>(<span class="variable">$&#123;CMAKE_SOURCE_DIR&#125;</span>/third-party/lib)</span><br><span class="line"><span class="keyword">link_directories</span>(<span class="variable">$&#123;LIBRARY_OUTPUT_PATH&#125;</span>)  <span class="comment"># generate in building</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">add_subdirectory</span>(demo/bench)</span><br><span class="line"><span class="keyword">add_subdirectory</span>(demo/echo)</span><br><span class="line"><span class="keyword">add_subdirectory</span>(epoll)</span><br><span class="line"><span class="keyword">add_subdirectory</span>(mbase)</span><br><span class="line"><span class="keyword">add_subdirectory</span>(message_handle)</span><br><span class="line"><span class="keyword">add_subdirectory</span>(transport)</span><br></pre></td></tr></table></figure>
+
+<p>完整的 CMakeLists.txt 见 <a href="https://github.com/smaugx/mux/blob/master/CMakeLists.txt" target="_blank" rel="noopener">我的github</a>，同时我也会以我的github项目 <a href="https://github.com/smaugx/mux" target="_blank" rel="noopener">mux</a> 为例，介绍 cmake 的使用。</p>
+<p>上面的 CMakeLists.txt 乍一看，好多内容，但是别慌，我们来一个个说。</p>
+<h2 id="详解-cmake"><a href="#详解-cmake" class="headerlink" title="详解 cmake"></a>详解 cmake</h2><p>注意：<strong>cmake 的语法可以分为命令(函数）和参数。 命令不缺分大小写，参数区分大小写</strong>。</p>
+<p>注意：<strong>cmake 的语法可以分为命令(函数）和参数。 命令不缺分大小写，参数区分大小写</strong>。</p>
+<h3 id="设置-cmake-版本的要求"><a href="#设置-cmake-版本的要求" class="headerlink" title="设置 cmake 版本的要求"></a>设置 cmake 版本的要求</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">cmake_minimum_required</span><span class="params">(VERSION <span class="number">3.8</span>.<span class="number">0</span>)</span></span></span><br></pre></td></tr></table></figure>
+
+<h3 id="在-cmake-中设置-c-标准，启用-c-11-或以上-根据项目的需求来）"><a href="#在-cmake-中设置-c-标准，启用-c-11-或以上-根据项目的需求来）" class="headerlink" title="在 cmake 中设置 c++ 标准，启用 c++11 或以上(根据项目的需求来）"></a>在 cmake 中设置 c++ 标准，启用 c++11 或以上(根据项目的需求来）</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">set</span><span class="params">(CMAKE_CXX_STANDARD <span class="number">11</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(CMAKE_CXX_STANDARD_REQUIRED ON)</span></span></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(CMAKE_CXX_EXTENSIONS OFF)</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(CMAKE_C_STANDARD <span class="number">99</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(CMAKE_C_STANDARD_REQUIRED ON)</span></span></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(CMAKE_C_EXTENSIONS OFF)</span></span></span><br></pre></td></tr></table></figure>
+
+<h3 id="设置项目名以及项目语言"><a href="#设置项目名以及项目语言" class="headerlink" title="设置项目名以及项目语言"></a>设置项目名以及项目语言</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">project</span><span class="params">(MUX CXX C)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>设置完项目名称之后，会自动创建两个变量 <code>&lt;PROJECT-NAME&gt;_SOURCE_DIR</code> 和 <code>&lt;PROJECT-NAME&gt;_BINARY_DIR</code>，对于 <a href="https://github.com/smaugx/mux" target="_blank" rel="noopener">mux</a> 这个项目来说，也就是 <code>MUX_SOURCE_DIR</code> 和 <code>MUX_BINARY_DIR</code>。</p>
+<p><code>MUX_SOURCE_DIR</code> 表示工程顶层目录； <code>MUX_BINARY_DIR</code> 表示 cmake 构建发生的目录。</p>
+<p>因为你一定熟悉或者用过下面的命令或步骤：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mkdir</span> <span class="string">cbuild</span></span><br><span class="line"><span class="attr">cd</span> <span class="string">cbuild</span></span><br><span class="line"><span class="attr">cmake</span> <span class="string">..</span></span><br><span class="line"><span class="attr">make</span></span><br><span class="line"><span class="attr">make</span> <span class="string">test</span></span><br><span class="line"><span class="attr">make</span> <span class="string">install</span></span><br></pre></td></tr></table></figure>
+
+<p>通常我们会单独新建一个  cbuild 目录，用来构建项目，并且存放过程中产生的文件。那么 cbuild 目录就是 <code>MUX_BINARY_DIR</code> 表示的目录，cbuild 的上一级目录也就是项目顶层目录就是 <code>MUX_SOURCE_DIR</code> 表示的目录。</p>
+<blockquote>
+<p>如果你没有单独新建 <code>cbuild</code> 目录，而是直接在项目顶层目录使用 <code>cmake ..</code> ，那么上面两个变量均指项目顶层目录。</p>
+</blockquote>
+<p>详见 <a href="https://cmake.org/cmake/help/latest/command/project.html" target="_blank" rel="noopener">https://cmake.org/cmake/help/latest/command/project.html</a></p>
+<h3 id="添加编译宏"><a href="#添加编译宏" class="headerlink" title="添加编译宏"></a>添加编译宏</h3><figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">add_definitions(</span><br><span class="line">    -DTEST1   <span class="meta"># <span class="meta-keyword">define</span> marco</span></span><br><span class="line">    -DTEST2   <span class="meta"># <span class="meta-keyword">define</span> marco</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>上面是我随便写的两个宏 <code>TEST1</code> 和 <code>TEST2</code>，那么在c++代码中通常是这样的：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> TEST1</span></span><br><span class="line">    <span class="comment">// do something about test1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> TEST2</span></span><br><span class="line">   <span class="comment">// do something about test2</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>当然要开启这个宏也可以不用写在 CMakeLists.txt 文件中，可以直接这样使用：</p>
+<figure class="highlight dos"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> cbuild &amp;&amp; <span class="built_in">cd</span> cbuild </span><br><span class="line">cmake .. -DTEST1</span><br></pre></td></tr></table></figure>
+
+<p>这个根据你的项目需求来操作。</p>
+<h3 id="定义一些用户自定义的可选项"><a href="#定义一些用户自定义的可选项" class="headerlink" title="定义一些用户自定义的可选项"></a>定义一些用户自定义的可选项</h3><figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">option(<span class="name">XENABLE_TEST3</span>  <span class="string">"enable test3 marco"</span> OFF)</span><br><span class="line"></span><br><span class="line">if (<span class="name">XENABLE_TEST3</span>)</span><br><span class="line">    add_definitions(<span class="name">-DTEST3</span>)</span><br><span class="line">endif()</span><br><span class="line"></span><br><span class="line">if (<span class="name">NOT</span> CMAKE_BUILD_TYPE)</span><br><span class="line">    set(<span class="name">CMAKE_BUILD_TYPE</span> Debug)</span><br><span class="line">endif()</span><br></pre></td></tr></table></figure>
+
+<p>使用 option 命令可以自定义一些变量的值，作为一些条件判断的开关很方便。</p>
+<p>详见 <a href="https://cmake.org/cmake/help/latest/command/option.html" target="_blank" rel="noopener">https://cmake.org/cmake/help/latest/command/option.html</a></p>
+<h3 id="添加编译选项"><a href="#添加编译选项" class="headerlink" title="添加编译选项"></a>添加编译选项</h3><figure class="highlight haml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># common compiling options</span><br><span class="line">add_compile_options(</span><br><span class="line">    -<span class="ruby">Wl,--no-as-needed</span></span><br><span class="line"><span class="ruby">    -fno-strict-aliasing</span></span><br><span class="line"><span class="ruby">    -fthreadsafe-statics</span></span><br><span class="line"><span class="ruby">    -pthread</span></span><br><span class="line"><span class="ruby">    <span class="comment">#-fstack-protector-strong</span></span></span><br><span class="line"><span class="ruby">    -fno-short-enums</span></span><br><span class="line"><span class="ruby">    -fPIC</span></span><br><span class="line"><span class="ruby">)</span></span><br></pre></td></tr></table></figure>
+
+<p>这里就是一些编译选项，根据自己的项目需求修改。</p>
+<h3 id="设置编译二进制-binary-executable-和-binary-lib）存放路径"><a href="#设置编译二进制-binary-executable-和-binary-lib）存放路径" class="headerlink" title="设置编译二进制(binary-executable 和 binary-lib）存放路径"></a>设置编译二进制(binary-executable 和 binary-lib）存放路径</h3><figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">set(EXECUTABLE_OUTPUT_PATH $&#123;MUX_BINARY_DIR&#125;/bin)</span><br><span class="line">set(LIBRARY_OUTPUT_PATH $&#123;MUX_BINARY_DIR&#125;/<span class="class"><span class="keyword">lib</span>)</span></span><br></pre></td></tr></table></figure>
+<p>可以看到上面用到了 <code>MUX_BINARY_DIR</code> 这个变量，也就是说最终编译出来的二进制程序和lib 库会存放在 <code>cbuild/bin</code> 和 <code>cbuild/lib</code> 中。</p>
+<h3 id="打印一些信息到终端"><a href="#打印一些信息到终端" class="headerlink" title="打印一些信息到终端"></a>打印一些信息到终端</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">message</span><span class="params">(STATUS <span class="string">"CMAKE_BUILD_TYPE:"</span> $&#123;CMAKE_BUILD_TYPE&#125;)</span></span></span><br><span class="line"><span class="function"><span class="title">message</span><span class="params">(STATUS <span class="string">"CMAKE_SYSTEM_NAME:"</span> $&#123;CMAKE_SYSTEM_NAME&#125;)</span></span></span><br><span class="line"><span class="function"><span class="title">message</span><span class="params">(STATUS <span class="string">"XENABLE_TEST3:"</span> $&#123;XENABLE_TEST3&#125;)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>打印一些调试信息，或者编译信息到终端，使用的是 message 命令。</p>
+<p>详见 <a href="https://cmake.org/cmake/help/latest/command/message.html" target="_blank" rel="noopener">https://cmake.org/cmake/help/latest/command/message.html</a>。</p>
+<h3 id="设置头文件路径"><a href="#设置头文件路径" class="headerlink" title="设置头文件路径"></a>设置头文件路径</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># <span class="keyword">include</span> header dirs</span><br><span class="line"><span class="keyword">include</span><span class="constructor">_directories($&#123;CMAKE_SOURCE_DIR&#125;)</span>   # project dir</span><br><span class="line"><span class="keyword">include</span><span class="constructor">_directories($&#123;CMAKE_SOURCE_DIR&#125;<span class="operator">/</span><span class="params">third</span>-<span class="params">party</span><span class="operator">/</span><span class="params">include</span>)</span>   # project dir</span><br><span class="line"><span class="keyword">include</span><span class="constructor">_directories($&#123;CMAKE_CURRENT_BINARY_DIR&#125;)</span>  # current <span class="module-access"><span class="module"><span class="identifier">CMakeLists</span>.</span></span>txt dir (including sub dir)</span><br></pre></td></tr></table></figure>
+
+<p>分别解释一下：</p>
+<p><code>CMAKE_SOURCE_DIR</code> 表示工程顶层目录，也就是 <code>MUX_SOURCE_DIR</code>；</p>
+<p><code>CMAKE_CURRENT_BINARY_DIR</code> 表示当前处理的 CMakeLists.txt 所在的目录，对于子目录中的 CMakeLists.txt 来说，即表示这个子目录。</p>
+<p>通常这两个是常用的，必须的。然后使用 <code>include_directories</code> 命令包含其他的一些头文件路径。</p>
+<h3 id="设置依赖库的路径"><a href="#设置依赖库的路径" class="headerlink" title="设置依赖库的路径"></a>设置依赖库的路径</h3><figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># link lib dirs</span></span><br><span class="line">link_directories($&#123;CMAKE_SOURCE_DIR&#125;/third-party/<span class="class"><span class="keyword">lib</span>)</span></span><br><span class="line">link_directories($&#123;LIBRARY_OUTPUT_PATH&#125;)  <span class="comment"># generate in building</span></span><br></pre></td></tr></table></figure>
+
+<p><code>LIBRARY_OUTPUT_PATH</code> 就是上面设置的编译目标二进制库的存放路径，因为实际项目中，子模块之间可能会有一些依赖，子模块单独编译成一个库，然后让其他模块链接。这个目录也就是 <code>cbuild/lib</code> 目录。</p>
+<h3 id="引入子模块-子目录）"><a href="#引入子模块-子目录）" class="headerlink" title="引入子模块(子目录）"></a>引入子模块(子目录）</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">add_subdirectory</span><span class="params">(demo/bench)</span></span></span><br><span class="line"><span class="function"><span class="title">add_subdirectory</span><span class="params">(demo/echo)</span></span></span><br><span class="line"><span class="function"><span class="title">add_subdirectory</span><span class="params">(epoll)</span></span></span><br><span class="line"><span class="function"><span class="title">add_subdirectory</span><span class="params">(mbase)</span></span></span><br><span class="line"><span class="function"><span class="title">add_subdirectory</span><span class="params">(message_handle)</span></span></span><br><span class="line"><span class="function"><span class="title">add_subdirectory</span><span class="params">(transport)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>add_subdirectory</code> 命令把子模块包含进来，必须确保每个子目录下面有一个 CMakeLists.txt 文件，不然会报错。</p>
+<p><strong>以上就是工程顶层目录的 CMakeLists.txt 的内容，分析下来是不是很清楚呢</strong>？</p>
+<p>那么工程顶层目录的 CMakeLists.txt 其实做的事情就是设置一些基本的变量，宏开关，编译参数，头文件路径，依赖库路径，编译目标保存路径等等，子目录中的 CMakeLists.txt 才是真正产生编译目标的（exe和lib)。</p>
+<h3 id="生成静态库-动态库"><a href="#生成静态库-动态库" class="headerlink" title="生成静态库/动态库"></a>生成静态库/动态库</h3><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># keep all cpp files in varibale $&#123;epoll_src&#125;</span></span><br><span class="line"><span class="keyword">aux_source_directory</span>(./src epoll_src)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_library</span>(epoll STATIC <span class="variable">$&#123;epoll_src&#125;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_dependencies</span>(epoll mbase )</span><br><span class="line"><span class="keyword">target_link_libraries</span>(epoll mbase pthread)</span><br></pre></td></tr></table></figure>
+
+<p>源文件在这：<a href="https://github.com/smaugx/mux/blob/master/epoll/CMakeLists.txt" target="_blank" rel="noopener">戳我</a></p>
+<p>使用 <code>aux_source_directory</code> 添加源文件，相当于把 src 目录下的所有 c++ 文件保存到 <code>epoll_src</code> 这个变量中；</p>
+<p>使用 <code>add_library</code> 生成目标库（根据需要可以生成静态库和动态库，分别使用 STATIC 和 SHARED)</p>
+<p>然后就是添加这个模块需要依赖到的其他模块，以及链接参数。</p>
+<p>上面的代码最终就会在 <code>cbuild/lib</code> 目录下生成一个 <code>libepoll.a</code> 文件。</p>
+<h3 id="生成二进制可执行文件"><a href="#生成二进制可执行文件" class="headerlink" title="生成二进制可执行文件"></a>生成二进制可执行文件</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># build target echo_server</span><br><span class="line">add<span class="constructor">_executable(<span class="params">echo_server</span> <span class="params">echo_server</span>.<span class="params">cc</span>)</span></span><br><span class="line">add<span class="constructor">_dependencies(<span class="params">echo_server</span> <span class="params">transport</span> <span class="params">msghandler</span> <span class="params">mbase</span>)</span></span><br><span class="line">target<span class="constructor">_link_libraries(<span class="params">echo_server</span> <span class="params">transport</span> <span class="params">msghandler</span> <span class="params">mbase</span>)</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># build target echo_client</span><br><span class="line">add<span class="constructor">_executable(<span class="params">echo_client</span> <span class="params">client</span>.<span class="params">cc</span>)</span></span><br><span class="line">add<span class="constructor">_dependencies(<span class="params">echo_client</span> <span class="params">transport</span> <span class="params">msghandler</span> <span class="params">mbase</span>)</span></span><br><span class="line">target<span class="constructor">_link_libraries(<span class="params">echo_client</span> <span class="params">transport</span> <span class="params">msghandler</span> <span class="params">mbase</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>源文件在这：<a href="https://github.com/smaugx/mux/blob/master/demo/echo/CMakeLists.txt" target="_blank" rel="noopener">戳我</a></p>
+<p>和生成库大体是类似的，区别是使用的是 <code>add_executable</code> 这个命令。</p>
+<p>其他子模块的 CMakeLists.txt 见<a href="https://github.com/smaugx/mux" target="_blank" rel="noopener">我的github</a>.</p>
+<h2 id="cmake-编译构建"><a href="#cmake-编译构建" class="headerlink" title="cmake 编译构建"></a>cmake 编译构建</h2><p>上面详细的介绍了 CMakeLists.txt 的写法，如果仿照本文，应该也能写出适合你项目的构建脚本，但是可能还不够，其他语法自行 google 学习。</p>
+<p>上面其实是以我的项目 <a href=""></a> 进行的演示，有必要解读一下这个项目的结构层次：</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">$ tree mux -d</span><br><span class="line">mux</span><br><span class="line">├── demo</span><br><span class="line">│   ├── bench</span><br><span class="line">│   └── echo</span><br><span class="line">├── epoll</span><br><span class="line">│   ├── <span class="keyword">include</span></span><br><span class="line">│   └── src</span><br><span class="line">├── mbase</span><br><span class="line">│   └── src</span><br><span class="line">├── message_handle</span><br><span class="line">│   ├── <span class="keyword">include</span></span><br><span class="line">│   └── src</span><br><span class="line">├── third-party</span><br><span class="line">│   ├── <span class="keyword">include</span></span><br><span class="line">│   │   ├── nlohmann</span><br><span class="line">│   │   └── spdlog</span><br><span class="line">│   │       ├── cfg</span><br><span class="line">│   │       ├── details</span><br><span class="line">│   │       ├── fmt</span><br><span class="line">│   │       │   └── bundled</span><br><span class="line">│   │       └── sinks</span><br><span class="line">│   └── <span class="class"><span class="keyword">lib</span></span></span><br><span class="line">└── transport</span><br><span class="line">    ├── <span class="keyword">include</span></span><br><span class="line">    └── src</span><br><span class="line"></span><br><span class="line"><span class="number">24</span> directories</span><br></pre></td></tr></table></figure>
+
+<p>mux 是工程顶层目录，下面包含的 <code>epoll</code>、<code>mbase</code>、<code>message_handle</code>、<code>transport</code> 这几个目录，均打包成一个静态库； <code>demo</code> 目录下分别包含 <code>bench</code> 和 <code>echo</code> 两个目录，这两个目录下需要构建可执行程序。</p>
+<p>所以首先是<code>epoll</code>、<code>mbase</code>、<code>message_handle</code>、<code>transport</code> 这几个目录生成静态库，然后 <code>bench</code> 和 <code>echo</code> 下的代码依赖于前面的几个模块，生成可执行程序。</p>
+<p>前面其实已经提到了，基本的构建命令如下：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mkdir</span> <span class="string">cbuild</span></span><br><span class="line"><span class="attr">cd</span> <span class="string">cbuild</span></span><br><span class="line"><span class="attr">cmake</span> <span class="string">..</span></span><br><span class="line"><span class="attr">make</span> <span class="string">-j4</span></span><br></pre></td></tr></table></figure>
+
+<p>其中注意，如果你没有单独构建 cbuild 目录的话，可能会生成一些中间临时文件污染了目录。并且注意，cmake 后面的 <code>..</code> 表示的是工程顶层的 CMakeLists.txt 的目录。所以如果直接使用的是工程顶层目录构建的话，就应该是 <code>cmake .</code></p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line">$ cmake ..</span><br><span class="line">-- The CXX compiler identification is GNU <span class="number">4.8</span><span class="number">.5</span></span><br><span class="line">-- The C compiler identification is GNU <span class="number">4.8</span><span class="number">.5</span></span><br><span class="line">-- Check <span class="keyword">for</span> working CXX <span class="string">compiler:</span> <span class="regexp">/usr/</span>local<span class="regexp">/bin/</span>c++</span><br><span class="line">-- Check <span class="keyword">for</span> working CXX <span class="string">compiler:</span> <span class="regexp">/usr/</span>local<span class="regexp">/bin/</span>c++ - works</span><br><span class="line">-- Detecting CXX compiler ABI info</span><br><span class="line">-- Detecting CXX compiler ABI info - done</span><br><span class="line">-- Detecting CXX compile features</span><br><span class="line">-- Detecting CXX compile features - done</span><br><span class="line">-- Check <span class="keyword">for</span> working C <span class="string">compiler:</span> <span class="regexp">/usr/</span>local<span class="regexp">/bin/</span>gcc</span><br><span class="line">-- Check <span class="keyword">for</span> working C <span class="string">compiler:</span> <span class="regexp">/usr/</span>local<span class="regexp">/bin/</span>gcc - works</span><br><span class="line">-- Detecting C compiler ABI info</span><br><span class="line">-- Detecting C compiler ABI info - done</span><br><span class="line">-- Detecting C compile features</span><br><span class="line">-- Detecting C compile features - done</span><br><span class="line">-- <span class="string">CMAKE_BUILD_TYPE:</span>Debug</span><br><span class="line">-- <span class="string">CMAKE_SYSTEM_NAME:</span>Linux</span><br><span class="line">-- <span class="string">XENABLE_TEST3:</span>OFF</span><br><span class="line">-- Looking <span class="keyword">for</span> pthread.h</span><br><span class="line">-- Looking <span class="keyword">for</span> pthread.h - found</span><br><span class="line">-- Performing Test CMAKE_HAVE_LIBC_PTHREAD</span><br><span class="line">-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed</span><br><span class="line">-- Looking <span class="keyword">for</span> pthread_create <span class="keyword">in</span> pthreads</span><br><span class="line">-- Looking <span class="keyword">for</span> pthread_create <span class="keyword">in</span> pthreads - not found</span><br><span class="line">-- Looking <span class="keyword">for</span> pthread_create <span class="keyword">in</span> pthread</span><br><span class="line">-- Looking <span class="keyword">for</span> pthread_create <span class="keyword">in</span> pthread - found</span><br><span class="line">-- Found <span class="string">Threads:</span> TRUE</span><br><span class="line">-- Configuring done</span><br><span class="line">-- Generating done</span><br><span class="line">-- Build files have been written <span class="string">to:</span> <span class="regexp">/mnt/</span>centos-share<span class="regexp">/workspace/</span>mux/cbuild</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">$ make -j4</span><br><span class="line">Scanning dependencies of target mbase</span><br><span class="line">[  <span class="number">5</span>%] Building CXX object mbase<span class="regexp">/CMakeFiles/</span>mbase.dir<span class="regexp">/src/</span>packet.cc.o</span><br><span class="line">[ <span class="number">11</span>%] Linking CXX <span class="keyword">static</span> library ..<span class="regexp">/lib/</span>libmbase.a</span><br><span class="line">[ <span class="number">11</span>%] Built target mbase</span><br><span class="line">Scanning dependencies of target msghandler</span><br><span class="line">Scanning dependencies of target epoll</span><br><span class="line">[ <span class="number">17</span>%] Building CXX object message_handle<span class="regexp">/CMakeFiles/</span>msghandler.dir<span class="regexp">/src/</span>message_handler.cc.o</span><br><span class="line">[ <span class="number">23</span>%] Building CXX object epoll<span class="regexp">/CMakeFiles/</span>epoll.dir<span class="regexp">/src/</span>epoll_tcp_client.cc.o</span><br><span class="line">[ <span class="number">29</span>%] Building CXX object epoll<span class="regexp">/CMakeFiles/</span>epoll.dir<span class="regexp">/src/</span>epoll_tcp_server.cc.o</span><br><span class="line">[ <span class="number">35</span>%] Linking CXX <span class="keyword">static</span> library ..<span class="regexp">/lib/</span>libepoll.a</span><br><span class="line">[ <span class="number">41</span>%] Linking CXX <span class="keyword">static</span> library ..<span class="regexp">/lib/</span>libmsghandler.a</span><br><span class="line">[ <span class="number">41</span>%] Built target msghandler</span><br><span class="line">[ <span class="number">41</span>%] Built target epoll</span><br><span class="line">Scanning dependencies of target transport</span><br><span class="line">[ <span class="number">47</span>%] Building CXX object transport<span class="regexp">/CMakeFiles/</span>transport.dir<span class="regexp">/src/</span>tcp_transport.cc.o</span><br><span class="line">[ <span class="number">52</span>%] Linking CXX <span class="keyword">static</span> library ..<span class="regexp">/lib/</span>libtransport.a</span><br><span class="line">[ <span class="number">52</span>%] Built target transport</span><br><span class="line">Scanning dependencies of target echo_client</span><br><span class="line">Scanning dependencies of target echo_server</span><br><span class="line">Scanning dependencies of target bench_client</span><br><span class="line">Scanning dependencies of target bench_server</span><br><span class="line">[ <span class="number">58</span>%] Building CXX object demo<span class="regexp">/echo/</span>CMakeFiles<span class="regexp">/echo_client.dir/</span>client.cc.o</span><br><span class="line">[ <span class="number">64</span>%] Building CXX object demo<span class="regexp">/bench/</span>CMakeFiles<span class="regexp">/bench_client.dir/</span>client.cc.o</span><br><span class="line">[ <span class="number">70</span>%] Building CXX object demo<span class="regexp">/echo/</span>CMakeFiles<span class="regexp">/echo_server.dir/</span>echo_server.cc.o</span><br><span class="line">[ <span class="number">76</span>%] Building CXX object demo<span class="regexp">/bench/</span>CMakeFiles<span class="regexp">/bench_server.dir/</span>bench_server.cc.o</span><br><span class="line">[ <span class="number">82</span>%] Linking CXX executable ..<span class="regexp">/../</span>bin/echo_client</span><br><span class="line">[ <span class="number">88</span>%] Linking CXX executable ..<span class="regexp">/../</span>bin/echo_server</span><br><span class="line">[ <span class="number">94</span>%] Linking CXX executable ..<span class="regexp">/../</span>bin/bench_server</span><br><span class="line">[<span class="number">100</span>%] Linking CXX executable ..<span class="regexp">/../</span>bin/bench_client</span><br><span class="line">[<span class="number">100</span>%] Built target echo_client</span><br><span class="line">[<span class="number">100</span>%] Built target echo_server</span><br><span class="line">[<span class="number">100</span>%] Built target bench_client</span><br><span class="line">[<span class="number">100</span>%] Built target bench_server</span><br></pre></td></tr></table></figure>
+
+<p>看看生成了啥：</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ ls cbuild/bin/</span><br><span class="line">bench_client  bench_server  echo_client  echo_server</span><br><span class="line"></span><br><span class="line">$ ls cbuild/<span class="class"><span class="keyword">lib</span>/</span></span><br><span class="line">libepoll.a  libmbase.a  libmsghandler.a  libtransport.a</span><br></pre></td></tr></table></figure>
+
+
+<p>Over!</p>
+<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>cmake 的构建其实认真熟悉之后，也还是能快速上手的，不要产生排斥心理，不然学起来就很慢很费劲。所以建议第一次接触 cmake 的或者以前一直抵触 cmake 的童鞋，静下心来，认认真真的看完本文或者其他的入门例子，那么你也能快速写一个多目录，多层次结构的 cmake 工程。</p>
+<p>cmake 中其他的一些用法，建议随时查看官方的 <a href="https://cmake.org/cmake/help/latest/index.html" target="_blank" rel="noopener">cook book</a>.</p>
+<p>加油，少年，别怕！</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://aiden-dong.github.io/2019/07/20/CMake%E6%95%99%E7%A8%8B%E4%B9%8BCMake%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%BA%94%E7%94%A8/" target="_blank" rel="noopener">CMake 教程 | CMake 从入门到应用</a></p>
+<p><a href="https://juejin.im/post/6844903558861553672" target="_blank" rel="noopener">cmake使用教程</a></p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#117;&#x78;&#99;&#111;&#x64;&#101;&#x32;&#x6e;&#105;&#107;&#105;&#64;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;">&#x6c;&#105;&#x6e;&#117;&#x78;&#99;&#111;&#x64;&#101;&#x32;&#x6e;&#105;&#107;&#105;&#64;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2020-09-02 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/08/30/scons/" rel="bookmark">Scons构建C++项目</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/22/hessiancpp编译和使用——C++版/" rel="bookmark">hessiancpp编译和使用(C++版)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/02/10/sourcecode-of-quickfix/" rel="bookmark">Quickfix源代码分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/03/17/use-gcov-in-hugeprogram/" rel="bookmark">c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/06/08/定义自己的rmcommand/" rel="bookmark">定义自己的命令</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.rebootcat.com/2020/09/02/cmake/" title="cmake教程|cmake入门实战">http://www.rebootcat.com/2020/09/02/cmake/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/cmake/" rel="tag"># cmake</a>
+              <a href="/tags/CMakeLists-txt/" rel="tag"># CMakeLists.txt</a>
+              <a href="/tags/scons/" rel="tag"># scons</a>
+              <a href="/tags/c/" rel="tag"># c</a>
+              <a href="/tags/makefile/" rel="tag"># makefile</a>
+              <a href="/tags/compile/" rel="tag"># compile</a>
+              <a href="/tags/build/" rel="tag"># build</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/30/scons/" rel="prev" title="Scons构建C++项目">
+      <i class="fa fa-chevron-left"></i> Scons构建C++项目
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CMake"><span class="nav-number">2.</span> <span class="nav-text">CMake</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是-cmake"><span class="nav-number">2.1.</span> <span class="nav-text">什么是 cmake</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-cmake"><span class="nav-number">2.2.</span> <span class="nav-text">安装 cmake</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#初识-cmake"><span class="nav-number">2.3.</span> <span class="nav-text">初识 cmake</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#详解-cmake"><span class="nav-number">2.4.</span> <span class="nav-text">详解 cmake</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设置-cmake-版本的要求"><span class="nav-number">2.4.1.</span> <span class="nav-text">设置 cmake 版本的要求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在-cmake-中设置-c-标准，启用-c-11-或以上-根据项目的需求来）"><span class="nav-number">2.4.2.</span> <span class="nav-text">在 cmake 中设置 c++ 标准，启用 c++11 或以上(根据项目的需求来）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置项目名以及项目语言"><span class="nav-number">2.4.3.</span> <span class="nav-text">设置项目名以及项目语言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加编译宏"><span class="nav-number">2.4.4.</span> <span class="nav-text">添加编译宏</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义一些用户自定义的可选项"><span class="nav-number">2.4.5.</span> <span class="nav-text">定义一些用户自定义的可选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加编译选项"><span class="nav-number">2.4.6.</span> <span class="nav-text">添加编译选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置编译二进制-binary-executable-和-binary-lib）存放路径"><span class="nav-number">2.4.7.</span> <span class="nav-text">设置编译二进制(binary-executable 和 binary-lib）存放路径</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#打印一些信息到终端"><span class="nav-number">2.4.8.</span> <span class="nav-text">打印一些信息到终端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置头文件路径"><span class="nav-number">2.4.9.</span> <span class="nav-text">设置头文件路径</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置依赖库的路径"><span class="nav-number">2.4.10.</span> <span class="nav-text">设置依赖库的路径</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引入子模块-子目录）"><span class="nav-number">2.4.11.</span> <span class="nav-text">引入子模块(子目录）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生成静态库-动态库"><span class="nav-number">2.4.12.</span> <span class="nav-text">生成静态库&#x2F;动态库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生成二进制可执行文件"><span class="nav-number">2.4.13.</span> <span class="nav-text">生成二进制可执行文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cmake-编译构建"><span class="nav-number">2.5.</span> <span class="nav-text">cmake 编译构建</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#写在最后"><span class="nav-number">3.</span> <span class="nav-text">写在最后</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">77</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://loveyxq.online/" title="http:&#x2F;&#x2F;loveyxq.online&#x2F;" rel="noopener" target="_blank">子不语</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://rebootcat.com/wiki" title="http:&#x2F;&#x2F;rebootcat.com&#x2F;wiki" rel="noopener" target="_blank">我的wiki</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'd5vhXhrHKkiBVVpR1WJJLgQP-gzGzoHsz',
+      appKey     : 'BRzIFYxjcm34z68pyNalDPtw',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>
