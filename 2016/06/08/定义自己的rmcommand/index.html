@@ -21,13 +21,13 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="rm  是一个很危险的命令，别人一直说，我并没有在意，直到有一天一个不小心，忘记当前目录的位置，手贱的使用了rm命令，结果花了半天也没有把那些重要资料给恢复过来。所以还是有必要给自己定义一个不那么危险的rm命令。 自定义rm命令12myrm() &amp;#123; Recycle&#x3D;&#x2F;tmp&#x2F;$(date +%Y%m%d); mkdir -p $Recycle; mv $@ $Recycle &amp;&amp;">
 <meta property="og:type" content="article">
 <meta property="og:title" content="定义自己的命令">
-<meta property="og:url" content="http://www.rebootcat.com/2016/06/08/%E5%AE%9A%E4%B9%89%E8%87%AA%E5%B7%B1%E7%9A%84rmcommand/index.html">
+<meta property="og:url" content="http://rebootcat.com/2016/06/08/%E5%AE%9A%E4%B9%89%E8%87%AA%E5%B7%B1%E7%9A%84rmcommand/index.html">
 <meta property="og:site_name" content="林夕水共">
 <meta property="og:description" content="rm  是一个很危险的命令，别人一直说，我并没有在意，直到有一天一个不小心，忘记当前目录的位置，手贱的使用了rm命令，结果花了半天也没有把那些重要资料给恢复过来。所以还是有必要给自己定义一个不那么危险的rm命令。 自定义rm命令12myrm() &amp;#123; Recycle&#x3D;&#x2F;tmp&#x2F;$(date +%Y%m%d); mkdir -p $Recycle; mv $@ $Recycle &amp;&amp;">
 <meta property="og:locale" content="zh_CN">
@@ -37,7 +37,7 @@
 <meta property="article:tag" content="linux">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://www.rebootcat.com/2016/06/08/%E5%AE%9A%E4%B9%89%E8%87%AA%E5%B7%B1%E7%9A%84rmcommand/">
+<link rel="canonical" href="http://rebootcat.com/2016/06/08/%E5%AE%9A%E4%B9%89%E8%87%AA%E5%B7%B1%E7%9A%84rmcommand/">
 
 
 <script id="page-configurations">
@@ -115,7 +115,7 @@
       <h1 class="site-title">林夕水共</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
   </div>
 
   <div class="site-nav-right">
@@ -224,7 +224,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2016/06/08/%E5%AE%9A%E4%B9%89%E8%87%AA%E5%B7%B1%E7%9A%84rmcommand/">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2016/06/08/%E5%AE%9A%E4%B9%89%E8%87%AA%E5%B7%B1%E7%9A%84rmcommand/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
@@ -359,7 +359,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://www.rebootcat.com/2016/06/08/%E5%AE%9A%E4%B9%89%E8%87%AA%E5%B7%B1%E7%9A%84rmcommand/" title="定义自己的命令">http://www.rebootcat.com/2016/06/08/定义自己的rmcommand/</a>
+    <a href="http://rebootcat.com/2016/06/08/%E5%AE%9A%E4%B9%89%E8%87%AA%E5%B7%B1%E7%9A%84rmcommand/" title="定义自己的命令">http://rebootcat.com/2016/06/08/定义自己的rmcommand/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

@@ -21,55 +21,55 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="惯例闲聊现在是杭州的冬天，鼻炎让我一直难受，特别不舒服，鼻子快被我拧坏了，最近过的也很糟心，各种烦心事，几乎一周一件烦心事甚至一周好几件烦心事，最近过得感觉很不好！以前我感觉我自己很潇洒，很酷，现在越来越发现我不酷了，连自身形象我都懒得去整理了，胡子一周不想剃，衣服放一周不想洗，头发每天乱糟糟的，几乎每天都不敢去看镜子了。 真的很不喜欢冬天！不喜欢冷！不喜欢浑浑噩噩！不喜欢越来越没激情！ 这已经是">
 <meta property="og:type" content="article">
 <meta property="og:title" content="nginx 写日志对响应速度的影响探究（一）">
-<meta property="og:url" content="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/index.html">
+<meta property="og:url" content="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/index.html">
 <meta property="og:site_name" content="林夕水共">
 <meta property="og:description" content="惯例闲聊现在是杭州的冬天，鼻炎让我一直难受，特别不舒服，鼻子快被我拧坏了，最近过的也很糟心，各种烦心事，几乎一周一件烦心事甚至一周好几件烦心事，最近过得感觉很不好！以前我感觉我自己很潇洒，很酷，现在越来越发现我不酷了，连自身形象我都懒得去整理了，胡子一周不想剃，衣服放一周不想洗，头发每天乱糟糟的，几乎每天都不敢去看镜子了。 真的很不喜欢冬天！不喜欢冷！不喜欢浑浑噩噩！不喜欢越来越没激情！ 这已经是">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_falcon.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_falcon_disk.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_a.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_b.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_bb.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_c.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/4k8j_iruka_cc.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/64k8j_falcon.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/64k8j_falcon_disk.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/64k8j_iruka_a.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/64k8j_iruka_b.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/128k8j_falcon.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/128k8j_falcon_disk.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/128k8j_iruka_a.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/128k8j_iruka_b.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/128k2j_iruka_a.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/128k2j_iruka_b.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/off8j_falcon.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/off8j_falcon_disk.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/off8j_iruka_a.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/off8j_iruka_c.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/off8j_iruka_d.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/sum_iruka_a.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/sum_iruka_b.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/iruka_d.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/iruka_e.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/iruka_f.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/iruka_zhouqi_a.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/iruka_zhouqi_b.png">
-<meta property="og:image" content="http://www.rebootcat.com/images/iruka_zhouqi_c.png">
+<meta property="og:image" content="http://rebootcat.com/images/4k8j_falcon.png">
+<meta property="og:image" content="http://rebootcat.com/images/4k8j_falcon_disk.png">
+<meta property="og:image" content="http://rebootcat.com/images/4k8j_iruka_a.png">
+<meta property="og:image" content="http://rebootcat.com/images/4k8j_iruka_b.png">
+<meta property="og:image" content="http://rebootcat.com/images/4k8j_iruka_bb.png">
+<meta property="og:image" content="http://rebootcat.com/images/4k8j_iruka_c.png">
+<meta property="og:image" content="http://rebootcat.com/images/4k8j_iruka_cc.png">
+<meta property="og:image" content="http://rebootcat.com/images/64k8j_falcon.png">
+<meta property="og:image" content="http://rebootcat.com/images/64k8j_falcon_disk.png">
+<meta property="og:image" content="http://rebootcat.com/images/64k8j_iruka_a.png">
+<meta property="og:image" content="http://rebootcat.com/images/64k8j_iruka_b.png">
+<meta property="og:image" content="http://rebootcat.com/images/128k8j_falcon.png">
+<meta property="og:image" content="http://rebootcat.com/images/128k8j_falcon_disk.png">
+<meta property="og:image" content="http://rebootcat.com/images/128k8j_iruka_a.png">
+<meta property="og:image" content="http://rebootcat.com/images/128k8j_iruka_b.png">
+<meta property="og:image" content="http://rebootcat.com/images/128k2j_iruka_a.png">
+<meta property="og:image" content="http://rebootcat.com/images/128k2j_iruka_b.png">
+<meta property="og:image" content="http://rebootcat.com/images/off8j_falcon.png">
+<meta property="og:image" content="http://rebootcat.com/images/off8j_falcon_disk.png">
+<meta property="og:image" content="http://rebootcat.com/images/off8j_iruka_a.png">
+<meta property="og:image" content="http://rebootcat.com/images/off8j_iruka_c.png">
+<meta property="og:image" content="http://rebootcat.com/images/off8j_iruka_d.png">
+<meta property="og:image" content="http://rebootcat.com/images/sum_iruka_a.png">
+<meta property="og:image" content="http://rebootcat.com/images/sum_iruka_b.png">
+<meta property="og:image" content="http://rebootcat.com/images/iruka_d.png">
+<meta property="og:image" content="http://rebootcat.com/images/iruka_e.png">
+<meta property="og:image" content="http://rebootcat.com/images/iruka_f.png">
+<meta property="og:image" content="http://rebootcat.com/images/iruka_zhouqi_a.png">
+<meta property="og:image" content="http://rebootcat.com/images/iruka_zhouqi_b.png">
+<meta property="og:image" content="http://rebootcat.com/images/iruka_zhouqi_c.png">
 <meta property="article:published_time" content="2017-12-06T03:23:58.000Z">
 <meta property="article:modified_time" content="2020-04-18T16:29:28.901Z">
 <meta property="article:author" content="Smaug">
 <meta property="article:tag" content="nginx">
 <meta property="article:tag" content="wrk">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://www.rebootcat.com/images/4k8j_falcon.png">
+<meta name="twitter:image" content="http://rebootcat.com/images/4k8j_falcon.png">
 
-<link rel="canonical" href="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">
+<link rel="canonical" href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">
 
 
 <script id="page-configurations">
@@ -147,7 +147,7 @@
       <h1 class="site-title">林夕水共</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
   </div>
 
   <div class="site-nav-right">
@@ -256,7 +256,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
@@ -502,7 +502,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" title="nginx 写日志对响应速度的影响探究（一）">http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/</a>
+    <a href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" title="nginx 写日志对响应速度的影响探究（一）">http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

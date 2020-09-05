@@ -21,17 +21,17 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="写在前面今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！ 这几天好好的写一篇总结！2018年对我来说，很重要！ 回顾一下上一篇文章 CPU.IOWA">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CPU.IOWAIT 偏高问题《二》">
-<meta property="og:url" content="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/index.html">
+<meta property="og:url" content="http://rebootcat.com/2018/01/04/analyze-of-high-iowait/index.html">
 <meta property="og:site_name" content="林夕水共">
 <meta property="og:description" content="写在前面今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！ 这几天好好的写一篇总结！2018年对我来说，很重要！ 回顾一下上一篇文章 CPU.IOWA">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://www.rebootcat.com/images/problem.png">
+<meta property="og:image" content="http://rebootcat.com/images/problem.png">
 <meta property="article:published_time" content="2018-01-04T03:23:58.000Z">
 <meta property="article:modified_time" content="2020-04-18T16:29:28.896Z">
 <meta property="article:author" content="Smaug">
@@ -42,9 +42,9 @@
 <meta property="article:tag" content="perl">
 <meta property="article:tag" content="kernel">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://www.rebootcat.com/images/problem.png">
+<meta name="twitter:image" content="http://rebootcat.com/images/problem.png">
 
-<link rel="canonical" href="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/">
+<link rel="canonical" href="http://rebootcat.com/2018/01/04/analyze-of-high-iowait/">
 
 
 <script id="page-configurations">
@@ -122,7 +122,7 @@
       <h1 class="site-title">林夕水共</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
   </div>
 
   <div class="site-nav-right">
@@ -231,7 +231,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2018/01/04/analyze-of-high-iowait/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
@@ -398,7 +398,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/" title="CPU.IOWAIT 偏高问题《二》">http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/</a>
+    <a href="http://rebootcat.com/2018/01/04/analyze-of-high-iowait/" title="CPU.IOWAIT 偏高问题《二》">http://rebootcat.com/2018/01/04/analyze-of-high-iowait/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

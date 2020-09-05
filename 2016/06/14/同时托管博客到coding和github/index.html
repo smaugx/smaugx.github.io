@@ -21,13 +21,13 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"www.rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="最近几天搭建了基于github+hexo的个人独立博客，然后趁着这个劲头，就折腾了关于托管博客到国内的coding(gitcafe已经被coding收购了，网上关于此类的博客大部分是基于gitcafe，其实步骤大同小异吧)的方法步骤。 故本文的内容是关于同时托管静态博客到github和coding,并设置DNS，绑定到域名，同时修改了之前的博客我的个人博客搭建记录中关于博客被百度收录和谷歌收录的部">
 <meta property="og:type" content="article">
 <meta property="og:title" content="同时托管博客到coding和github">
-<meta property="og:url" content="http://www.rebootcat.com/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/index.html">
+<meta property="og:url" content="http://rebootcat.com/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/index.html">
 <meta property="og:site_name" content="林夕水共">
 <meta property="og:description" content="最近几天搭建了基于github+hexo的个人独立博客，然后趁着这个劲头，就折腾了关于托管博客到国内的coding(gitcafe已经被coding收购了，网上关于此类的博客大部分是基于gitcafe，其实步骤大同小异吧)的方法步骤。 故本文的内容是关于同时托管静态博客到github和coding,并设置DNS，绑定到域名，同时修改了之前的博客我的个人博客搭建记录中关于博客被百度收录和谷歌收录的部">
 <meta property="og:locale" content="zh_CN">
@@ -53,7 +53,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://o8fj2jbwb.bkt.clouddn.com/pingcodinggithub.png">
 
-<link rel="canonical" href="http://www.rebootcat.com/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/">
+<link rel="canonical" href="http://rebootcat.com/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/">
 
 
 <script id="page-configurations">
@@ -131,7 +131,7 @@
       <h1 class="site-title">林夕水共</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">关于技术，关于生活</p>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
   </div>
 
   <div class="site-nav-right">
@@ -240,7 +240,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://www.rebootcat.com/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
@@ -437,7 +437,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://www.rebootcat.com/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/" title="同时托管博客到coding和github">http://www.rebootcat.com/2016/06/14/同时托管博客到coding和github/</a>
+    <a href="http://rebootcat.com/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/" title="同时托管博客到coding和github">http://rebootcat.com/2016/06/14/同时托管博客到coding和github/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！

@@ -2,12 +2,12 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>林夕水共</title>
   
-  <subtitle>关于技术，关于生活</subtitle>
+  <subtitle>关于技术,关于生活</subtitle>
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://www.rebootcat.com/"/>
+  <link href="http://rebootcat.com/"/>
   <updated>2020-09-03T22:10:54.149Z</updated>
-  <id>http://www.rebootcat.com/</id>
+  <id>http://rebootcat.com/</id>
   
   <author>
     <name>Smaug</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>cmake教程|cmake入门实战</title>
-    <link href="http://www.rebootcat.com/2020/09/02/cmake/"/>
-    <id>http://www.rebootcat.com/2020/09/02/cmake/</id>
+    <link href="http://rebootcat.com/2020/09/02/cmake/"/>
+    <id>http://rebootcat.com/2020/09/02/cmake/</id>
     <published>2020-09-02T03:23:58.000Z</published>
     <updated>2020-09-03T22:10:54.149Z</updated>
     
@@ -42,33 +42,33 @@
     </summary>
     
     
-      <category term="c++" scheme="http://www.rebootcat.com/categories/c/"/>
+      <category term="c++" scheme="http://rebootcat.com/categories/c/"/>
     
     
-      <category term="c++" scheme="http://www.rebootcat.com/tags/c/"/>
+      <category term="c++" scheme="http://rebootcat.com/tags/c/"/>
     
-      <category term="linux" scheme="http://www.rebootcat.com/tags/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/tags/linux/"/>
     
-      <category term="cmake" scheme="http://www.rebootcat.com/tags/cmake/"/>
+      <category term="cmake" scheme="http://rebootcat.com/tags/cmake/"/>
     
-      <category term="CMakeLists.txt" scheme="http://www.rebootcat.com/tags/CMakeLists-txt/"/>
+      <category term="CMakeLists.txt" scheme="http://rebootcat.com/tags/CMakeLists-txt/"/>
     
-      <category term="scons" scheme="http://www.rebootcat.com/tags/scons/"/>
+      <category term="scons" scheme="http://rebootcat.com/tags/scons/"/>
     
-      <category term="c" scheme="http://www.rebootcat.com/tags/c/"/>
+      <category term="c" scheme="http://rebootcat.com/tags/c/"/>
     
-      <category term="makefile" scheme="http://www.rebootcat.com/tags/makefile/"/>
+      <category term="makefile" scheme="http://rebootcat.com/tags/makefile/"/>
     
-      <category term="compile" scheme="http://www.rebootcat.com/tags/compile/"/>
+      <category term="compile" scheme="http://rebootcat.com/tags/compile/"/>
     
-      <category term="build" scheme="http://www.rebootcat.com/tags/build/"/>
+      <category term="build" scheme="http://rebootcat.com/tags/build/"/>
     
   </entry>
   
   <entry>
     <title>Scons构建C++项目</title>
-    <link href="http://www.rebootcat.com/2020/08/30/scons/"/>
-    <id>http://www.rebootcat.com/2020/08/30/scons/</id>
+    <link href="http://rebootcat.com/2020/08/30/scons/"/>
+    <id>http://rebootcat.com/2020/08/30/scons/</id>
     <published>2020-08-30T03:23:58.000Z</published>
     <updated>2020-09-03T22:24:38.083Z</updated>
     
@@ -112,27 +112,27 @@
     </summary>
     
     
-      <category term="c++" scheme="http://www.rebootcat.com/categories/c/"/>
+      <category term="c++" scheme="http://rebootcat.com/categories/c/"/>
     
     
-      <category term="c++" scheme="http://www.rebootcat.com/tags/c/"/>
+      <category term="c++" scheme="http://rebootcat.com/tags/c/"/>
     
-      <category term="linux" scheme="http://www.rebootcat.com/tags/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/tags/linux/"/>
     
-      <category term="cmake" scheme="http://www.rebootcat.com/tags/cmake/"/>
+      <category term="cmake" scheme="http://rebootcat.com/tags/cmake/"/>
     
-      <category term="scons" scheme="http://www.rebootcat.com/tags/scons/"/>
+      <category term="scons" scheme="http://rebootcat.com/tags/scons/"/>
     
-      <category term="makefile" scheme="http://www.rebootcat.com/tags/makefile/"/>
+      <category term="makefile" scheme="http://rebootcat.com/tags/makefile/"/>
     
-      <category term="make" scheme="http://www.rebootcat.com/tags/make/"/>
+      <category term="make" scheme="http://rebootcat.com/tags/make/"/>
     
   </entry>
   
   <entry>
     <title>自动创建阿里云抢占式实例</title>
-    <link href="http://www.rebootcat.com/2020/08/24/auto_run_aliyun_spot/"/>
-    <id>http://www.rebootcat.com/2020/08/24/auto_run_aliyun_spot/</id>
+    <link href="http://rebootcat.com/2020/08/24/auto_run_aliyun_spot/"/>
+    <id>http://rebootcat.com/2020/08/24/auto_run_aliyun_spot/</id>
     <published>2020-08-24T14:23:58.000Z</published>
     <updated>2020-08-24T14:30:23.691Z</updated>
     
@@ -154,23 +154,23 @@
     </summary>
     
     
-      <category term="python" scheme="http://www.rebootcat.com/categories/python/"/>
+      <category term="python" scheme="http://rebootcat.com/categories/python/"/>
     
     
-      <category term="python" scheme="http://www.rebootcat.com/tags/python/"/>
+      <category term="python" scheme="http://rebootcat.com/tags/python/"/>
     
-      <category term="aliyun" scheme="http://www.rebootcat.com/tags/aliyun/"/>
+      <category term="aliyun" scheme="http://rebootcat.com/tags/aliyun/"/>
     
-      <category term="spot" scheme="http://www.rebootcat.com/tags/spot/"/>
+      <category term="spot" scheme="http://rebootcat.com/tags/spot/"/>
     
-      <category term="ecs" scheme="http://www.rebootcat.com/tags/ecs/"/>
+      <category term="ecs" scheme="http://rebootcat.com/tags/ecs/"/>
     
   </entry>
   
   <entry>
     <title>valgrind massif 分析内存问题</title>
-    <link href="http://www.rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/"/>
-    <id>http://www.rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/</id>
+    <link href="http://rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/"/>
+    <id>http://rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/</id>
     <published>2020-06-16T00:23:58.000Z</published>
     <updated>2020-06-16T00:01:55.998Z</updated>
     
@@ -195,23 +195,23 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
     
-      <category term="valgrind" scheme="http://www.rebootcat.com/tags/valgrind/"/>
+      <category term="valgrind" scheme="http://rebootcat.com/tags/valgrind/"/>
     
-      <category term="massif" scheme="http://www.rebootcat.com/tags/massif/"/>
+      <category term="massif" scheme="http://rebootcat.com/tags/massif/"/>
     
-      <category term="ubuntun" scheme="http://www.rebootcat.com/tags/ubuntun/"/>
+      <category term="ubuntun" scheme="http://rebootcat.com/tags/ubuntun/"/>
     
-      <category term="memory" scheme="http://www.rebootcat.com/tags/memory/"/>
+      <category term="memory" scheme="http://rebootcat.com/tags/memory/"/>
     
   </entry>
   
   <entry>
     <title>浅谈几种区块链网络攻击以及防御方案之其它网络攻击</title>
-    <link href="http://www.rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/"/>
-    <id>http://www.rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/</id>
+    <link href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/"/>
+    <id>http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/</id>
     <published>2020-04-16T03:23:58.000Z</published>
     <updated>2020-04-18T16:29:28.885Z</updated>
     
@@ -241,21 +241,21 @@
     </summary>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/categories/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/categories/blockchain/"/>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/tags/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/tags/blockchain/"/>
     
-      <category term="attack" scheme="http://www.rebootcat.com/tags/attack/"/>
+      <category term="attack" scheme="http://rebootcat.com/tags/attack/"/>
     
-      <category term="bitcoin" scheme="http://www.rebootcat.com/tags/bitcoin/"/>
+      <category term="bitcoin" scheme="http://rebootcat.com/tags/bitcoin/"/>
     
   </entry>
   
   <entry>
     <title>浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</title>
-    <link href="http://www.rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/"/>
-    <id>http://www.rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/</id>
+    <link href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/"/>
+    <id>http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/</id>
     <published>2020-04-14T03:23:58.000Z</published>
     <updated>2020-04-22T14:53:25.399Z</updated>
     
@@ -283,21 +283,21 @@
     </summary>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/categories/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/categories/blockchain/"/>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/tags/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/tags/blockchain/"/>
     
-      <category term="attack" scheme="http://www.rebootcat.com/tags/attack/"/>
+      <category term="attack" scheme="http://rebootcat.com/tags/attack/"/>
     
-      <category term="bitcoin" scheme="http://www.rebootcat.com/tags/bitcoin/"/>
+      <category term="bitcoin" scheme="http://rebootcat.com/tags/bitcoin/"/>
     
   </entry>
   
   <entry>
     <title>浅谈几种区块链网络攻击以及防御方案之女巫攻击</title>
-    <link href="http://www.rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/"/>
-    <id>http://www.rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/</id>
+    <link href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/"/>
+    <id>http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/</id>
     <published>2020-04-13T02:23:58.000Z</published>
     <updated>2020-04-22T14:53:10.075Z</updated>
     
@@ -322,23 +322,23 @@
     </summary>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/categories/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/categories/blockchain/"/>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/tags/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/tags/blockchain/"/>
     
-      <category term="attack" scheme="http://www.rebootcat.com/tags/attack/"/>
+      <category term="attack" scheme="http://rebootcat.com/tags/attack/"/>
     
-      <category term="bitcoin" scheme="http://www.rebootcat.com/tags/bitcoin/"/>
+      <category term="bitcoin" scheme="http://rebootcat.com/tags/bitcoin/"/>
     
-      <category term="ethereum" scheme="http://www.rebootcat.com/tags/ethereum/"/>
+      <category term="ethereum" scheme="http://rebootcat.com/tags/ethereum/"/>
     
   </entry>
   
   <entry>
     <title>浅谈几种区块链网络攻击以及防御方案之日蚀攻击</title>
-    <link href="http://www.rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/"/>
-    <id>http://www.rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/</id>
+    <link href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/"/>
+    <id>http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/</id>
     <published>2020-04-12T03:23:58.000Z</published>
     <updated>2020-04-22T14:52:56.885Z</updated>
     
@@ -371,21 +371,21 @@
     </summary>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/categories/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/categories/blockchain/"/>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/tags/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/tags/blockchain/"/>
     
-      <category term="attack" scheme="http://www.rebootcat.com/tags/attack/"/>
+      <category term="attack" scheme="http://rebootcat.com/tags/attack/"/>
     
-      <category term="bitcoin" scheme="http://www.rebootcat.com/tags/bitcoin/"/>
+      <category term="bitcoin" scheme="http://rebootcat.com/tags/bitcoin/"/>
     
   </entry>
   
   <entry>
     <title>浅谈几种区块链网络攻击以及防御方案之51&amp;#37攻击</title>
-    <link href="http://www.rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/"/>
-    <id>http://www.rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/</id>
+    <link href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/"/>
+    <id>http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/</id>
     <published>2020-04-11T03:23:58.000Z</published>
     <updated>2020-04-22T14:52:46.712Z</updated>
     
@@ -419,21 +419,21 @@
     </summary>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/categories/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/categories/blockchain/"/>
     
     
-      <category term="blockchain" scheme="http://www.rebootcat.com/tags/blockchain/"/>
+      <category term="blockchain" scheme="http://rebootcat.com/tags/blockchain/"/>
     
-      <category term="attack" scheme="http://www.rebootcat.com/tags/attack/"/>
+      <category term="attack" scheme="http://rebootcat.com/tags/attack/"/>
     
-      <category term="bitcoin" scheme="http://www.rebootcat.com/tags/bitcoin/"/>
+      <category term="bitcoin" scheme="http://rebootcat.com/tags/bitcoin/"/>
     
   </entry>
   
   <entry>
     <title>python采集bandwidth信息</title>
-    <link href="http://www.rebootcat.com/2018/05/21/analyze_bandwidth/"/>
-    <id>http://www.rebootcat.com/2018/05/21/analyze_bandwidth/</id>
+    <link href="http://rebootcat.com/2018/05/21/analyze_bandwidth/"/>
+    <id>http://rebootcat.com/2018/05/21/analyze_bandwidth/</id>
     <published>2018-05-21T03:23:58.000Z</published>
     <updated>2020-08-24T15:20:59.774Z</updated>
     
@@ -449,23 +449,23 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
-      <category term="python" scheme="http://www.rebootcat.com/categories/linux/python/"/>
+      <category term="python" scheme="http://rebootcat.com/categories/linux/python/"/>
     
     
-      <category term="python" scheme="http://www.rebootcat.com/tags/python/"/>
+      <category term="python" scheme="http://rebootcat.com/tags/python/"/>
     
-      <category term="bandwidth" scheme="http://www.rebootcat.com/tags/bandwidth/"/>
+      <category term="bandwidth" scheme="http://rebootcat.com/tags/bandwidth/"/>
     
-      <category term="net" scheme="http://www.rebootcat.com/tags/net/"/>
+      <category term="net" scheme="http://rebootcat.com/tags/net/"/>
     
   </entry>
   
   <entry>
     <title>python采集cpu信息</title>
-    <link href="http://www.rebootcat.com/2018/05/20/analyze_cpu/"/>
-    <id>http://www.rebootcat.com/2018/05/20/analyze_cpu/</id>
+    <link href="http://rebootcat.com/2018/05/20/analyze_cpu/"/>
+    <id>http://rebootcat.com/2018/05/20/analyze_cpu/</id>
     <published>2018-05-20T03:23:58.000Z</published>
     <updated>2020-08-24T15:21:18.475Z</updated>
     
@@ -481,21 +481,21 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
-      <category term="python" scheme="http://www.rebootcat.com/categories/linux/python/"/>
+      <category term="python" scheme="http://rebootcat.com/categories/linux/python/"/>
     
     
-      <category term="python" scheme="http://www.rebootcat.com/tags/python/"/>
+      <category term="python" scheme="http://rebootcat.com/tags/python/"/>
     
-      <category term="cpu" scheme="http://www.rebootcat.com/tags/cpu/"/>
+      <category term="cpu" scheme="http://rebootcat.com/tags/cpu/"/>
     
   </entry>
   
   <entry>
     <title>一键安装python3环境</title>
-    <link href="http://www.rebootcat.com/2018/04/15/python3_in_a_box/"/>
-    <id>http://www.rebootcat.com/2018/04/15/python3_in_a_box/</id>
+    <link href="http://rebootcat.com/2018/04/15/python3_in_a_box/"/>
+    <id>http://rebootcat.com/2018/04/15/python3_in_a_box/</id>
     <published>2018-04-15T03:23:58.000Z</published>
     <updated>2020-08-24T15:05:11.541Z</updated>
     
@@ -511,21 +511,21 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
-      <category term="python" scheme="http://www.rebootcat.com/categories/linux/python/"/>
+      <category term="python" scheme="http://rebootcat.com/categories/linux/python/"/>
     
     
-      <category term="python" scheme="http://www.rebootcat.com/tags/python/"/>
+      <category term="python" scheme="http://rebootcat.com/tags/python/"/>
     
-      <category term="python3" scheme="http://www.rebootcat.com/tags/python3/"/>
+      <category term="python3" scheme="http://rebootcat.com/tags/python3/"/>
     
   </entry>
   
   <entry>
     <title>破解微信 DB, 导出 Mac 微信聊天记录</title>
-    <link href="http://www.rebootcat.com/2018/03/05/export_mac_wechat/"/>
-    <id>http://www.rebootcat.com/2018/03/05/export_mac_wechat/</id>
+    <link href="http://rebootcat.com/2018/03/05/export_mac_wechat/"/>
+    <id>http://rebootcat.com/2018/03/05/export_mac_wechat/</id>
     <published>2018-03-05T03:23:58.000Z</published>
     <updated>2020-04-18T16:29:28.908Z</updated>
     
@@ -541,21 +541,21 @@
     </summary>
     
     
-      <category term="python" scheme="http://www.rebootcat.com/categories/python/"/>
+      <category term="python" scheme="http://rebootcat.com/categories/python/"/>
     
     
-      <category term="mac" scheme="http://www.rebootcat.com/tags/mac/"/>
+      <category term="mac" scheme="http://rebootcat.com/tags/mac/"/>
     
-      <category term="wechat" scheme="http://www.rebootcat.com/tags/wechat/"/>
+      <category term="wechat" scheme="http://rebootcat.com/tags/wechat/"/>
     
-      <category term="sql" scheme="http://www.rebootcat.com/tags/sql/"/>
+      <category term="sql" scheme="http://rebootcat.com/tags/sql/"/>
     
   </entry>
   
   <entry>
     <title>博客图床切换 Github + jsDelivr + PicGo</title>
-    <link href="http://www.rebootcat.com/2018/02/13/new_picture_bed_github/"/>
-    <id>http://www.rebootcat.com/2018/02/13/new_picture_bed_github/</id>
+    <link href="http://rebootcat.com/2018/02/13/new_picture_bed_github/"/>
+    <id>http://rebootcat.com/2018/02/13/new_picture_bed_github/</id>
     <published>2018-02-13T03:23:58.000Z</published>
     <updated>2020-04-18T16:29:28.895Z</updated>
     
@@ -586,19 +586,19 @@
     </summary>
     
     
-      <category term="blog" scheme="http://www.rebootcat.com/categories/blog/"/>
+      <category term="blog" scheme="http://rebootcat.com/categories/blog/"/>
     
     
-      <category term="hexo" scheme="http://www.rebootcat.com/tags/hexo/"/>
+      <category term="hexo" scheme="http://rebootcat.com/tags/hexo/"/>
     
-      <category term="blog" scheme="http://www.rebootcat.com/tags/blog/"/>
+      <category term="blog" scheme="http://rebootcat.com/tags/blog/"/>
     
   </entry>
   
   <entry>
     <title>辩证看待 iostat</title>
-    <link href="http://www.rebootcat.com/2018/01/16/using-iostat-dialectically/"/>
-    <id>http://www.rebootcat.com/2018/01/16/using-iostat-dialectically/</id>
+    <link href="http://rebootcat.com/2018/01/16/using-iostat-dialectically/"/>
+    <id>http://rebootcat.com/2018/01/16/using-iostat-dialectically/</id>
     <published>2018-01-16T03:23:58.000Z</published>
     <updated>2020-04-18T16:29:28.905Z</updated>
     
@@ -621,25 +621,25 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
-      <category term="磁盘" scheme="http://www.rebootcat.com/categories/linux/%E7%A3%81%E7%9B%98/"/>
+      <category term="磁盘" scheme="http://rebootcat.com/categories/linux/%E7%A3%81%E7%9B%98/"/>
     
     
-      <category term="iostat" scheme="http://www.rebootcat.com/tags/iostat/"/>
+      <category term="iostat" scheme="http://rebootcat.com/tags/iostat/"/>
     
-      <category term="diskstats" scheme="http://www.rebootcat.com/tags/diskstats/"/>
+      <category term="diskstats" scheme="http://rebootcat.com/tags/diskstats/"/>
     
-      <category term="sysstat" scheme="http://www.rebootcat.com/tags/sysstat/"/>
+      <category term="sysstat" scheme="http://rebootcat.com/tags/sysstat/"/>
     
-      <category term="blktrace" scheme="http://www.rebootcat.com/tags/blktrace/"/>
+      <category term="blktrace" scheme="http://rebootcat.com/tags/blktrace/"/>
     
   </entry>
   
   <entry>
     <title>微信跳一跳高分辅助踩坑</title>
-    <link href="http://www.rebootcat.com/2018/01/08/wechat_jump_hack/"/>
-    <id>http://www.rebootcat.com/2018/01/08/wechat_jump_hack/</id>
+    <link href="http://rebootcat.com/2018/01/08/wechat_jump_hack/"/>
+    <id>http://rebootcat.com/2018/01/08/wechat_jump_hack/</id>
     <published>2018-01-08T15:23:58.000Z</published>
     <updated>2020-04-18T16:29:28.892Z</updated>
     
@@ -662,31 +662,31 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
-      <category term="python" scheme="http://www.rebootcat.com/categories/linux/python/"/>
+      <category term="python" scheme="http://rebootcat.com/categories/linux/python/"/>
     
-      <category term="ios" scheme="http://www.rebootcat.com/categories/linux/python/ios/"/>
+      <category term="ios" scheme="http://rebootcat.com/categories/linux/python/ios/"/>
     
     
-      <category term="python" scheme="http://www.rebootcat.com/tags/python/"/>
+      <category term="python" scheme="http://rebootcat.com/tags/python/"/>
     
-      <category term="matplotlib" scheme="http://www.rebootcat.com/tags/matplotlib/"/>
+      <category term="matplotlib" scheme="http://rebootcat.com/tags/matplotlib/"/>
     
-      <category term="wechat" scheme="http://www.rebootcat.com/tags/wechat/"/>
+      <category term="wechat" scheme="http://rebootcat.com/tags/wechat/"/>
     
-      <category term="ios" scheme="http://www.rebootcat.com/tags/ios/"/>
+      <category term="ios" scheme="http://rebootcat.com/tags/ios/"/>
     
-      <category term="wda" scheme="http://www.rebootcat.com/tags/wda/"/>
+      <category term="wda" scheme="http://rebootcat.com/tags/wda/"/>
     
-      <category term="macos" scheme="http://www.rebootcat.com/tags/macos/"/>
+      <category term="macos" scheme="http://rebootcat.com/tags/macos/"/>
     
   </entry>
   
   <entry>
     <title>nginx 写⽇志对响应速度的影响探究（二）</title>
-    <link href="http://www.rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/"/>
-    <id>http://www.rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/</id>
+    <link href="http://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/"/>
+    <id>http://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/</id>
     <published>2018-01-04T08:23:58.000Z</published>
     <updated>2020-04-18T16:29:28.890Z</updated>
     
@@ -703,29 +703,29 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
-      <category term="nginx" scheme="http://www.rebootcat.com/categories/linux/nginx/"/>
+      <category term="nginx" scheme="http://rebootcat.com/categories/linux/nginx/"/>
     
-      <category term="lua" scheme="http://www.rebootcat.com/categories/linux/nginx/lua/"/>
+      <category term="lua" scheme="http://rebootcat.com/categories/linux/nginx/lua/"/>
     
     
-      <category term="cpu" scheme="http://www.rebootcat.com/tags/cpu/"/>
+      <category term="cpu" scheme="http://rebootcat.com/tags/cpu/"/>
     
-      <category term="nginx" scheme="http://www.rebootcat.com/tags/nginx/"/>
+      <category term="nginx" scheme="http://rebootcat.com/tags/nginx/"/>
     
-      <category term="wrk" scheme="http://www.rebootcat.com/tags/wrk/"/>
+      <category term="wrk" scheme="http://rebootcat.com/tags/wrk/"/>
     
-      <category term="ab" scheme="http://www.rebootcat.com/tags/ab/"/>
+      <category term="ab" scheme="http://rebootcat.com/tags/ab/"/>
     
-      <category term="lua" scheme="http://www.rebootcat.com/tags/lua/"/>
+      <category term="lua" scheme="http://rebootcat.com/tags/lua/"/>
     
   </entry>
   
   <entry>
     <title>CPU.IOWAIT 偏高问题《二》</title>
-    <link href="http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/"/>
-    <id>http://www.rebootcat.com/2018/01/04/analyze-of-high-iowait/</id>
+    <link href="http://rebootcat.com/2018/01/04/analyze-of-high-iowait/"/>
+    <id>http://rebootcat.com/2018/01/04/analyze-of-high-iowait/</id>
     <published>2018-01-04T03:23:58.000Z</published>
     <updated>2020-04-18T16:29:28.896Z</updated>
     
@@ -742,27 +742,27 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
     
-      <category term="cpu" scheme="http://www.rebootcat.com/tags/cpu/"/>
+      <category term="cpu" scheme="http://rebootcat.com/tags/cpu/"/>
     
-      <category term="iowait" scheme="http://www.rebootcat.com/tags/iowait/"/>
+      <category term="iowait" scheme="http://rebootcat.com/tags/iowait/"/>
     
-      <category term="iotop" scheme="http://www.rebootcat.com/tags/iotop/"/>
+      <category term="iotop" scheme="http://rebootcat.com/tags/iotop/"/>
     
-      <category term="iostat" scheme="http://www.rebootcat.com/tags/iostat/"/>
+      <category term="iostat" scheme="http://rebootcat.com/tags/iostat/"/>
     
-      <category term="perl" scheme="http://www.rebootcat.com/tags/perl/"/>
+      <category term="perl" scheme="http://rebootcat.com/tags/perl/"/>
     
-      <category term="kernel" scheme="http://www.rebootcat.com/tags/kernel/"/>
+      <category term="kernel" scheme="http://rebootcat.com/tags/kernel/"/>
     
   </entry>
   
   <entry>
     <title>CPU.IOWAIT 偏高问题</title>
-    <link href="http://www.rebootcat.com/2017/12/14/instability-of-cpu/"/>
-    <id>http://www.rebootcat.com/2017/12/14/instability-of-cpu/</id>
+    <link href="http://rebootcat.com/2017/12/14/instability-of-cpu/"/>
+    <id>http://rebootcat.com/2017/12/14/instability-of-cpu/</id>
     <published>2017-12-14T03:23:58.000Z</published>
     <updated>2020-04-18T16:29:28.880Z</updated>
     
@@ -776,29 +776,29 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
-      <category term="python" scheme="http://www.rebootcat.com/categories/linux/python/"/>
+      <category term="python" scheme="http://rebootcat.com/categories/linux/python/"/>
     
-      <category term="open-falcon" scheme="http://www.rebootcat.com/categories/linux/python/open-falcon/"/>
+      <category term="open-falcon" scheme="http://rebootcat.com/categories/linux/python/open-falcon/"/>
     
     
-      <category term="cpu" scheme="http://www.rebootcat.com/tags/cpu/"/>
+      <category term="cpu" scheme="http://rebootcat.com/tags/cpu/"/>
     
-      <category term="iowait" scheme="http://www.rebootcat.com/tags/iowait/"/>
+      <category term="iowait" scheme="http://rebootcat.com/tags/iowait/"/>
     
-      <category term="iotop" scheme="http://www.rebootcat.com/tags/iotop/"/>
+      <category term="iotop" scheme="http://rebootcat.com/tags/iotop/"/>
     
-      <category term="iostat" scheme="http://www.rebootcat.com/tags/iostat/"/>
+      <category term="iostat" scheme="http://rebootcat.com/tags/iostat/"/>
     
-      <category term="open-falcon" scheme="http://www.rebootcat.com/tags/open-falcon/"/>
+      <category term="open-falcon" scheme="http://rebootcat.com/tags/open-falcon/"/>
     
   </entry>
   
   <entry>
     <title>nginx 写日志对响应速度的影响探究（一）</title>
-    <link href="http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/"/>
-    <id>http://www.rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/</id>
+    <link href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/"/>
+    <id>http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/</id>
     <published>2017-12-06T03:23:58.000Z</published>
     <updated>2020-04-18T16:29:28.901Z</updated>
     
@@ -832,14 +832,14 @@
     </summary>
     
     
-      <category term="linux" scheme="http://www.rebootcat.com/categories/linux/"/>
+      <category term="linux" scheme="http://rebootcat.com/categories/linux/"/>
     
-      <category term="nginx" scheme="http://www.rebootcat.com/categories/linux/nginx/"/>
+      <category term="nginx" scheme="http://rebootcat.com/categories/linux/nginx/"/>
     
     
-      <category term="nginx" scheme="http://www.rebootcat.com/tags/nginx/"/>
+      <category term="nginx" scheme="http://rebootcat.com/tags/nginx/"/>
     
-      <category term="wrk" scheme="http://www.rebootcat.com/tags/wrk/"/>
+      <category term="wrk" scheme="http://rebootcat.com/tags/wrk/"/>
     
   </entry>
   
