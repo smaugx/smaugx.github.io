@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+<meta name="google-site-verification" content="IpNgA5aPb7fAewOpvbq-eVkYwuCplcLKol7cG2itN5M" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="why wiki博客通常是用来记录一些完整的文章，每篇文章有一个主题。但是我想把平日里的一些笔记也记录到我的博客里，但笔记是零散的，随时的，不是完整的一个主题。所以打算构建一个 wiki 页面，专门用来存放我的笔记，wiki 页面类似于 维基百科的形式。 我的博客采用的是 hexo 构建的，如果打算 DIY 一个类似于 维基百科 的 wiki 页面的话，对于我来说，也许有点难度，毕竟我只会写简单的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 mkdocs 搭建个人 wiki 站点">
+<meta property="og:url" content="http://rebootcat.com/2020/09/20/wiki/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="why wiki博客通常是用来记录一些完整的文章，每篇文章有一个主题。但是我想把平日里的一些笔记也记录到我的博客里，但笔记是零散的，随时的，不是完整的一个主题。所以打算构建一个 wiki 页面，专门用来存放我的笔记，wiki 页面类似于 维基百科的形式。 我的博客采用的是 hexo 构建的，如果打算 DIY 一个类似于 维基百科 的 wiki 页面的话，对于我来说，也许有点难度，毕竟我只会写简单的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/1.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/2.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/1.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/3.png">
+<meta property="article:published_time" content="2020-09-20T15:50:58.000Z">
+<meta property="article:modified_time" content="2020-09-20T16:24:47.349Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="hexo">
+<meta property="article:tag" content="blog">
+<meta property="article:tag" content="github">
+<meta property="article:tag" content="wiki">
+<meta property="article:tag" content="mkdocs">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/1.png">
+
+<link rel="canonical" href="http://rebootcat.com/2020/09/20/wiki/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>使用 mkdocs 搭建个人 wiki 站点 | 林夕水共</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+        <li class="menu-item menu-item-wiki">
+
+    <a href="/wiki/" rel="section"><i class="fa fa-fw fa-wikipedia-w"></i>维基</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/09/20/wiki/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用 mkdocs 搭建个人 wiki 站点
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-20 23:50:58" itemprop="dateCreated datePublished" datetime="2020-09-20T23:50:58+08:00">2020-09-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-21 00:24:47" itemprop="dateModified" datetime="2020-09-21T00:24:47+08:00">2020-09-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/20/wiki/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/20/wiki/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="why-wiki"><a href="#why-wiki" class="headerlink" title="why wiki"></a>why wiki</h1><p>博客通常是用来记录一些完整的文章，每篇文章有一个主题。但是我想把平日里的一些笔记也记录到我的博客里，但笔记是零散的，随时的，不是完整的一个主题。所以打算构建一个 wiki 页面，专门用来存放我的笔记，wiki 页面类似于 <a href="https://zh.wikipedia.org/wiki/Wikipedia:%E9%A6%96%E9%A1%B5" target="_blank" rel="noopener">维基百科</a>的形式。</p>
+<p>我的博客采用的是 hexo 构建的，如果打算 DIY 一个类似于 <strong>维基百科</strong> 的 wiki 页面的话，对于我来说，也许有点难度，毕竟我只会写简单的网页。那么有没有现成的方案或者替代的方案呢？</p>
+<p>答案是有的，那就是 <strong>mkdocs</strong>。</p>
+<h1 id="mkdocs-使用"><a href="#mkdocs-使用" class="headerlink" title="mkdocs 使用"></a>mkdocs 使用</h1><p>什么是 Mkdocs 呢？</p>
+<blockquote>
+<p>MkDocs is a fast, simple and downright gorgeous static site generator that’s geared towards building project documentation. Documentation source files are written in Markdown, and configured with a single YAML configuration file. Start by reading the introduction below, then check the User Guide for more info.</p>
+</blockquote>
+<p>mkdocs 是一个用 python 编写的静态站点生成工具，主要是用来编写项目文档，文档使用 Markdown 编写，只需要配合一个 YAML 配置文件，就能快速生成一个站点。</p>
+<p>毫无疑问，对于我来说，它有以下几个优点：</p>
+<ul>
+<li>使用 python 编写（说明有 DIY 的可能）</li>
+<li>源文件使用 Markdown 编写</li>
+<li>只需要一个 Yaml 文件，非常简单了</li>
+<li>主题可选（当然目前来说不是特别多）</li>
+</ul>
+<p>可以先看一下 <a href="https://rebootcat.com/wiki/">我的wiki</a>.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/1.png" alt=""></p>
+<a id="more"></a>
+
+<h2 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h2><p>可以参考官方文档：<a href="https://www.mkdocs.org/" target="_blank" rel="noopener">mkdocs.org</a>，或者直接往下看：</p>
+<p>首先安装 mkdocs:</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip <span class="keyword">install</span> mkdocs</span><br></pre></td></tr></table></figure>
+
+<p>安装完成之后直接生成一个项目：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ mkdocs new mysite                                                                    [23:33:49]</span><br><span class="line"><span class="builtin-name">INFO</span>    -  Creating project directory: mysite</span><br><span class="line"><span class="builtin-name">INFO</span>    -  Writing<span class="built_in"> config </span>file: mysite/mkdocs.yml</span><br><span class="line"><span class="builtin-name">INFO</span>    -  Writing initial docs: mysite/docs/index.md</span><br></pre></td></tr></table></figure>
+
+<p>看看都生成了啥：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ cd mysite</span><br><span class="line">$ tree                                                                                    [<span class="number">23</span>:<span class="number">34</span>:<span class="number">59</span>]</span><br><span class="line">.</span><br><span class="line">├── docs</span><br><span class="line">│   └── index.md</span><br><span class="line">└── mkdocs.yml</span><br><span class="line"></span><br><span class="line"><span class="number">1</span> directory, <span class="number">2</span> files</span><br></pre></td></tr></table></figure>
+
+<p>默认生成了一个 yml 配置文件以及一个 默认的 markdown 文件。</p>
+<p>看看 mkdocs 支持哪些命令：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ mkdocs -h                                                                               [<span class="number">23</span>:<span class="number">36</span>:<span class="number">21</span>]</span><br><span class="line">Usage: mkdocs [OPTIONS] COMMAND [ARGS]...</span><br><span class="line"></span><br><span class="line">  MkDocs - Project documentation with Markdown.</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -V, --version  Show the version and <span class="keyword">exit</span>.</span><br><span class="line">  -q, --quiet    Silence warnings</span><br><span class="line">  -v, --verbose  Enable verbose output</span><br><span class="line">  -h, --help     Show this message and <span class="keyword">exit</span>.</span><br><span class="line"></span><br><span class="line">Commands:</span><br><span class="line">  build      Build the MkDocs documentation</span><br><span class="line">  gh-deploy  Deploy your documentation to GitHub Pages</span><br><span class="line">  new        Create a new MkDocs project</span><br><span class="line">  serve      Run the builtin development server</span><br></pre></td></tr></table></figure>
+
+<p>构建站点：</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>mkdocs build</span><br></pre></td></tr></table></figure>
+
+<p>然后生成了一个 <code>site</code> 目录：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">$ tree                                                                                    [<span class="number">23</span>:<span class="number">37</span>:<span class="number">23</span>]</span><br><span class="line">.</span><br><span class="line">├── docs</span><br><span class="line">│   └── index.md</span><br><span class="line">├── mkdocs.yml</span><br><span class="line">└── site</span><br><span class="line">    ├── <span class="number">404</span>.html</span><br><span class="line">    ├── css</span><br><span class="line">    │   ├── <span class="keyword">base.css</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── <span class="keyword">bootstrap.min.css</span></span><br><span class="line"><span class="keyword"> </span>   │   └── font-awesome.min.css</span><br><span class="line">    ├── fonts</span><br><span class="line">    │   ├── fontawesome-webfont.eot</span><br><span class="line">    │   ├── fontawesome-webfont.svg</span><br><span class="line">    │   ├── fontawesome-webfont.ttf</span><br><span class="line">    │   ├── fontawesome-webfont.woff</span><br><span class="line">    │   ├── fontawesome-webfont.woff2</span><br><span class="line">    │   ├── glyphicons-halflings-regular.eot</span><br><span class="line">    │   ├── glyphicons-halflings-regular.svg</span><br><span class="line">    │   ├── glyphicons-halflings-regular.ttf</span><br><span class="line">    │   ├── glyphicons-halflings-regular.woff</span><br><span class="line">    │   └── glyphicons-halflings-regular.woff2</span><br><span class="line">    ├── img</span><br><span class="line">    │   ├── favicon.ico</span><br><span class="line">    │   └── grid.png</span><br><span class="line">    ├── index.html</span><br><span class="line">    ├── <span class="keyword">js</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── <span class="keyword">base.js</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── <span class="keyword">bootstrap.min.js</span></span><br><span class="line"><span class="keyword"> </span>   │   └── <span class="keyword">jquery-1.10.2.min.js</span></span><br><span class="line"><span class="keyword"> </span>   ├── search</span><br><span class="line">    │   ├── lunr.<span class="keyword">js</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── main.<span class="keyword">js</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── search_index.<span class="keyword">json</span></span><br><span class="line"><span class="keyword"> </span>   │   └── worker.<span class="keyword">js</span></span><br><span class="line"><span class="keyword"> </span>   ├── sitemap.xml</span><br><span class="line">    └── sitemap.xml.gz</span><br><span class="line"></span><br><span class="line"><span class="number">7</span> <span class="keyword">directories, </span><span class="number">28</span> files</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 site 目录下就是站点的源码了，那么本地测试一下：</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>mkdocs serve</span><br></pre></td></tr></table></figure>
+<p>然后访问 <code>http://127.0.0.1:8000</code>，能看到默认的站点了：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/2.png" alt=""></p>
+<p><strong>是不是超级超级简单</strong>？</p>
+<p>那么这个是 mkdocs 最简单的使用，接下来分享下我的使用，经过了一些定制化，包括主题的选择，域名的绑定，站点的发布等。</p>
+<h1 id="使用-github-pages-发布-wiki"><a href="#使用-github-pages-发布-wiki" class="headerlink" title="使用 github pages 发布 wiki"></a>使用 github pages 发布 wiki</h1><p>我的博客使用了 github pages 进行托管（目前不是，目前已经迁移到香港虚拟空间），但是如何把上面 mkdocs 生成的站点源码和博客源码放到一起呢？</p>
+<p>有很多方法，比如可以手动把 wiki 站点源码放到博客根目录下；</p>
+<p>但其实 <strong>github pages 是可以支持多个站点的</strong>，不知道有没有同学还不知道？</p>
+<p>简单来说，使用一个 github 账号，能创建一个 <strong>用户站点</strong>，格式为 <code>&lt;user&gt;.github.io</code>，比如我的博客源码仓库： <a href="https://github.com/smaugx/smaugx.github.io" target="_blank" rel="noopener">smaugx.github.io</a>;</p>
+<p>但是除了一个用户站点之外，还能创建任意多个 <strong>普通站点</strong>，仓库名字任意，没有要求。</p>
+<p><strong>也就是说一个 github 账户其实是可以创建多个博客站点的</strong>。</p>
+<p>关于如何创建一个普通站点，可以参考 github 官方文档：<a href="https://docs.github.com/cn/github/working-with-github-pages/creating-a-github-pages-site" target="_blank" rel="noopener">创建 GitHub Pages 站点</a>.</p>
+<p>或者往下看。</p>
+<h2 id="wiki-仓库设置"><a href="#wiki-仓库设置" class="headerlink" title="wiki 仓库设置"></a>wiki 仓库设置</h2><p>这里以我的 wiki 为例： <a href="https://github.com/smaugx/wiki" target="_blank" rel="noopener">https://github.com/smaugx/wiki</a>，站点效果可以直接查看我的 wiki: <a href="https://rebootcat.com/wiki">https://rebootcat.com/wiki</a>。</p>
+<p>1 在 github 上创建一个仓库，命名为 wiki 或者其他的任意名字</p>
+<p>2 克隆我的项目： <code>git clone https://github.com/smaugx/wiki.git</code></p>
+<p>3 更改仓库 remote-url 为你刚创建的 wiki 的 github url</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cd</span> wiki</span><br><span class="line">git remote <span class="keyword">rm</span> origin</span><br><span class="line">git remote add origin  https:<span class="comment">//github.com/yourname/your-wiki.git</span></span><br></pre></td></tr></table></figure>
+
+<p>上面改成你自己的 wiki 地址（或者使用 ssh 的方式）</p>
+<p>4 推送本地仓库 wiki 到远程 wiki</p>
+<figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">push</span> -u <span class="built_in">origin</span> master</span><br></pre></td></tr></table></figure>
+
+<p>至此，你的 github 上应该有一个和我的 wiki 仓库一样的仓库了。</p>
+<p>接下来讲一下怎么设置仓库。</p>
+<p>5 首先去到刚创建好的 wiki 仓库 <code>https://github.com/yourname/your-wiki</code></p>
+<p>6 点击设置，往下拉到 <strong>GiHub Pages</strong> 配置项，选择 <strong>master</strong> 分支，选择 <strong>/docs</strong> 目录，然后点击 <strong>save</strong> 保存</p>
+<p>7 上面一部之后，再次回到 <strong>Github Pages</strong> 配置项，找到下面的 <strong>Custom domain</strong>，填入你的域名或者 url 地址，比如我直接写了： <code>http://rebootcat.com/wiki</code></p>
+<p>8 不出意外，你就能正常访问了。</p>
+<blockquote>
+<p>上面的前提当然是你已经有了个人博客，也就是已经有了一个命名为 <code>&lt;user&gt;.github.io</code> 的仓库了，不然是不会成功了，你要先创建一个这样的仓库。</p>
+</blockquote>
+<h2 id="编写wiki，更新-wiki"><a href="#编写wiki，更新-wiki" class="headerlink" title="编写wiki，更新 wiki"></a>编写wiki，更新 wiki</h2><p>上面如果顺利的话，你能看到和我的 wiki 一样的内容：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/1.png" alt=""></p>
+<p>那么如何编写你自己的 wiki 文章呢？</p>
+<p>我们回到本地的 wiki 仓库：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> wiki</span><br></pre></td></tr></table></figure>
+
+<p>注意，我的文档都放在了 <strong>source</strong> 目录下：</p>
+<figure class="highlight dos"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ls source</span><br><span class="line">git.<span class="built_in">md</span>    index.<span class="built_in">md</span>  other.<span class="built_in">md</span>  python.<span class="built_in">md</span> rsync.<span class="built_in">md</span></span><br></pre></td></tr></table></figure>
+
+<p>所以你只需要删除我的 Markdown文档，把你的 Markdown 文档放到该目录，然后执行：</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">$ python run.py</span><br><span class="line">warning: found not support file type:.DS_Store</span><br><span class="line">############### begin dump mkdocs.yml ###############</span><br><span class="line">copyright: <span class="string">"Copyright \xA9 2020-2020 smaug"</span></span><br><span class="line">docs_dir: source</span><br><span class="line">extra:</span><br><span class="line">  article_nav_bottom: true</span><br><span class="line">  history_buttons: true</span><br><span class="line">  version: v1<span class="number">.0</span><span class="number">.4</span></span><br><span class="line">markdown_extensions:</span><br><span class="line">- admonition</span><br><span class="line">nav:</span><br><span class="line">- Home: index.md</span><br><span class="line">- python: python.md</span><br><span class="line">- rsync: rsync.md</span><br><span class="line">- git: git.md</span><br><span class="line">- <span class="string">"\u5176\u4ED6"</span>: other.md</span><br><span class="line">repo_url: https:<span class="comment">//github.com/smaugx/wiki</span></span><br><span class="line">site_author: smaugx</span><br><span class="line">site_description: <span class="string">"My Wiki | \u6797\u5915\u6C34\u5171"</span></span><br><span class="line">site_dir: docs</span><br><span class="line">site_name: <span class="string">"My Wiki | \u6797\u5915\u6C34\u5171"</span></span><br><span class="line">site_url: http:<span class="comment">//rebootcat.com/wiki</span></span><br><span class="line">theme:</span><br><span class="line">  custom_dir: mkdocs_windmill</span><br><span class="line">  include_search_page: true</span><br><span class="line">  name: null</span><br><span class="line">  search_index_only: true</span><br><span class="line">  static_templates:</span><br><span class="line">  - <span class="number">404.</span>html</span><br><span class="line"></span><br><span class="line">############### update mkdocs.yml done ###############</span><br><span class="line"></span><br><span class="line">############### begin mkdocs build ###############</span><br><span class="line">INFO    -  Cleaning site directory</span><br><span class="line">INFO    -  Building documentation to directory: /Users/smaug/centos7/SmaugDemo/wiki/docs</span><br><span class="line">INFO    -  Documentation built <span class="keyword">in</span> <span class="number">0.18</span> seconds</span><br><span class="line">############### mkdocs build done <span class="keyword">in</span> dir:docs ###############</span><br><span class="line"></span><br><span class="line">############### begin git push:git add --all . &amp;&amp; git commit -m <span class="string">"update mkdocs site"</span> &amp;&amp; git push ###############</span><br><span class="line">Counting objects: <span class="number">5</span>, done.</span><br><span class="line">Delta compression using up to <span class="number">4</span> threads.</span><br><span class="line">Compressing objects: <span class="number">100</span>% (<span class="number">5</span>/<span class="number">5</span>), done.</span><br><span class="line">Writing objects: <span class="number">100</span>% (<span class="number">5</span>/<span class="number">5</span>), <span class="number">443</span> bytes | <span class="number">443.00</span> KiB/s, done.</span><br><span class="line">Total <span class="number">5</span> (delta <span class="number">4</span>), reused <span class="number">0</span> (delta <span class="number">0</span>)</span><br><span class="line">remote: Resolving deltas: <span class="number">100</span>% (<span class="number">4</span>/<span class="number">4</span>), completed <span class="keyword">with</span> <span class="number">4</span> local objects.</span><br><span class="line">To github.com:smaugx/wiki.git</span><br><span class="line">   ba3b15e.<span class="number">.4131</span>b86  master -&gt; master</span><br><span class="line">[master <span class="number">4131</span>b86] update mkdocs site</span><br><span class="line"> <span class="number">2</span> files changed, <span class="number">1</span> insertion(+), <span class="number">1</span> deletion(-)</span><br><span class="line">############### git push done ###############</span><br></pre></td></tr></table></figure>
+
+<p>这个脚本的功能是根据 <strong>source</strong> 目录下的 Markdown 文档，更新 yaml 站点配置文件，然后生成站点源码，然后推送站点源码到 github 上。</p>
+<p>如果执行出错，可以自行调试一下，一般问题不大。</p>
+<h1 id="博客首页引导栏添加-维基栏"><a href="#博客首页引导栏添加-维基栏" class="headerlink" title="博客首页引导栏添加 维基栏"></a>博客首页引导栏添加 <code>维基</code>栏</h1><p>这个过程就省略了。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/3.png" alt=""></p>
+<h1 id="The-End"><a href="#The-End" class="headerlink" title="The End"></a>The End</h1><p>wiki 站点搭建完毕，</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#101;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#108;&#x69;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#101;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2020-09-20 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/06/10/我的个人博客搭建记录/" rel="bookmark">我的个人博客搭建记录</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/19/nextphotowall/" rel="bookmark">Hexo Next 博客添加相册瀑布流</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/02/13/new_picture_bed_github/" rel="bookmark">博客图床切换 Github + jsDelivr + PicGo</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/03/22/rebuild_hexoblog_in_mac/" rel="bookmark">切换博客从win到mac</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/20/virtual_space_blog/" rel="bookmark">迁移博客到香港虚拟空间</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://rebootcat.com/2020/09/20/wiki/" title="使用 mkdocs 搭建个人 wiki 站点">http://rebootcat.com/2020/09/20/wiki/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hexo/" rel="tag"># hexo</a>
+              <a href="/tags/blog/" rel="tag"># blog</a>
+              <a href="/tags/github/" rel="tag"># github</a>
+              <a href="/tags/wiki/" rel="tag"># wiki</a>
+              <a href="/tags/mkdocs/" rel="tag"># mkdocs</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/20/cloudflare/" rel="prev" title="Hexo 配置 Cloudflare 免费 CDN">
+      <i class="fa fa-chevron-left"></i> Hexo 配置 Cloudflare 免费 CDN
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#why-wiki"><span class="nav-number">1.</span> <span class="nav-text">why wiki</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mkdocs-使用"><span class="nav-number">2.</span> <span class="nav-text">mkdocs 使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#快速开始"><span class="nav-number">2.1.</span> <span class="nav-text">快速开始</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用-github-pages-发布-wiki"><span class="nav-number">3.</span> <span class="nav-text">使用 github pages 发布 wiki</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#wiki-仓库设置"><span class="nav-number">3.1.</span> <span class="nav-text">wiki 仓库设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编写wiki，更新-wiki"><span class="nav-number">3.2.</span> <span class="nav-text">编写wiki，更新 wiki</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#博客首页引导栏添加-维基栏"><span class="nav-number">4.</span> <span class="nav-text">博客首页引导栏添加 维基栏</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#The-End"><span class="nav-number">5.</span> <span class="nav-text">The End</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">85</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://loveyxq.online/" title="http:&#x2F;&#x2F;loveyxq.online&#x2F;" rel="noopener" target="_blank">子不语</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'd5vhXhrHKkiBVVpR1WJJLgQP-gzGzoHsz',
+      appKey     : 'BRzIFYxjcm34z68pyNalDPtw',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

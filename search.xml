@@ -3901,4 +3901,116 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
         <tag>cloudflare</tag>
       </tags>
   </entry>
+  <entry>
+    <title>使用 mkdocs 搭建个人 wiki 站点</title>
+    <url>/2020/09/20/wiki/</url>
+    <content><![CDATA[<h1 id="why-wiki"><a href="#why-wiki" class="headerlink" title="why wiki"></a>why wiki</h1><p>博客通常是用来记录一些完整的文章，每篇文章有一个主题。但是我想把平日里的一些笔记也记录到我的博客里，但笔记是零散的，随时的，不是完整的一个主题。所以打算构建一个 wiki 页面，专门用来存放我的笔记，wiki 页面类似于 <a href="https://zh.wikipedia.org/wiki/Wikipedia:%E9%A6%96%E9%A1%B5" target="_blank" rel="noopener">维基百科</a>的形式。</p>
+<p>我的博客采用的是 hexo 构建的，如果打算 DIY 一个类似于 <strong>维基百科</strong> 的 wiki 页面的话，对于我来说，也许有点难度，毕竟我只会写简单的网页。那么有没有现成的方案或者替代的方案呢？</p>
+<p>答案是有的，那就是 <strong>mkdocs</strong>。</p>
+<h1 id="mkdocs-使用"><a href="#mkdocs-使用" class="headerlink" title="mkdocs 使用"></a>mkdocs 使用</h1><p>什么是 Mkdocs 呢？</p>
+<blockquote>
+<p>MkDocs is a fast, simple and downright gorgeous static site generator that’s geared towards building project documentation. Documentation source files are written in Markdown, and configured with a single YAML configuration file. Start by reading the introduction below, then check the User Guide for more info.</p>
+</blockquote>
+<p>mkdocs 是一个用 python 编写的静态站点生成工具，主要是用来编写项目文档，文档使用 Markdown 编写，只需要配合一个 YAML 配置文件，就能快速生成一个站点。</p>
+<p>毫无疑问，对于我来说，它有以下几个优点：</p>
+<ul>
+<li>使用 python 编写（说明有 DIY 的可能）</li>
+<li>源文件使用 Markdown 编写</li>
+<li>只需要一个 Yaml 文件，非常简单了</li>
+<li>主题可选（当然目前来说不是特别多）</li>
+</ul>
+<p>可以先看一下 <a href="https://rebootcat.com/wiki/">我的wiki</a>.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/1.png" alt=""></p>
+<a id="more"></a>
+
+<h2 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h2><p>可以参考官方文档：<a href="https://www.mkdocs.org/" target="_blank" rel="noopener">mkdocs.org</a>，或者直接往下看：</p>
+<p>首先安装 mkdocs:</p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line">$ pip <span class="keyword">install</span> mkdocs</span><br></pre></td></tr></table></figure>
+
+<p>安装完成之后直接生成一个项目：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">$ mkdocs new mysite                                                                    [23:33:49]</span><br><span class="line"><span class="builtin-name">INFO</span>    -  Creating project directory: mysite</span><br><span class="line"><span class="builtin-name">INFO</span>    -  Writing<span class="built_in"> config </span>file: mysite/mkdocs.yml</span><br><span class="line"><span class="builtin-name">INFO</span>    -  Writing initial docs: mysite/docs/index.md</span><br></pre></td></tr></table></figure>
+
+<p>看看都生成了啥：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">$ cd mysite</span><br><span class="line">$ tree                                                                                    [<span class="number">23</span>:<span class="number">34</span>:<span class="number">59</span>]</span><br><span class="line">.</span><br><span class="line">├── docs</span><br><span class="line">│   └── index.md</span><br><span class="line">└── mkdocs.yml</span><br><span class="line"></span><br><span class="line"><span class="number">1</span> directory, <span class="number">2</span> files</span><br></pre></td></tr></table></figure>
+
+<p>默认生成了一个 yml 配置文件以及一个 默认的 markdown 文件。</p>
+<p>看看 mkdocs 支持哪些命令：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">$ mkdocs -h                                                                               [<span class="number">23</span>:<span class="number">36</span>:<span class="number">21</span>]</span><br><span class="line">Usage: mkdocs [OPTIONS] COMMAND [ARGS]...</span><br><span class="line"></span><br><span class="line">  MkDocs - Project documentation with Markdown.</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -V, --version  Show the version and <span class="keyword">exit</span>.</span><br><span class="line">  -q, --quiet    Silence warnings</span><br><span class="line">  -v, --verbose  Enable verbose output</span><br><span class="line">  -h, --help     Show this message and <span class="keyword">exit</span>.</span><br><span class="line"></span><br><span class="line">Commands:</span><br><span class="line">  build      Build the MkDocs documentation</span><br><span class="line">  gh-deploy  Deploy your documentation to GitHub Pages</span><br><span class="line">  new        Create a new MkDocs project</span><br><span class="line">  serve      Run the builtin development server</span><br></pre></td></tr></table></figure>
+
+<p>构建站点：</p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line"><span class="variable">$ </span>mkdocs build</span><br></pre></td></tr></table></figure>
+
+<p>然后生成了一个 <code>site</code> 目录：</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">$ tree                                                                                    [<span class="number">23</span>:<span class="number">37</span>:<span class="number">23</span>]</span><br><span class="line">.</span><br><span class="line">├── docs</span><br><span class="line">│   └── index.md</span><br><span class="line">├── mkdocs.yml</span><br><span class="line">└── site</span><br><span class="line">    ├── <span class="number">404</span>.html</span><br><span class="line">    ├── css</span><br><span class="line">    │   ├── <span class="keyword">base.css</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── <span class="keyword">bootstrap.min.css</span></span><br><span class="line"><span class="keyword"> </span>   │   └── font-awesome.min.css</span><br><span class="line">    ├── fonts</span><br><span class="line">    │   ├── fontawesome-webfont.eot</span><br><span class="line">    │   ├── fontawesome-webfont.svg</span><br><span class="line">    │   ├── fontawesome-webfont.ttf</span><br><span class="line">    │   ├── fontawesome-webfont.woff</span><br><span class="line">    │   ├── fontawesome-webfont.woff2</span><br><span class="line">    │   ├── glyphicons-halflings-regular.eot</span><br><span class="line">    │   ├── glyphicons-halflings-regular.svg</span><br><span class="line">    │   ├── glyphicons-halflings-regular.ttf</span><br><span class="line">    │   ├── glyphicons-halflings-regular.woff</span><br><span class="line">    │   └── glyphicons-halflings-regular.woff2</span><br><span class="line">    ├── img</span><br><span class="line">    │   ├── favicon.ico</span><br><span class="line">    │   └── grid.png</span><br><span class="line">    ├── index.html</span><br><span class="line">    ├── <span class="keyword">js</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── <span class="keyword">base.js</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── <span class="keyword">bootstrap.min.js</span></span><br><span class="line"><span class="keyword"> </span>   │   └── <span class="keyword">jquery-1.10.2.min.js</span></span><br><span class="line"><span class="keyword"> </span>   ├── search</span><br><span class="line">    │   ├── lunr.<span class="keyword">js</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── main.<span class="keyword">js</span></span><br><span class="line"><span class="keyword"> </span>   │   ├── search_index.<span class="keyword">json</span></span><br><span class="line"><span class="keyword"> </span>   │   └── worker.<span class="keyword">js</span></span><br><span class="line"><span class="keyword"> </span>   ├── sitemap.xml</span><br><span class="line">    └── sitemap.xml.gz</span><br><span class="line"></span><br><span class="line"><span class="number">7</span> <span class="keyword">directories, </span><span class="number">28</span> files</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 site 目录下就是站点的源码了，那么本地测试一下：</p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line"><span class="variable">$ </span>mkdocs serve</span><br></pre></td></tr></table></figure>
+<p>然后访问 <code>http://127.0.0.1:8000</code>，能看到默认的站点了：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/2.png" alt=""></p>
+<p><strong>是不是超级超级简单</strong>？</p>
+<p>那么这个是 mkdocs 最简单的使用，接下来分享下我的使用，经过了一些定制化，包括主题的选择，域名的绑定，站点的发布等。</p>
+<h1 id="使用-github-pages-发布-wiki"><a href="#使用-github-pages-发布-wiki" class="headerlink" title="使用 github pages 发布 wiki"></a>使用 github pages 发布 wiki</h1><p>我的博客使用了 github pages 进行托管（目前不是，目前已经迁移到香港虚拟空间），但是如何把上面 mkdocs 生成的站点源码和博客源码放到一起呢？</p>
+<p>有很多方法，比如可以手动把 wiki 站点源码放到博客根目录下；</p>
+<p>但其实 <strong>github pages 是可以支持多个站点的</strong>，不知道有没有同学还不知道？</p>
+<p>简单来说，使用一个 github 账号，能创建一个 <strong>用户站点</strong>，格式为 <code>&lt;user&gt;.github.io</code>，比如我的博客源码仓库： <a href="https://github.com/smaugx/smaugx.github.io" target="_blank" rel="noopener">smaugx.github.io</a>;</p>
+<p>但是除了一个用户站点之外，还能创建任意多个 <strong>普通站点</strong>，仓库名字任意，没有要求。</p>
+<p><strong>也就是说一个 github 账户其实是可以创建多个博客站点的</strong>。</p>
+<p>关于如何创建一个普通站点，可以参考 github 官方文档：<a href="https://docs.github.com/cn/github/working-with-github-pages/creating-a-github-pages-site" target="_blank" rel="noopener">创建 GitHub Pages 站点</a>.</p>
+<p>或者往下看。</p>
+<h2 id="wiki-仓库设置"><a href="#wiki-仓库设置" class="headerlink" title="wiki 仓库设置"></a>wiki 仓库设置</h2><p>这里以我的 wiki 为例： <a href="https://github.com/smaugx/wiki" target="_blank" rel="noopener">https://github.com/smaugx/wiki</a>，站点效果可以直接查看我的 wiki: <a href="https://rebootcat.com/wiki">https://rebootcat.com/wiki</a>。</p>
+<p>1 在 github 上创建一个仓库，命名为 wiki 或者其他的任意名字</p>
+<p>2 克隆我的项目： <code>git clone https://github.com/smaugx/wiki.git</code></p>
+<p>3 更改仓库 remote-url 为你刚创建的 wiki 的 github url</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line"><span class="keyword">cd</span> wiki</span><br><span class="line">git remote <span class="keyword">rm</span> origin</span><br><span class="line">git remote add origin  https:<span class="comment">//github.com/yourname/your-wiki.git</span></span><br></pre></td></tr></table></figure>
+
+<p>上面改成你自己的 wiki 地址（或者使用 ssh 的方式）</p>
+<p>4 推送本地仓库 wiki 到远程 wiki</p>
+<figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">push</span> -u <span class="built_in">origin</span> master</span><br></pre></td></tr></table></figure>
+
+<p>至此，你的 github 上应该有一个和我的 wiki 仓库一样的仓库了。</p>
+<p>接下来讲一下怎么设置仓库。</p>
+<p>5 首先去到刚创建好的 wiki 仓库 <code>https://github.com/yourname/your-wiki</code></p>
+<p>6 点击设置，往下拉到 <strong>GiHub Pages</strong> 配置项，选择 <strong>master</strong> 分支，选择 <strong>/docs</strong> 目录，然后点击 <strong>save</strong> 保存</p>
+<p>7 上面一部之后，再次回到 <strong>Github Pages</strong> 配置项，找到下面的 <strong>Custom domain</strong>，填入你的域名或者 url 地址，比如我直接写了： <code>http://rebootcat.com/wiki</code></p>
+<p>8 不出意外，你就能正常访问了。</p>
+<blockquote>
+<p>上面的前提当然是你已经有了个人博客，也就是已经有了一个命名为 <code>&lt;user&gt;.github.io</code> 的仓库了，不然是不会成功了，你要先创建一个这样的仓库。</p>
+</blockquote>
+<h2 id="编写wiki，更新-wiki"><a href="#编写wiki，更新-wiki" class="headerlink" title="编写wiki，更新 wiki"></a>编写wiki，更新 wiki</h2><p>上面如果顺利的话，你能看到和我的 wiki 一样的内容：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/1.png" alt=""></p>
+<p>那么如何编写你自己的 wiki 文章呢？</p>
+<p>我们回到本地的 wiki 仓库：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> wiki</span><br></pre></td></tr></table></figure>
+
+<p>注意，我的文档都放在了 <strong>source</strong> 目录下：</p>
+<figure class="highlight dos"><table><tr><td class="code"><pre><span class="line">$ ls source</span><br><span class="line">git.<span class="built_in">md</span>    index.<span class="built_in">md</span>  other.<span class="built_in">md</span>  python.<span class="built_in">md</span> rsync.<span class="built_in">md</span></span><br></pre></td></tr></table></figure>
+
+<p>所以你只需要删除我的 Markdown文档，把你的 Markdown 文档放到该目录，然后执行：</p>
+<figure class="highlight clean"><table><tr><td class="code"><pre><span class="line">$ python run.py</span><br><span class="line">warning: found not support file type:.DS_Store</span><br><span class="line">############### begin dump mkdocs.yml ###############</span><br><span class="line">copyright: <span class="string">"Copyright \xA9 2020-2020 smaug"</span></span><br><span class="line">docs_dir: source</span><br><span class="line">extra:</span><br><span class="line">  article_nav_bottom: true</span><br><span class="line">  history_buttons: true</span><br><span class="line">  version: v1<span class="number">.0</span><span class="number">.4</span></span><br><span class="line">markdown_extensions:</span><br><span class="line">- admonition</span><br><span class="line">nav:</span><br><span class="line">- Home: index.md</span><br><span class="line">- python: python.md</span><br><span class="line">- rsync: rsync.md</span><br><span class="line">- git: git.md</span><br><span class="line">- <span class="string">"\u5176\u4ED6"</span>: other.md</span><br><span class="line">repo_url: https:<span class="comment">//github.com/smaugx/wiki</span></span><br><span class="line">site_author: smaugx</span><br><span class="line">site_description: <span class="string">"My Wiki | \u6797\u5915\u6C34\u5171"</span></span><br><span class="line">site_dir: docs</span><br><span class="line">site_name: <span class="string">"My Wiki | \u6797\u5915\u6C34\u5171"</span></span><br><span class="line">site_url: http:<span class="comment">//rebootcat.com/wiki</span></span><br><span class="line">theme:</span><br><span class="line">  custom_dir: mkdocs_windmill</span><br><span class="line">  include_search_page: true</span><br><span class="line">  name: null</span><br><span class="line">  search_index_only: true</span><br><span class="line">  static_templates:</span><br><span class="line">  - <span class="number">404.</span>html</span><br><span class="line"></span><br><span class="line">############### update mkdocs.yml done ###############</span><br><span class="line"></span><br><span class="line">############### begin mkdocs build ###############</span><br><span class="line">INFO    -  Cleaning site directory</span><br><span class="line">INFO    -  Building documentation to directory: /Users/smaug/centos7/SmaugDemo/wiki/docs</span><br><span class="line">INFO    -  Documentation built <span class="keyword">in</span> <span class="number">0.18</span> seconds</span><br><span class="line">############### mkdocs build done <span class="keyword">in</span> dir:docs ###############</span><br><span class="line"></span><br><span class="line">############### begin git push:git add --all . &amp;&amp; git commit -m <span class="string">"update mkdocs site"</span> &amp;&amp; git push ###############</span><br><span class="line">Counting objects: <span class="number">5</span>, done.</span><br><span class="line">Delta compression using up to <span class="number">4</span> threads.</span><br><span class="line">Compressing objects: <span class="number">100</span>% (<span class="number">5</span>/<span class="number">5</span>), done.</span><br><span class="line">Writing objects: <span class="number">100</span>% (<span class="number">5</span>/<span class="number">5</span>), <span class="number">443</span> bytes | <span class="number">443.00</span> KiB/s, done.</span><br><span class="line">Total <span class="number">5</span> (delta <span class="number">4</span>), reused <span class="number">0</span> (delta <span class="number">0</span>)</span><br><span class="line">remote: Resolving deltas: <span class="number">100</span>% (<span class="number">4</span>/<span class="number">4</span>), completed <span class="keyword">with</span> <span class="number">4</span> local objects.</span><br><span class="line">To github.com:smaugx/wiki.git</span><br><span class="line">   ba3b15e.<span class="number">.4131</span>b86  master -&gt; master</span><br><span class="line">[master <span class="number">4131</span>b86] update mkdocs site</span><br><span class="line"> <span class="number">2</span> files changed, <span class="number">1</span> insertion(+), <span class="number">1</span> deletion(-)</span><br><span class="line">############### git push done ###############</span><br></pre></td></tr></table></figure>
+
+<p>这个脚本的功能是根据 <strong>source</strong> 目录下的 Markdown 文档，更新 yaml 站点配置文件，然后生成站点源码，然后推送站点源码到 github 上。</p>
+<p>如果执行出错，可以自行调试一下，一般问题不大。</p>
+<h1 id="博客首页引导栏添加-维基栏"><a href="#博客首页引导栏添加-维基栏" class="headerlink" title="博客首页引导栏添加 维基栏"></a>博客首页引导栏添加 <code>维基</code>栏</h1><p>这个过程就省略了。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/wiki/3.png" alt=""></p>
+<h1 id="The-End"><a href="#The-End" class="headerlink" title="The End"></a>The End</h1><p>wiki 站点搭建完毕，</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#101;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#108;&#x69;&#110;&#x75;&#120;&#x63;&#x6f;&#100;&#101;&#50;&#110;&#x69;&#x6b;&#105;&#64;&#103;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2020-09-20 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+]]></content>
+      <categories>
+        <category>blog</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>blog</tag>
+        <tag>github</tag>
+        <tag>wiki</tag>
+        <tag>mkdocs</tag>
+      </tags>
+  </entry>
 </search>
