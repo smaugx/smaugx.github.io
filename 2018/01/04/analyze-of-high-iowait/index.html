@@ -33,7 +33,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://rebootcat.com/images/problem.png">
 <meta property="article:published_time" content="2018-01-04T03:23:58.000Z">
-<meta property="article:modified_time" content="2020-04-18T16:29:28.896Z">
+<meta property="article:modified_time" content="2020-09-20T01:29:43.219Z">
 <meta property="article:author" content="Smaug">
 <meta property="article:tag" content="cpu">
 <meta property="article:tag" content="iowait">
@@ -61,15 +61,6 @@
   
 
 
-  <script>
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
 
 
 
@@ -97,7 +88,6 @@
   </style>
 </noscript>
 
-	<script data-ad-client="ca-pub-1980033281129568" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
 </head>
 
@@ -261,7 +251,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:29:43" itemprop="dateModified" datetime="2020-09-20T09:29:43+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -307,12 +297,12 @@
       
         <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！</p>
 <p>这几天好好的写一篇总结！2018年对我来说，很重要！</p>
-<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><p>上一篇文章 <a href="http://rebootcat.com/2017/12/14/instability-of-cpu/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中其实已经大致分析出了问题所在。</p>
+<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><p>上一篇文章 <a href="http://rebootcat.com/2017/12/14/instability-of-cpu/">CPU.IOWAIT 偏高问题</a>中其实已经大致分析出了问题所在。</p>
 <p>文中『Find The Murderer』章节也指出了可能造成 IOWAIT% 偏高的进程，但不够有说服力。故此文尝试进一步的分析造成 IOWAIT% 偏高的原因！</p>
 <p><img src="/images/problem.png" alt=""></p>
 <a id="more"></a>
 
-<h1 id="查找最耗-IOWAIT-的进程"><a href="#查找最耗-IOWAIT-的进程" class="headerlink" title="查找最耗 IOWAIT 的进程"></a>查找最耗 IOWAIT 的进程</h1><p>造成 IOWAIT% 偏高的进程一定也是 I/O 操作比较频繁的进程，<a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中使用了两种方法，第一种是使用 ps 命令查找状态码为 ‘D’ 的进程，这种方式找到的结果不够准确；第二种是使用 iotop 工具，这种方式可能存在的问题是机器内核版本定制过，部分模块可能没有，而 iotop 这个工具要求内核版本相对较高，虽然我做了一点修改，骗过了 iotop，让 iotop 能正常运行，但总之得到的结果可能不够准确。</p>
+<h1 id="查找最耗-IOWAIT-的进程"><a href="#查找最耗-IOWAIT-的进程" class="headerlink" title="查找最耗 IOWAIT 的进程"></a>查找最耗 IOWAIT 的进程</h1><p>造成 IOWAIT% 偏高的进程一定也是 I/O 操作比较频繁的进程，<a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/">CPU.IOWAIT 偏高问题</a>中使用了两种方法，第一种是使用 ps 命令查找状态码为 ‘D’ 的进程，这种方式找到的结果不够准确；第二种是使用 iotop 工具，这种方式可能存在的问题是机器内核版本定制过，部分模块可能没有，而 iotop 这个工具要求内核版本相对较高，虽然我做了一点修改，骗过了 iotop，让 iotop 能正常运行，但总之得到的结果可能不够准确。</p>
 <p>基于以上的分析，有必要用另外的方法。那么如何统计每个进程的 I/O 数呢，进而找到 I/O 数最高的进程？下面是查找过程。</p>
 <p>首先，关闭syslog:</p>
 <figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dmesg -<span class="built_in">c</span></span><br><span class="line">/etc/<span class="keyword">init</span>.d/klogd stop</span><br></pre></td></tr></table></figure>
@@ -343,7 +333,7 @@
 <figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>localhost]# <span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span> sleep <span class="number">1</span>; dmesg -c; done | ./localperl/bin/perl iodump</span><br><span class="line">TASK                   PID      TOTAL       READ      WRITE      DIRTY DEVICES</span><br><span class="line">someproce             <span class="number">1877</span>       <span class="number">7236</span>       <span class="number">5923</span>       <span class="number">1313</span>          <span class="number">0</span> sda3</span><br><span class="line">someproce             <span class="number">1879</span>       <span class="number">7206</span>       <span class="number">5877</span>       <span class="number">1329</span>          <span class="number">0</span> sda3</span><br><span class="line">jbd2/sda3<span class="number">-8</span>           <span class="number">1241</span>        <span class="number">235</span>          <span class="number">0</span>        <span class="number">235</span>          <span class="number">0</span> sda3</span><br><span class="line">kworker/u16:<span class="number">2</span>       <span class="number">949469</span>         <span class="number">84</span>          <span class="number">0</span>         <span class="number">84</span>          <span class="number">0</span> sda3, sda1</span><br><span class="line">jbd2/sda1<span class="number">-8</span>            <span class="number">509</span>         <span class="number">82</span>          <span class="number">0</span>         <span class="number">82</span>          <span class="number">0</span> sda1</span><br><span class="line">edge-speeds-ale    <span class="number">1265169</span>          <span class="number">3</span>          <span class="number">0</span>          <span class="number">3</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">4144</span>          <span class="number">2</span>          <span class="number">0</span>          <span class="number">2</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">1831</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266086</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">curl               <span class="number">1266655</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">curl               <span class="number">1265033</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266089</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent        <span class="number">116709</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">bash               <span class="number">1264583</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda1</span><br><span class="line">falcon-agent          <span class="number">4142</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">wc                 <span class="number">1266083</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent          <span class="number">4150</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br><span class="line">falcon-agent        <span class="number">116710</span>          <span class="number">1</span>          <span class="number">0</span>          <span class="number">1</span>          <span class="number">0</span> sda3</span><br></pre></td></tr></table></figure>
 
 <p>统计结果很明白了，I/O 频繁的进程自然是导致 IOWAIT% 偏高的原因，那么根本原因还是硬件性能不足，磁盘 SSD 性能退化问题。</p>
-<h1 id="告一段落"><a href="#告一段落" class="headerlink" title="告一段落"></a>告一段落</h1><p><a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>以及本篇文章，做了很多关于 I/O、CPU、磁盘的比较细的研究，这些手段和方法值得以后排查其他问题借鉴！</p>
+<h1 id="告一段落"><a href="#告一段落" class="headerlink" title="告一段落"></a>告一段落</h1><p><a href="http://rebootcat.com/2017/12/14/instability-cpu-of-1umachine/">CPU.IOWAIT 偏高问题</a>以及本篇文章，做了很多关于 I/O、CPU、磁盘的比较细的研究，这些手段和方法值得以后排查其他问题借鉴！</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
 <li><a href="https://www.xaprb.com/blog/2009/08/23/how-to-find-per-process-io-statistics-on-linux/" target="_blank" rel="noopener">How to find per-process I/O statistics on Linux</a></li>
 <li><a href="http://www.opensoce.com/2302.html" target="_blank" rel="noopener">linux iowait过高的分析</a></li>
@@ -364,10 +354,10 @@
       <div class="popular-posts-title"><a href="/2017/12/14/instability-of-cpu/" rel="bookmark">CPU.IOWAIT 偏高问题</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" rel="bookmark">nginx 写⽇志对响应速度的影响探究（二）</a></div>
+      <div class="popular-posts-title"><a href="/2018/05/20/analyze_cpu/" rel="bookmark">python采集cpu信息</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="/2018/05/20/analyze_cpu/" rel="bookmark">python采集cpu信息</a></div>
+      <div class="popular-posts-title"><a href="/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" rel="bookmark">nginx 写⽇志对响应速度的影响探究（二）</a></div>
     </li>
     <li class="popular-posts-item">
       <div class="popular-posts-title"><a href="/2018/01/16/using-iostat-dialectically/" rel="bookmark">辩证看待 iostat</a></div>
@@ -534,20 +524,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">77</span>
+        <span class="site-state-item-count">80</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -626,6 +616,12 @@
         <span id="busuanzi_value_site_pv"></span>
       </span>
     </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
 </div>
 
 

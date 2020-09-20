@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+<meta name="google-site-verification" content="IpNgA5aPb7fAewOpvbq-eVkYwuCplcLKol7cG2itN5M" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="对行业现状的一点看法2020 年，新冠肆虐。 最近对于区块链的想法有点消极。简单谈一下。  纵观整个区块链行业，公链项目死了很多，还活着的也在拖着，除了少数明星公链。也许未来的几年之内，这种状况还会持续下去，对于公链项目来说，要么死，要么拖下去再死，要么成为明星。无论哪一条路，都异常难！ 区块链目前能解决的问题范围依然还是比较局限，一方面受限于技术层面，一方面受限于政治层面。技术方面的难点，在于架">
+<meta property="og:type" content="article">
+<meta property="og:title" content="对区块链行业现状的一点看法">
+<meta property="og:url" content="http://rebootcat.com/2020/09/16/think_about_blockchain/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="对行业现状的一点看法2020 年，新冠肆虐。 最近对于区块链的想法有点消极。简单谈一下。  纵观整个区块链行业，公链项目死了很多，还活着的也在拖着，除了少数明星公链。也许未来的几年之内，这种状况还会持续下去，对于公链项目来说，要么死，要么拖下去再死，要么成为明星。无论哪一条路，都异常难！ 区块链目前能解决的问题范围依然还是比较局限，一方面受限于技术层面，一方面受限于政治层面。技术方面的难点，在于架">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/think_about_blockchain/1.png">
+<meta property="article:published_time" content="2020-09-16T12:23:58.000Z">
+<meta property="article:modified_time" content="2020-09-16T12:16:26.361Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="blockchain">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/think_about_blockchain/1.png">
+
+<link rel="canonical" href="http://rebootcat.com/2020/09/16/think_about_blockchain/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>对区块链行业现状的一点看法 | 林夕水共</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+        <li class="menu-item menu-item-wiki">
+
+    <a href="/wiki/" rel="section"><i class="fa fa-fw fa-wikipedia-w"></i>维基</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/09/16/think_about_blockchain/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          对区块链行业现状的一点看法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-09-16 20:23:58 / 修改时间：20:16:26" itemprop="dateCreated datePublished" datetime="2020-09-16T20:23:58+08:00">2020-09-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/16/think_about_blockchain/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/16/think_about_blockchain/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="对行业现状的一点看法"><a href="#对行业现状的一点看法" class="headerlink" title="对行业现状的一点看法"></a>对行业现状的一点看法</h1><p>2020 年，新冠肆虐。</p>
+<p>最近对于区块链的想法有点消极。简单谈一下。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/think_about_blockchain/1.png" alt=""></p>
+<p>纵观整个区块链行业，公链项目死了很多，还活着的也在拖着，除了少数明星公链。也许未来的几年之内，这种状况还会持续下去，对于公链项目来说，要么死，要么拖下去再死，要么成为明星。无论哪一条路，都异常难！</p>
+<p>区块链目前能解决的问题范围依然还是比较局限，一方面受限于技术层面，一方面受限于政治层面。技术方面的难点，在于架构，在于算法设计，在于安全，在于通信。</p>
+<p>架构上目前行业普遍追求可扩展的架构，这样的目的在于提高 TPS，为未来可能存在的真实大量业务提供服务，当然必然为此牺牲去中心化属性，牺牲安全属性，抉择就在于追求什么目标？从比特币到以太坊，再到 EOS，再到各种分片的公链，可以理解为逐步为了高 TPS 改良，因为比特币的交易速度实在是太慢了，为此我们势必要有一条满足我们交易需求的公链，至于这个交易频率需要多快，也许可以对标中心化得出答案。</p>
+<p>比如 visa 的 TPS 在 1000 ~ 2000，银联在 2000 左右， paypal 600 ~ 1000等等。这里就不得不提出一个疑问，对于公链来说，追求高 TPS 是不是一个伪需求？</p>
+<p>算法层面，为了保证零信任网络内部达成一致共识，会涉及到大量的收发包以及加解密过程，然而至今没有一条公链的共识算法能称得上权威或者标杆，整个行业仍然处于研究阶段，不同的公链之间互相参考学习，然后进行创新以及试验。</p>
+<p>这个过程可能很漫长，需要大量的人才投入贡献。这也就意味着现阶段的公链，至少在共识算法层面，不能达到一个质的飞越。也许在未来，还得依靠其他的手段做改良。</p>
+<a id="more"></a>
+
+<p>安全层面，相较于中心化的系统，基本可以理解为系统是直接暴露在外网上，但是目前来说，中心化的系统里也越来越多出现云系统，一定程度也直接暴露在外网上。除了这点，更为严重的是，公链代码是需要开源的，也就意味着可以随意修改代码进入网络，这对安全提出了很大的要求。另外，公链上直接跑的就是金钱，也就会成为各路黑客的重点攻击对象。从比特币、以太坊，到不知名的公链，均发生过不下一起的安全攻击事件，有的直接分叉，有的直接倒闭，有的币价腰斩，有的让用户、交易所损失惨重。</p>
+<p>通信上，通信层面受限于真实的、不确定的、波动的网络环境，并且由于算法的设计，会带来大量的广播，一条消息进入网络就会变成 n 倍的消息量。也许随着 5G 技术的发展，在通信层面能够彻底解决这些问题，但目前来说，5G 的大规模落地还有很大的不确定性。</p>
+<p>政治层面的局限就太多了，毕竟去中心化金融系统挑战的是集权的中央政府，比特币发展 10 年，好像依然只有少数国家是承认比特币的合法性的，比特币期间还被多次宣布死亡。</p>
+<p>对于区块链来说，真可谓路漫漫其修远兮，未来依然充满了巨大的挑战以及极大的不确定性，不过我们依然也可以说变数中才存在乘风破浪的机会，就看从哪个角度看了。</p>
+<p>另外，区块链的技术圈和炒币圈似乎是割裂开来的，我本身是比较反对这种方式的，炒币的热度远远超过技术本身的热度，毕竟人都是逐利的，由此，一方面会给区块链的技术发展带来一些积极正面的影响和热度，让更多的人认识到区块链，加入到这个区块链的发展中来；但另外一方面，炒币的人似乎也压根不关心技术的东西，他们需要的只是几倍几倍的涨幅，也许项目方随便吹吹牛皮，拉几位 “大佬” 站台，他们就能往里投钱，而压根不关心项目的技术，由此造成了各式各样的骗局，反过来让真的想了解区块链技术，对区块链技术感兴趣的人对此失去兴趣，形成恶性循环。而现在，整个币圈基本是这样！</p>
+<p>这不得不让人反思，区块链到底解决了什么？是否只是沦为资本的工具？还是一直在鼓吹伪命题伪需求？</p>
+<p>前几年，听到最多个一个词就是 “信仰”，对区块链的信仰，对比特币的信仰。但是对于一个技术来说，信仰这个词是不是稍微有点沉重和多余？ 2000年 的互联网技术，可惜无缘参与，不知道当时是否有很多人张口闭口一个 “信仰”，虽然无从得知，但我可以大胆猜测一下，应该是没有这样的现象的。</p>
+<p>很多人把区块链技术和互联网技术做类比，比较两者的发展过程，由此得出一些结论，比如目前区块链行业的状态就是 2000 年的互联网，充满了寒冬、泡沫，但是再看看今天的互联网怎么样呢？由此说明区块链会成为下一个互联网。</p>
+<p>我不否认一定程度上是对的，我们无法预估未来的发展，但是至少我们要对未来充满期待，对未来充满信念，而非 “信仰”。也许这个词多半是币圈流传，用来忽悠新人接盘的。但是把区块链和币圈割裂开来的方式似乎也是不妥，如果没有炒币这波人，也许区块链没有这么高的热度，但是就是这波炒币的人，让区块链行业乌烟瘴气，骗局和圈钱时有发生。所以，”信仰”这个词，真的没必要用在区块链上。区块链也许会改变世界，也许不会，它就是一个技术。</p>
+<p>再回到当前，区块链行业追求的新名词也早已从公链、TPS、分片变成了 filecoin/ipfs、defi,真是瞬息万变。但是最近，也陆陆续续听说很多 defi 维权的新闻，至于 ipfs，沉寂了五六年时间，今年加上激励层filecoin 瞬间成为整个币圈的人都在谈论的明星项目，但是为什么这么火热呢？因为大家都在说这是第二个比特币，错过了比特币的挖矿，不要错过 ipfs 的挖矿。然后各种矿机卖的火热，参与的矿工也越来越多，官方还搞了竞赛，进一步助推了这波热度。</p>
+<p>另外，观察一个现象，ipfs 是国外的项目，但在中国异常火热，这背后是否有一些幕后操手呢？再说 filecoin 主网，竞赛过程中 bug 不断，很明显内部没有经过比较系统的测试就赶鸭子上架的方式宣布即将主网上线，并开启挖矿竞赛。。。被资本裹挟的迹象很重，当然对于项目方来首，错过了这个热度，也许就永远没有机会了。于是不得不被资本裹挟。</p>
+<p>这纯属我个人的阴谋论，不要在意。我想表达的是，区块链越来越沦为资本的工具，区块链从业者如何探索出一条正道迫在眉睫！</p>
+<p>说了很多题外话，简单总结一下就是：</p>
+<ol>
+<li><strong>公链的困境，要么死，要么拖着，再死，要么成为明星，每一条道路都极其艰难</strong>；</li>
+<li><strong>区块链技术还有很多挑战，需要大量的牛逼的人才进入，攻克这些难题</strong>；</li>
+<li><strong>区块链的很多需求和追求也许是毫无意义的</strong>；</li>
+<li><strong>区块链和币圈千丝万缕的联系，让这个行业高光的同时也为这个行业带来了极其严重的负面影响</strong>；</li>
+<li><strong>区块链越来越沦为资本的工具，从业者探索出一条光明正道迫在眉睫</strong>；</li>
+</ol>
+<h1 id="前路何方？"><a href="#前路何方？" class="headerlink" title="前路何方？"></a>前路何方？</h1><p>路漫漫其修远兮，区块链也许能改变世界，也许不能！</p>
+<h1 id="Blog"><a href="#Blog" class="headerlink" title="Blog"></a>Blog</h1><ul>
+<li><a href="http://rebootcat.com">rebootcat.com</a></li>
+<li>email: <a href="mailto:&#x6c;&#x69;&#110;&#117;&#120;&#99;&#x6f;&#100;&#101;&#50;&#x6e;&#x69;&#107;&#105;&#64;&#103;&#x6d;&#x61;&#105;&#108;&#46;&#x63;&#x6f;&#x6d;">&#x6c;&#x69;&#110;&#117;&#120;&#99;&#x6f;&#100;&#101;&#50;&#x6e;&#x69;&#107;&#105;&#64;&#103;&#x6d;&#x61;&#105;&#108;&#46;&#x63;&#x6f;&#x6d;</a></li>
+</ul>
+<p>2020-09-16 于杭州</p>
+<p><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/16/network_attack_of_blockchain_other_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/14/network_attack_of_blockchain_ddos_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/12/network_attack_of_blockchain_eclipse_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/11/network_attack_of_blockchain_51_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之51&#37攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/13/network_attack_of_blockchain_sybil_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://rebootcat.com/2020/09/16/think_about_blockchain/" title="对区块链行业现状的一点看法">http://rebootcat.com/2020/09/16/think_about_blockchain/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/blockchain/" rel="tag"># blockchain</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/02/cmake/" rel="prev" title="cmake教程|cmake入门实战">
+      <i class="fa fa-chevron-left"></i> cmake教程|cmake入门实战
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/19/nextphotowall/" rel="next" title="Hexo Next 博客添加相册瀑布流">
+      Hexo Next 博客添加相册瀑布流 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#对行业现状的一点看法"><span class="nav-number">1.</span> <span class="nav-text">对行业现状的一点看法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#前路何方？"><span class="nav-number">2.</span> <span class="nav-text">前路何方？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Blog"><span class="nav-number">3.</span> <span class="nav-text">Blog</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">80</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://loveyxq.online/" title="http:&#x2F;&#x2F;loveyxq.online&#x2F;" rel="noopener" target="_blank">子不语</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'd5vhXhrHKkiBVVpR1WJJLgQP-gzGzoHsz',
+      appKey     : 'BRzIFYxjcm34z68pyNalDPtw',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

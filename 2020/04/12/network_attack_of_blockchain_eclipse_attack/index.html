@@ -60,15 +60,6 @@
   
 
 
-  <script>
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
 
 
 
@@ -96,7 +87,6 @@
   </style>
 </noscript>
 
-	<script data-ad-client="ca-pub-1980033281129568" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
 </head>
 
@@ -309,11 +299,11 @@
 <p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
 <p>同系列：</p>
 <ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
 </ul>
 <h1 id="日蚀攻击（Eclipse-Attack"><a href="#日蚀攻击（Eclipse-Attack" class="headerlink" title="日蚀攻击（Eclipse Attack)"></a>日蚀攻击（Eclipse Attack)</h1><h2 id="P2P-网络"><a href="#P2P-网络" class="headerlink" title="P2P 网络"></a>P2P 网络</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>在介绍什么是日蚀攻击之前，有必要先对区块链系统的底层 P2P 网络做一个简单的介绍，因为日蚀攻击就是利用了 P2P 网络的特性来进行的攻击。</p>
 <p>P2P 即 Peer to Peer，中文意思是对等网络，它是分布式系统和计算机网络相结合的产物。对等的意思就是网络中的节点角色、地位是平等的，任何节点具有极强的自由，可以任意加入、离开网络。这跟传统的 C/S 模型的结构有很大区别，任何节点既是 client ，也是 server，或者说网络中没有 server 节点，任何节点 down 掉不会对整个网络产生致命的影响，具有极强的伸缩性。</p>
@@ -350,7 +340,7 @@
 </ul>
 <p>上面的几点其实比较好理解的，受害节点被恶意节点包围之后，恶意节点可以选择性的给受害节点发包或者篡改真实的数据包，本质上就是让这个节点误以为自己还在这个网络中挖矿，然而真实情况是它已经从网络中隔离开来了。</p>
 <p>如果受害节点很多的情况，从整个网络全局来看就是被隔离成多个部分，网络实际上已经被分裂了。那么就可以实施分裂网络的 51%攻击，只需要用比原来 51%攻击更少的算力就行。</p>
-<p>关于 51%攻击可以查看这篇博文 <a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a>。</p>
+<p>关于 51%攻击可以查看这篇博文 <a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a>。</p>
 <h2 id="如何发起日蚀攻击"><a href="#如何发起日蚀攻击" class="headerlink" title="如何发起日蚀攻击"></a>如何发起日蚀攻击</h2><p>由于每种区块链底层的 P2P 网络模型可能不一样，所以就以以太坊为例来做说明。</p>
 <h3 id="以太坊-kademlia网络原理"><a href="#以太坊-kademlia网络原理" class="headerlink" title="以太坊 kademlia网络原理"></a>以太坊 kademlia网络原理</h3><p>以太坊底层的 P2P 网络采用的是 kademlia 算法，kademlia 网络是一种结构化的 P2P 网络，网络中的节点按照一定的规则组织在一起。</p>
 <p><strong>kademlia 算法中的核心特点是用异或来定义两个节点的距离，这种距离与实际的物理距离没有任何关系</strong>。</p>
@@ -390,9 +380,9 @@
 <p>而对于比特币来说，由于比特币的 P2P 网络采用的是无结构的模型，节点之间以随机，松散的方式进行组织。想要通过类似以太坊日蚀攻击的方法去攻击比特币网络，不太行得通，因为比特币节点不关心你的 NodeID。但是还是有办法迫使比特币节点只与恶意节点建立连接的。</p>
 <p>Blog:</p>
 <ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#x69;&#110;&#117;&#120;&#99;&#111;&#x64;&#101;&#50;&#110;&#x69;&#107;&#x69;&#x40;&#x67;&#109;&#97;&#x69;&#108;&#46;&#99;&#111;&#x6d;">&#x6c;&#x69;&#110;&#117;&#120;&#99;&#111;&#x64;&#101;&#50;&#110;&#x69;&#107;&#x69;&#x40;&#x67;&#109;&#97;&#x69;&#108;&#46;&#99;&#111;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#x75;&#120;&#99;&#111;&#100;&#x65;&#50;&#110;&#105;&#x6b;&#105;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#46;&#99;&#111;&#109;">&#108;&#105;&#x6e;&#x75;&#120;&#99;&#111;&#100;&#x65;&#50;&#110;&#105;&#x6b;&#105;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#46;&#99;&#111;&#109;</a></p>
 </li>
 </ul>
 <p>2020-04-12 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -406,16 +396,19 @@
   <div class="popular-posts-header">相关文章</div>
   <ul class="popular-posts">
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="/2020/04/11/network_attack_of_blockchain_51_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之51&#37攻击</a></div>
+      <div class="popular-posts-title"><a href="/2020/04/16/network_attack_of_blockchain_other_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></div>
     </li>
     <li class="popular-posts-item">
       <div class="popular-posts-title"><a href="/2020/04/14/network_attack_of_blockchain_ddos_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></div>
     </li>
     <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/04/11/network_attack_of_blockchain_51_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之51&#37攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
       <div class="popular-posts-title"><a href="/2020/04/13/network_attack_of_blockchain_sybil_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="/2020/04/16/network_attack_of_blockchain_other_attack/" rel="bookmark">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></div>
+      <div class="popular-posts-title"><a href="/2020/09/16/think_about_blockchain/" rel="bookmark">对区块链行业现状的一点看法</a></div>
     </li>
   </ul>
 
@@ -576,20 +569,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">77</span>
+        <span class="site-state-item-count">80</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -668,6 +661,12 @@
         <span id="busuanzi_value_site_pv"></span>
       </span>
     </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
 </div>
 
 

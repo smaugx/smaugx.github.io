@@ -36,12 +36,12 @@
 <meta property="og:image" content="http://rebootcat.com/images/32k.png">
 <meta property="og:image" content="http://rebootcat.com/images/64_128k.png">
 <meta property="article:published_time" content="2018-01-04T08:23:58.000Z">
-<meta property="article:modified_time" content="2020-04-18T16:29:28.890Z">
+<meta property="article:modified_time" content="2020-09-20T01:39:18.600Z">
 <meta property="article:author" content="Smaug">
 <meta property="article:tag" content="cpu">
-<meta property="article:tag" content="nginx">
 <meta property="article:tag" content="wrk">
 <meta property="article:tag" content="ab">
+<meta property="article:tag" content="nginx">
 <meta property="article:tag" content="lua">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://rebootcat.com/images/requesttimebodong.png">
@@ -63,15 +63,6 @@
   
 
 
-  <script>
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
 
 
 
@@ -99,7 +90,6 @@
   </style>
 </noscript>
 
-	<script data-ad-client="ca-pub-1980033281129568" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
 </head>
 
@@ -263,7 +253,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:39:18" itemprop="dateModified" datetime="2020-09-20T09:39:18+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -271,15 +261,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/nginx/lua/" itemprop="url" rel="index"><span itemprop="name">lua</span></a>
+                  <a href="/categories/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
                 </span>
             </span>
 
@@ -315,7 +297,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《<a href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" target="_blank" rel="noopener">nginx写日志对于响应速度的影响探究（一）</a>》中其实提出了两个问题还有待研究：</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《<a href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">nginx写日志对于响应速度的影响探究（一）</a>》中其实提出了两个问题还有待研究：</p>
 <ul>
 <li>log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ?</li>
 <li>request time 成周期性波动，周期为 60s，即大概每 60s request time 会出现一个突峰，如下图。so why ？<br><img src="/images/requesttimebodong.png" alt=""></li>
@@ -387,10 +369,10 @@
       <div class="popular-posts-title"><a href="/2018/01/04/analyze-of-high-iowait/" rel="bookmark">CPU.IOWAIT 偏高问题《二》</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="/2017/12/14/instability-of-cpu/" rel="bookmark">CPU.IOWAIT 偏高问题</a></div>
+      <div class="popular-posts-title"><a href="/2018/05/20/analyze_cpu/" rel="bookmark">python采集cpu信息</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="/2018/05/20/analyze_cpu/" rel="bookmark">python采集cpu信息</a></div>
+      <div class="popular-posts-title"><a href="/2017/12/14/instability-of-cpu/" rel="bookmark">CPU.IOWAIT 偏高问题</a></div>
     </li>
   </ul>
 
@@ -459,9 +441,9 @@
       <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/cpu/" rel="tag"># cpu</a>
-              <a href="/tags/nginx/" rel="tag"># nginx</a>
               <a href="/tags/wrk/" rel="tag"># wrk</a>
               <a href="/tags/ab/" rel="tag"># ab</a>
+              <a href="/tags/nginx/" rel="tag"># nginx</a>
               <a href="/tags/lua/" rel="tag"># lua</a>
           </div>
 
@@ -553,20 +535,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">77</span>
+        <span class="site-state-item-count">80</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -645,6 +627,12 @@
         <span id="busuanzi_value_site_pv"></span>
       </span>
     </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
 </div>
 
 

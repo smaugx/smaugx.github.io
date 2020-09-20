@@ -54,15 +54,6 @@
   
 
 
-  <script>
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
 
 
 
@@ -90,7 +81,6 @@
   </style>
 </noscript>
 
-	<script data-ad-client="ca-pub-1980033281129568" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
 </head>
 
@@ -223,6 +213,213 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/09/19/nextphotowall/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/19/nextphotowall/" class="post-title-link" itemprop="url">Hexo Next 博客添加相册瀑布流</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-19 11:23:58" itemprop="dateCreated datePublished" datetime="2020-09-19T11:23:58+08:00">2020-09-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:28:13" itemprop="dateModified" datetime="2020-09-20T09:28:13+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/19/nextphotowall/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/19/nextphotowall/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>一直没有时间来整理下博客搭建的一些事情，现在补上一篇，给 Hexo Next 博客添加一个相册功能，使用瀑布流的方式。</p>
+<h1 id="原理说明"><a href="#原理说明" class="headerlink" title="原理说明"></a>原理说明</h1><ul>
+<li>使用 github 作为仓库存储图片文件（图床）</li>
+<li>使用 jsdelivr 进行图片 CDN 加速</li>
+</ul>
+<h2 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h2><p>此种方式的优点是免费，不需要购买其他的对象存储产品；并且使用的是 github 作为图床，图片不会丢失。</p>
+<blockquote>
+<p>早期的博文使用的是七牛云的免费存储，结果后来被他们删掉了。。。结果造成文中的一些图片链接都是 404，有兴趣的可以翻一翻我早期的博客。</p>
+</blockquote>
+<h2 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h2><p>由于采用的是 github 仓库存储图片，但是 github 对单仓库有 50MB 的大小限制，所以单仓库可能不能够存储太多的文件；</p>
+<p>解决方法就是建立很多的图片仓库（稍微有点费劲，不过是行得通的）；另外上传的单张图片大小最好不要太大。</p>
+<p>还有个缺点就是得折腾啊，且看我后文。</p>
+<p>各位可以参考下我的相册瀑布流: <a href="https://rebootcat.com/photos/">摄影</a></p>
+<h1 id="开始搭建相册瀑布流"><a href="#开始搭建相册瀑布流" class="headerlink" title="开始搭建相册瀑布流"></a>开始搭建相册瀑布流</h1><p>开始之前，需要简单介绍一下，我参考的是 <a href="https://blog.dlzhang.com/posts/31/" target="_blank" rel="noopener">Hexo NexT 博客增加瀑布流相册页面</a> 这篇文章，文中涉及到的脚本主要都是 js 实现；与他不同的是，由于我对 js 的掌握远远不及我对 Python 的掌握，故部分脚本我采用了 Python 实现。</p>
+<p>所以在开始操作之前，你可以根据自己的技能，选择不同的方式。如果你擅长 python，那么跟着我来吧。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/nextphotowall/1.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/19/nextphotowall/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/09/16/think_about_blockchain/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/16/think_about_blockchain/" class="post-title-link" itemprop="url">对区块链行业现状的一点看法</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-09-16 20:23:58 / 修改时间：20:16:26" itemprop="dateCreated datePublished" datetime="2020-09-16T20:23:58+08:00">2020-09-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/16/think_about_blockchain/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/16/think_about_blockchain/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="对行业现状的一点看法"><a href="#对行业现状的一点看法" class="headerlink" title="对行业现状的一点看法"></a>对行业现状的一点看法</h1><p>2020 年，新冠肆虐。</p>
+<p>最近对于区块链的想法有点消极。简单谈一下。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/think_about_blockchain/1.png" alt=""></p>
+<p>纵观整个区块链行业，公链项目死了很多，还活着的也在拖着，除了少数明星公链。也许未来的几年之内，这种状况还会持续下去，对于公链项目来说，要么死，要么拖下去再死，要么成为明星。无论哪一条路，都异常难！</p>
+<p>区块链目前能解决的问题范围依然还是比较局限，一方面受限于技术层面，一方面受限于政治层面。技术方面的难点，在于架构，在于算法设计，在于安全，在于通信。</p>
+<p>架构上目前行业普遍追求可扩展的架构，这样的目的在于提高 TPS，为未来可能存在的真实大量业务提供服务，当然必然为此牺牲去中心化属性，牺牲安全属性，抉择就在于追求什么目标？从比特币到以太坊，再到 EOS，再到各种分片的公链，可以理解为逐步为了高 TPS 改良，因为比特币的交易速度实在是太慢了，为此我们势必要有一条满足我们交易需求的公链，至于这个交易频率需要多快，也许可以对标中心化得出答案。</p>
+<p>比如 visa 的 TPS 在 1000 ~ 2000，银联在 2000 左右， paypal 600 ~ 1000等等。这里就不得不提出一个疑问，对于公链来说，追求高 TPS 是不是一个伪需求？</p>
+<p>算法层面，为了保证零信任网络内部达成一致共识，会涉及到大量的收发包以及加解密过程，然而至今没有一条公链的共识算法能称得上权威或者标杆，整个行业仍然处于研究阶段，不同的公链之间互相参考学习，然后进行创新以及试验。</p>
+<p>这个过程可能很漫长，需要大量的人才投入贡献。这也就意味着现阶段的公链，至少在共识算法层面，不能达到一个质的飞越。也许在未来，还得依靠其他的手段做改良。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/16/think_about_blockchain/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/09/02/cmake/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -293,7 +490,7 @@
       
           <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？</p>
 <p>对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建呢？</p>
-<p>答案是有的，上一篇博文 <a href="http://rebootcat.com/2020/08/30/scons/" target="_blank" rel="noopener">scons构建C++项目</a> 介绍了 使用 scons 来构建 C++ 项目，大大提高了编写构建脚本的效率，使用起来也极为方便，对于熟悉 python 的童鞋来说真的是大大的福音；但 scons 的问题就是在大型项目的时候构建起来可能会很慢（听说的）。那么有没有其他的工具呢？</p>
+<p>答案是有的，上一篇博文 <a href="http://rebootcat.com/2020/08/30/scons/">scons构建C++项目</a> 介绍了 使用 scons 来构建 C++ 项目，大大提高了编写构建脚本的效率，使用起来也极为方便，对于熟悉 python 的童鞋来说真的是大大的福音；但 scons 的问题就是在大型项目的时候构建起来可能会很慢（听说的）。那么有没有其他的工具呢？</p>
 <p>当然有，cmake 就是这样的一个工具，既能满足跨平台的编译，并且屏蔽了 Makefile 蛋疼的语法，使用一种更加简单的语法编写构建脚本，用在大型项目也毫无压力。</p>
 <p>当然，对于我个人来说，cmake 的使用还是有门槛的，刚接触 cmake 可能还是会被它的语法搞的头疼（cmake 的语法也还是挺折腾的）。但是别急，沉下心来，本篇博文就带你从 cmake 入门到编写一个复杂工程的实战。</p>
 <h1 id="CMake"><a href="#CMake" class="headerlink" title="CMake"></a>CMake</h1><h2 id="什么是-cmake"><a href="#什么是-cmake" class="headerlink" title="什么是 cmake"></a>什么是 cmake</h2><p>这里直接引用官网的解释：</p>
@@ -726,11 +923,11 @@
 <p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
 <p>同系列：</p>
 <ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a> </li>
 </ul>
 <h1 id="异形攻击"><a href="#异形攻击" class="headerlink" title="异形攻击"></a>异形攻击</h1><p>异形攻击又称地址污染攻击，是指诱使同类链的节点之间互相发现、互联、侵入的一种攻击手法。同类链的意思是底层 P2P 网络使用了相同或者相似的 P2P 通信协议。这尤其针对比特币和以太坊系列的公链。</p>
 <p>众所周知，最近几年区块链行业蓬勃发展，又过于浮躁。其中很多劣质公链大量 COPY 以太坊、比特币的源码，甚至不做修改，仅仅修改下名字成为一条新的公链，这就导致大量的公链的底层是相同的或者兼容的。</p>
@@ -838,11 +1035,11 @@
 <p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
 <p>同系列：</p>
 <ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
 </ul>
 <h1 id="拒绝服务攻击（Denial-of-Service-Attack"><a href="#拒绝服务攻击（Denial-of-Service-Attack" class="headerlink" title="拒绝服务攻击（Denial of Service Attack)"></a>拒绝服务攻击（Denial of Service Attack)</h1><h1 id="分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack"><a href="#分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack" class="headerlink" title="分布式拒绝服务攻击（Distributed Denial of Service Attack)"></a>分布式拒绝服务攻击（Distributed Denial of Service Attack)</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>信息安全的三要素——“保密性”、“完整性”和“可用性”中，拒绝服务攻击，针对的目标正是“可用性”。该攻击方式利用目标系统网络服务功能缺陷或者直接消耗其系统资源，使得该目标系统无法提供正常的服务。</p>
 <p>拒绝服务攻击（DoS) 问题一直得不到合理的解决，目前还是世界性难题，究其原因是因为这是由于网络协议本身的安全缺陷造成的，从而拒绝服务攻击也成为了攻击者的终极手法。攻击者进行拒绝服务攻击，实际上让服务器实现两种效果：一是迫使服务器的缓冲区满，不接收新的请求；二是使用IP欺骗，迫使服务器把合法用户的连接复位，影响合法用户的连接。</p>
@@ -948,11 +1145,11 @@
 <p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
 <p>同系列：</p>
 <ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
 </ul>
 <h1 id="女巫攻击（Sybil-Attack）"><a href="#女巫攻击（Sybil-Attack）" class="headerlink" title="女巫攻击（Sybil Attack）"></a>女巫攻击（Sybil Attack）</h1><h2 id="什么是女巫攻击"><a href="#什么是女巫攻击" class="headerlink" title="什么是女巫攻击"></a>什么是女巫攻击</h2><p>“女巫”这个词我们应该不陌生，通常指邪恶的化身，并且拥有可怕的魔法。</p>
 <p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_sybil_attack/1.png" alt=""></p>
@@ -1055,11 +1252,11 @@
 <p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
 <p>同系列：</p>
 <ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
 </ul>
 <h1 id="日蚀攻击（Eclipse-Attack"><a href="#日蚀攻击（Eclipse-Attack" class="headerlink" title="日蚀攻击（Eclipse Attack)"></a>日蚀攻击（Eclipse Attack)</h1><h2 id="P2P-网络"><a href="#P2P-网络" class="headerlink" title="P2P 网络"></a>P2P 网络</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>在介绍什么是日蚀攻击之前，有必要先对区块链系统的底层 P2P 网络做一个简单的介绍，因为日蚀攻击就是利用了 P2P 网络的特性来进行的攻击。</p>
 <p>P2P 即 Peer to Peer，中文意思是对等网络，它是分布式系统和计算机网络相结合的产物。对等的意思就是网络中的节点角色、地位是平等的，任何节点具有极强的自由，可以任意加入、离开网络。这跟传统的 C/S 模型的结构有很大区别，任何节点既是 client ，也是 server，或者说网络中没有 server 节点，任何节点 down 掉不会对整个网络产生致命的影响，具有极强的伸缩性。</p>
@@ -1079,229 +1276,6 @@
             </div>
           <!--/noindex-->
         
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/11/network_attack_of_blockchain_51_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之51&#37攻击</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-04-11 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-11T11:23:58+08:00">2020-04-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-22 22:52:46" itemprop="dateModified" datetime="2020-04-22T22:52:46+08:00">2020-04-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/11/network_attack_of_blockchain_51_attack/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/11/network_attack_of_blockchain_51_attack/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
-<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
-<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
-<p>同系列：</p>
-<ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/" target="_blank" rel="noopener">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
-</ul>
-<h1 id="51-攻击"><a href="#51-攻击" class="headerlink" title="51%攻击"></a>51%攻击</h1><p>在了解什么是 51%攻击前，先简单科普下区块链的几个概念，这里主要以比特币为例作说明。</p>
-<h2 id="什么是挖矿？"><a href="#什么是挖矿？" class="headerlink" title="什么是挖矿？"></a>什么是挖矿？</h2><p>其实挖矿这个词描述得有点太过于形象了，以至于弄得反而很生涩。当然区块链世界里还有很多玩概念的东西，背后道理其实反而没那么复杂。</p>
-<p>在比特币网络里，大家共同在维护一张账目表，参与记账的节点可以称之为矿工，其中矿工需要做的事情就是拼命竞争记账的权利，这个竞争记账权的过程可以称之为挖矿，当一个节点得到这个记账权之后，可以描述为这个节点挖到矿了。那么节点为什么会拼命的竞争这个记账权呢？因为比特币会对挖到矿的节点有奖励。这个奖励是基于区块高度的，最开始是每个区块奖励 50btc，每产生 210000 个区块为一个减半间隔，减半间隔之后奖励会减半。比如目前（2020.04）区块奖励是 12.5btc。</p>
-<p>上面这段话里面有两个点需要解释：</p>
-<ol>
-<li><strong>为什么节点要竞争这个记账权</strong>？</li>
-<li><strong>区块高度又是什么</strong>？</li>
-</ol>
-<p>针对第一个问题，如果用比较白话的方式讲的话就是，在分布式去信任的系统中，由于有激励的存在，大家都想拿到这个记账权，但是这个记账权在同一时刻（这里用词不一定表示某一刻，更多的形容相对的同一时刻）只允许其中一个节点拿到，并且由这个节点对交易进行记录。这样才能保证这张账本是唯一的，大家看到的是一样的账本。不然大家都来记账的话，这张账本就乱了，这就是称之为 ”共识“ 的由来。</p>
-<p>针对第二个问题，很好理解，区块高度或者说时钟高度，其实是用来描述一个区块的序号的，从创世区块 0 开始依次递增。不用过分纠结，本身是一个很简单的东西，或者叫区块序号更容易理解【手动滑稽】,可以看一下下图：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_51_attack/1.png" alt=""></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/04/11/network_attack_of_blockchain_51_attack/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2018/05/21/analyze_bandwidth/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/05/21/analyze_bandwidth/" class="post-title-link" itemprop="url">python采集bandwidth信息</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-05-21 11:23:58" itemprop="dateCreated datePublished" datetime="2018-05-21T11:23:58+08:00">2018-05-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-08-24 23:20:59" itemprop="dateModified" datetime="2020-08-24T23:20:59+08:00">2020-08-24</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2018/05/21/analyze_bandwidth/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2018/05/21/analyze_bandwidth/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="python脚本采集bandwidth"><a href="#python脚本采集bandwidth" class="headerlink" title="python脚本采集bandwidth"></a>python脚本采集bandwidth</h1><p>经常要做一些 linux 系统上的性能分析或者采集 cpu/mem/bandwidth 上报到监控系统。</p>
-<p>分享一个我平常常用到的 bandwidth 采集脚本，原理是分析 /proc/net/dev 文件， 脚本如下：</p>
-<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment">#-*- coding:utf-8 -*-</span></span><br><span class="line"><span class="comment">#脚本探测网卡流入带宽,循环输出</span></span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import time</span><br><span class="line">import pdb</span><br><span class="line"></span><br><span class="line">filename = './bandwidth.log'</span><br><span class="line"></span><br><span class="line">'''</span><br><span class="line">[root@~]$ cat /proc/net/dev</span><br><span class="line">Inter-|   Receive                                                |  Transmit</span><br><span class="line"> face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed</span><br><span class="line">    lo:<span class="number"> 1144779885672 </span>14057281982   <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 0 </span>1144779885672<span class="number"> 14057281982 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">  eth0:      <span class="number"> 0 </span>     <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 0 </span>      <span class="number"> 0 </span>     <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">  eth1:      <span class="number"> 0 </span>     <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 0 </span>      <span class="number"> 0 </span>     <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">  eth2:<span class="number"> 26686495240 </span>203608963   <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 1 </span>78529414436<span class="number"> 193724479 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">  eth3:<span class="number"> 10038847365 </span>82467612   <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 0 </span>26209215795<span class="number"> 64571217 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line"> bond0:<span class="number"> 36725342605 </span>286076575   <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 1 </span>104738630231<span class="number"> 258295696 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">'''</span><br><span class="line"></span><br><span class="line">def get_rx(interface = 'eth0'):</span><br><span class="line">  rsbytes = []</span><br><span class="line">  cmd = 'cat /proc/net/dev'</span><br><span class="line">  r = os.popen(cmd).readlines()</span><br><span class="line">  if len(r) &lt; 4:</span><br><span class="line">    print "error: can't find eth interface"</span><br><span class="line">    return rsbytes</span><br><span class="line">  interface_dict = &#123;&#125;</span><br><span class="line">  for i in xrange(2,len(r),1): <span class="comment">#从 lo 开始</span></span><br><span class="line">    interface_name = r[i].split()[0].split(':')[0]</span><br><span class="line">    interface_dict[interface_name] = i</span><br><span class="line"></span><br><span class="line">  if interface in interface_dict:</span><br><span class="line">    position = interface_dict.get(interface)</span><br><span class="line">    recvbytes = r[position].split()[1]</span><br><span class="line">    sendbytes = r[position].split()[9]</span><br><span class="line">    rsbytes.append(int(recvbytes))</span><br><span class="line">    rsbytes.append(int(sendbytes))</span><br><span class="line"></span><br><span class="line">  return rsbytes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def iftop_interface(interface = 'eth0'):</span><br><span class="line">  begin = int(time.time())</span><br><span class="line">  beginrs = get_rx(interface)</span><br><span class="line">  if not beginrs:</span><br><span class="line">    print 'error: can not find interface %s' % interface</span><br><span class="line">    return</span><br><span class="line">  while True:</span><br><span class="line">    time.sleep(2)</span><br><span class="line">    endrs = get_rx(interface)</span><br><span class="line">    end = int(time.time())</span><br><span class="line">    rxrate = float((endrs[0] - beginrs[0])) / (end - begin)  * 8</span><br><span class="line">    sxrate = float((endrs[1] - beginrs[1])) / (end - begin)  * 8</span><br><span class="line">    tl = time.localtime(end)</span><br><span class="line">    date = time.strftime('%m-%d %H:%M:%S', tl)</span><br><span class="line">    cout = "%s  [recv(rate) = %s Mbps] [send(rate) = %s Mbps] \n" % (date,rxrate / 1000000,sxrate / 1000000)</span><br><span class="line"></span><br><span class="line">    fout = open(filename,'a')</span><br><span class="line">    fout.write(cout)</span><br><span class="line">    fout.close()</span><br><span class="line"></span><br><span class="line">    print cout</span><br><span class="line"></span><br><span class="line">    <span class="comment">#重新赋值，进入再次循环</span></span><br><span class="line">    begin,beginrs = end,endrs</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ == "__main__":</span><br><span class="line">  iftop_interface('ens33')</span><br></pre></td></tr></table></figure>
-
-<p>默认的网卡名字是 <strong>eth0</strong>，有些机器可能会不一样，只需要修改成你自己机器的网卡名称就行。</p>
-<p>脚本可以直接在 <a href="https://github.com/smaugx/dailytools/blob/master/netif.py" target="_blank" rel="noopener">我的github</a> 进行下载。</p>
-<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>欢迎关注下我的其他脚本，平常可能会用到的一些脚本，整理了一下。</p>
-<p><a href="https://github.com/smaugx/dailytools" target="_blank" rel="noopener">https://github.com/smaugx/dailytools</a></p>
-<p>Blog:</p>
-<ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
-</li>
-<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#117;&#120;&#99;&#x6f;&#x64;&#101;&#50;&#110;&#105;&#x6b;&#105;&#x40;&#103;&#x6d;&#x61;&#105;&#x6c;&#46;&#x63;&#x6f;&#x6d;">&#108;&#x69;&#110;&#117;&#120;&#99;&#x6f;&#x64;&#101;&#50;&#110;&#105;&#x6b;&#105;&#x40;&#103;&#x6d;&#x61;&#105;&#x6c;&#46;&#x63;&#x6f;&#x6d;</a></p>
-</li>
-</ul>
-<p>2018-05-21 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
-
       
     </div>
 
@@ -1387,20 +1361,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">77</span>
+        <span class="site-state-item-count">80</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1479,6 +1453,12 @@
         <span id="busuanzi_value_site_pv"></span>
       </span>
     </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
 </div>
 
 

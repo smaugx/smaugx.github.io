@@ -54,15 +54,6 @@
   
 
 
-  <script>
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
 
 
 
@@ -90,7 +81,6 @@
   </style>
 </noscript>
 
-	<script data-ad-client="ca-pub-1980033281129568" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
 </head>
 
@@ -223,6 +213,225 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/11/network_attack_of_blockchain_51_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之51&#37攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-11 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-11T11:23:58+08:00">2020-04-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-22 22:52:46" itemprop="dateModified" datetime="2020-04-22T22:52:46+08:00">2020-04-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/11/network_attack_of_blockchain_51_attack/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/11/network_attack_of_blockchain_51_attack/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
+</ul>
+<h1 id="51-攻击"><a href="#51-攻击" class="headerlink" title="51%攻击"></a>51%攻击</h1><p>在了解什么是 51%攻击前，先简单科普下区块链的几个概念，这里主要以比特币为例作说明。</p>
+<h2 id="什么是挖矿？"><a href="#什么是挖矿？" class="headerlink" title="什么是挖矿？"></a>什么是挖矿？</h2><p>其实挖矿这个词描述得有点太过于形象了，以至于弄得反而很生涩。当然区块链世界里还有很多玩概念的东西，背后道理其实反而没那么复杂。</p>
+<p>在比特币网络里，大家共同在维护一张账目表，参与记账的节点可以称之为矿工，其中矿工需要做的事情就是拼命竞争记账的权利，这个竞争记账权的过程可以称之为挖矿，当一个节点得到这个记账权之后，可以描述为这个节点挖到矿了。那么节点为什么会拼命的竞争这个记账权呢？因为比特币会对挖到矿的节点有奖励。这个奖励是基于区块高度的，最开始是每个区块奖励 50btc，每产生 210000 个区块为一个减半间隔，减半间隔之后奖励会减半。比如目前（2020.04）区块奖励是 12.5btc。</p>
+<p>上面这段话里面有两个点需要解释：</p>
+<ol>
+<li><strong>为什么节点要竞争这个记账权</strong>？</li>
+<li><strong>区块高度又是什么</strong>？</li>
+</ol>
+<p>针对第一个问题，如果用比较白话的方式讲的话就是，在分布式去信任的系统中，由于有激励的存在，大家都想拿到这个记账权，但是这个记账权在同一时刻（这里用词不一定表示某一刻，更多的形容相对的同一时刻）只允许其中一个节点拿到，并且由这个节点对交易进行记录。这样才能保证这张账本是唯一的，大家看到的是一样的账本。不然大家都来记账的话，这张账本就乱了，这就是称之为 ”共识“ 的由来。</p>
+<p>针对第二个问题，很好理解，区块高度或者说时钟高度，其实是用来描述一个区块的序号的，从创世区块 0 开始依次递增。不用过分纠结，本身是一个很简单的东西，或者叫区块序号更容易理解【手动滑稽】,可以看一下下图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_51_attack/1.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/11/network_attack_of_blockchain_51_attack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2018/05/21/analyze_bandwidth/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/05/21/analyze_bandwidth/" class="post-title-link" itemprop="url">python采集bandwidth信息</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-21 11:23:58" itemprop="dateCreated datePublished" datetime="2018-05-21T11:23:58+08:00">2018-05-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:30:46" itemprop="dateModified" datetime="2020-09-20T09:30:46+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/05/21/analyze_bandwidth/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/05/21/analyze_bandwidth/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="python脚本采集bandwidth"><a href="#python脚本采集bandwidth" class="headerlink" title="python脚本采集bandwidth"></a>python脚本采集bandwidth</h1><p>经常要做一些 linux 系统上的性能分析或者采集 cpu/mem/bandwidth 上报到监控系统。</p>
+<p>分享一个我平常常用到的 bandwidth 采集脚本，原理是分析 /proc/net/dev 文件， 脚本如下：</p>
+<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment">#-*- coding:utf-8 -*-</span></span><br><span class="line"><span class="comment">#脚本探测网卡流入带宽,循环输出</span></span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import time</span><br><span class="line">import pdb</span><br><span class="line"></span><br><span class="line">filename = './bandwidth.log'</span><br><span class="line"></span><br><span class="line">'''</span><br><span class="line">[root@~]$ cat /proc/net/dev</span><br><span class="line">Inter-|   Receive                                                |  Transmit</span><br><span class="line"> face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed</span><br><span class="line">    lo:<span class="number"> 1144779885672 </span>14057281982   <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 0 </span>1144779885672<span class="number"> 14057281982 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">  eth0:      <span class="number"> 0 </span>     <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 0 </span>      <span class="number"> 0 </span>     <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">  eth1:      <span class="number"> 0 </span>     <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 0 </span>      <span class="number"> 0 </span>     <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">  eth2:<span class="number"> 26686495240 </span>203608963   <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 1 </span>78529414436<span class="number"> 193724479 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">  eth3:<span class="number"> 10038847365 </span>82467612   <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 0 </span>26209215795<span class="number"> 64571217 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line"> bond0:<span class="number"> 36725342605 </span>286076575   <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>        <span class="number"> 0 </span>       <span class="number"> 1 </span>104738630231<span class="number"> 258295696 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>  <span class="number"> 0 </span>   <span class="number"> 0 </span>     <span class="number"> 0 </span>         0</span><br><span class="line">'''</span><br><span class="line"></span><br><span class="line">def get_rx(interface = 'eth0'):</span><br><span class="line">  rsbytes = []</span><br><span class="line">  cmd = 'cat /proc/net/dev'</span><br><span class="line">  r = os.popen(cmd).readlines()</span><br><span class="line">  if len(r) &lt; 4:</span><br><span class="line">    print "error: can't find eth interface"</span><br><span class="line">    return rsbytes</span><br><span class="line">  interface_dict = &#123;&#125;</span><br><span class="line">  for i in xrange(2,len(r),1): <span class="comment">#从 lo 开始</span></span><br><span class="line">    interface_name = r[i].split()[0].split(':')[0]</span><br><span class="line">    interface_dict[interface_name] = i</span><br><span class="line"></span><br><span class="line">  if interface in interface_dict:</span><br><span class="line">    position = interface_dict.get(interface)</span><br><span class="line">    recvbytes = r[position].split()[1]</span><br><span class="line">    sendbytes = r[position].split()[9]</span><br><span class="line">    rsbytes.append(int(recvbytes))</span><br><span class="line">    rsbytes.append(int(sendbytes))</span><br><span class="line"></span><br><span class="line">  return rsbytes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def iftop_interface(interface = 'eth0'):</span><br><span class="line">  begin = int(time.time())</span><br><span class="line">  beginrs = get_rx(interface)</span><br><span class="line">  if not beginrs:</span><br><span class="line">    print 'error: can not find interface %s' % interface</span><br><span class="line">    return</span><br><span class="line">  while True:</span><br><span class="line">    time.sleep(2)</span><br><span class="line">    endrs = get_rx(interface)</span><br><span class="line">    end = int(time.time())</span><br><span class="line">    rxrate = float((endrs[0] - beginrs[0])) / (end - begin)  * 8</span><br><span class="line">    sxrate = float((endrs[1] - beginrs[1])) / (end - begin)  * 8</span><br><span class="line">    tl = time.localtime(end)</span><br><span class="line">    date = time.strftime('%m-%d %H:%M:%S', tl)</span><br><span class="line">    cout = "%s  [recv(rate) = %s Mbps] [send(rate) = %s Mbps] \n" % (date,rxrate / 1000000,sxrate / 1000000)</span><br><span class="line"></span><br><span class="line">    fout = open(filename,'a')</span><br><span class="line">    fout.write(cout)</span><br><span class="line">    fout.close()</span><br><span class="line"></span><br><span class="line">    print cout</span><br><span class="line"></span><br><span class="line">    <span class="comment">#重新赋值，进入再次循环</span></span><br><span class="line">    begin,beginrs = end,endrs</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ == "__main__":</span><br><span class="line">  iftop_interface('ens33')</span><br></pre></td></tr></table></figure>
+
+<p>默认的网卡名字是 <strong>eth0</strong>，有些机器可能会不一样，只需要修改成你自己机器的网卡名称就行。</p>
+<p>脚本可以直接在 <a href="https://github.com/smaugx/dailytools/blob/master/netif.py" target="_blank" rel="noopener">我的github</a> 进行下载。</p>
+<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>欢迎关注下我的其他脚本，平常可能会用到的一些脚本，整理了一下。</p>
+<p><a href="https://github.com/smaugx/dailytools" target="_blank" rel="noopener">https://github.com/smaugx/dailytools</a></p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#x65;&#50;&#110;&#x69;&#x6b;&#105;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;">&#108;&#105;&#x6e;&#x75;&#x78;&#99;&#x6f;&#100;&#x65;&#50;&#110;&#x69;&#x6b;&#105;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2018-05-21 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2018/05/20/analyze_cpu/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -254,7 +463,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-08-24 23:21:18" itemprop="dateModified" datetime="2020-08-24T23:21:18+08:00">2020-08-24</time>
+                <time title="修改时间：2020-09-20 09:31:47" itemprop="dateModified" datetime="2020-09-20T09:31:47+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -262,11 +471,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
                 </span>
             </span>
 
@@ -305,9 +510,9 @@
 <p><a href="https://github.com/smaugx/dailytools" target="_blank" rel="noopener">https://github.com/smaugx/dailytools</a></p>
 <p>Blog:</p>
 <ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#x6b;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;">&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#x6b;&#x69;&#x40;&#x67;&#x6d;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
+<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#110;&#105;&#107;&#105;&#x40;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#x6d;">&#x6c;&#105;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#110;&#105;&#107;&#105;&#x40;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#x6d;</a></p>
 </li>
 </ul>
 <p>2018-05-20 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -361,7 +566,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-08-24 23:05:11" itemprop="dateModified" datetime="2020-08-24T23:05:11+08:00">2020-08-24</time>
+                <time title="修改时间：2020-09-20 09:30:13" itemprop="dateModified" datetime="2020-09-20T09:30:13+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -369,11 +574,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
                 </span>
             </span>
 
@@ -413,9 +614,9 @@
 <p><a href="https://github.com/smaugx/dailytools" target="_blank" rel="noopener">https://github.com/smaugx/dailytools</a></p>
 <p>Blog:</p>
 <ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#110;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a></p>
+<li><p>email: <a href="mailto:&#x6c;&#105;&#110;&#117;&#x78;&#99;&#111;&#100;&#x65;&#50;&#x6e;&#x69;&#107;&#x69;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#109;">&#x6c;&#105;&#110;&#117;&#x78;&#99;&#111;&#100;&#x65;&#50;&#x6e;&#x69;&#107;&#x69;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#109;</a></p>
 </li>
 </ul>
 <p>2018-04-15 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -469,7 +670,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:37:41" itemprop="dateModified" datetime="2020-09-20T09:37:41+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -590,7 +791,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:27:34" itemprop="dateModified" datetime="2020-09-20T09:27:34+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -703,7 +904,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:38:01" itemprop="dateModified" datetime="2020-09-20T09:38:01+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -712,10 +913,6 @@
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/%E7%A3%81%E7%9B%98/" itemprop="url" rel="index"><span itemprop="name">磁盘</span></a>
                 </span>
             </span>
 
@@ -812,7 +1009,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:39:59" itemprop="dateModified" datetime="2020-09-20T09:39:59+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -820,15 +1017,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/ios/" itemprop="url" rel="index"><span itemprop="name">ios</span></a>
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
                 </span>
             </span>
 
@@ -925,7 +1114,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:39:18" itemprop="dateModified" datetime="2020-09-20T09:39:18+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -933,15 +1122,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/nginx/lua/" itemprop="url" rel="index"><span itemprop="name">lua</span></a>
+                  <a href="/categories/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
                 </span>
             </span>
 
@@ -970,7 +1151,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《<a href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" target="_blank" rel="noopener">nginx写日志对于响应速度的影响探究（一）</a>》中其实提出了两个问题还有待研究：</p>
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《<a href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">nginx写日志对于响应速度的影响探究（一）</a>》中其实提出了两个问题还有待研究：</p>
 <ul>
 <li>log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ?</li>
 <li>request time 成周期性波动，周期为 60s，即大概每 60s request time 会出现一个突峰，如下图。so why ？<br><img src="/images/requesttimebodong.png" alt=""></li>
@@ -1032,7 +1213,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:29:43" itemprop="dateModified" datetime="2020-09-20T09:29:43+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1071,236 +1252,12 @@
       
           <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！</p>
 <p>这几天好好的写一篇总结！2018年对我来说，很重要！</p>
-<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><p>上一篇文章 <a href="http://rebootcat.com/2017/12/14/instability-of-cpu/" target="_blank" rel="noopener">CPU.IOWAIT 偏高问题</a>中其实已经大致分析出了问题所在。</p>
+<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><p>上一篇文章 <a href="http://rebootcat.com/2017/12/14/instability-of-cpu/">CPU.IOWAIT 偏高问题</a>中其实已经大致分析出了问题所在。</p>
 <p>文中『Find The Murderer』章节也指出了可能造成 IOWAIT% 偏高的进程，但不够有说服力。故此文尝试进一步的分析造成 IOWAIT% 偏高的原因！</p>
 <p><img src="/images/problem.png" alt=""></p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/01/04/analyze-of-high-iowait/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/12/14/instability-of-cpu/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/12/14/instability-of-cpu/" class="post-title-link" itemprop="url">CPU.IOWAIT 偏高问题</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2017-12-14 11:23:58" itemprop="dateCreated datePublished" datetime="2017-12-14T11:23:58+08:00">2017-12-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/open-falcon/" itemprop="url" rel="index"><span itemprop="name">open-falcon</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2017/12/14/instability-of-cpu/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2017/12/14/instability-of-cpu/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>小米监控发现我自己的一台机器的cpu.iowait偏高，波动很严重。</p>
-<p><img src="/images/problem.png" alt=""></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/12/14/instability-of-cpu/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" class="post-title-link" itemprop="url">nginx 写日志对响应速度的影响探究（一）</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2017-12-06 11:23:58" itemprop="dateCreated datePublished" datetime="2017-12-06T11:23:58+08:00">2017-12-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="惯例闲聊"><a href="#惯例闲聊" class="headerlink" title="惯例闲聊"></a>惯例闲聊</h1><p>现在是杭州的冬天，鼻炎让我一直难受，特别不舒服，鼻子快被我拧坏了，最近过的也很糟心，各种烦心事，几乎一周一件烦心事甚至一周好几件烦心事，最近过得感觉很不好！以前我感觉我自己很潇洒，很酷，现在越来越发现我不酷了，连自身形象我都懒得去整理了，胡子一周不想剃，衣服放一周不想洗，头发每天乱糟糟的，几乎每天都不敢去看镜子了。</p>
-<p>真的很不喜欢冬天！不喜欢冷！不喜欢浑浑噩噩！不喜欢越来越没激情！</p>
-<p>这已经是2017年的最后一个月了，回想年初定下的目标，几乎没有一件事达成或满意，一直想学的茶道一直也没去做，茶具也没买，骑车这件大事也慢慢落下了，身体也慢慢垮了，唯一感觉工作本身成长很大，这样下去不行的！</p>
-<p>好了，废话不多说，这篇博文是完完全全的工作内容，所以内容会很技术，很严肃很干货。</p>
-<h1 id="问题提出"><a href="#问题提出" class="headerlink" title="问题提出"></a>问题提出</h1><p>为了精细化提高 nginx(marxxx) 的性能, 现分析写日志对于请求的影响。</p>
-<ul>
-<li>条件</li>
-</ul>
-<ol>
-<li>日志大小为 500 字节</li>
-<li>响应大小  111 字节</li>
-<li>除日志外 nginx 服务不进行任何 io 操作，使用 nginx 语法直接返回响应</li>
-</ol>
-<ul>
-<li>变量</li>
-</ul>
-<ol>
-<li>qps服务压力了决定的磁盘承受的写日志的压力</li>
-<li>request time分布</li>
-<li>nginx log buffer: 分别测试 log buffer 为 4k,  64k, 128k 以及关闭log的情况</li>
-</ol>
-<h1 id="探究结论"><a href="#探究结论" class="headerlink" title="探究结论"></a>探究结论</h1>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1391,20 +1348,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">77</span>
+        <span class="site-state-item-count">80</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1483,6 +1440,12 @@
         <span id="busuanzi_value_site_pv"></span>
       </span>
     </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
 </div>
 
 

@@ -40,7 +40,7 @@
 <meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/daoimages1.png">
 <meta property="og:image" content="http://o8fj2jbwb.bkt.clouddn.com/daoimage2.png">
 <meta property="article:published_time" content="2016-12-21T03:23:58.000Z">
-<meta property="article:modified_time" content="2020-04-18T16:29:28.889Z">
+<meta property="article:modified_time" content="2020-09-20T01:37:07.521Z">
 <meta property="article:author" content="Smaug">
 <meta property="article:tag" content="hexo">
 <meta property="article:tag" content="docker">
@@ -65,15 +65,6 @@
   
 
 
-  <script>
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
 
 
 
@@ -101,7 +92,6 @@
   </style>
 </noscript>
 
-	<script data-ad-client="ca-pub-1980033281129568" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
 </head>
 
@@ -265,7 +255,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:37:07" itemprop="dateModified" datetime="2020-09-20T09:37:07+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -274,10 +264,6 @@
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="/categories/docker/" itemprop="url" rel="index"><span itemprop="name">docker</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
                 </span>
             </span>
 
@@ -315,8 +301,8 @@
       
         <h1 id="前面的话"><a href="#前面的话" class="headerlink" title="前面的话"></a>前面的话</h1><p>前面几篇博客陆续记录了我使用coding仓库备份博客网站源码，以及构建了hexo的docker镜像，也提到了使用daocloud进行自动化构建hexo博客的功能。这篇博文就是记录使用daocloud持续化构建hexo博客的折腾。前面的折腾如下：</p>
 <ul>
-<li><a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端编写博客</a></li>
-<li><a href="http://rebootcat.com/2016/12/20/docker-made-hexoimage/" target="_blank" rel="noopener">使用docker制作hexo镜像</a></li>
+<li><a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/">使用coding私有仓库多终端编写博客</a></li>
+<li><a href="http://rebootcat.com/2016/12/20/docker-made-hexoimage/">使用docker制作hexo镜像</a></li>
 </ul>
 <h1 id="daocloud"><a href="#daocloud" class="headerlink" title="daocloud"></a>daocloud</h1><p>其实我是很喜欢简单粗暴的，直接，爽快，干净，利落。我可以直接记录我搭建的过程，中间可以略去对daocloud的介绍，对碰到的问题的介绍，但是，博客的目的不只是记录啊，更多的还是分享自己碰到的问题，或者自己的理解。所以，对于daocloud的介绍还是打算来一下下。</p>
 <h2 id="什么是daocloud？"><a href="#什么是daocloud？" class="headerlink" title="什么是daocloud？"></a>什么是daocloud？</h2><blockquote>
@@ -331,7 +317,7 @@
 <p>直观的理解就是一个docker容器，只不过被搬到了云上。那么使用daocloud后我发布博客会有什么区别呢？</p>
 <p>原来的方式是写好博客后执行hexo clean  &amp;&amp;hexo d -g一系列的操作手工发布博客，而且必须是在安装好了hexo的环境上执行；<strong>那么使用daocloud之后呢?现在我只需要编写好博客，不用限制在hexo的环境中，在任何环境下，只要有博客源码存在，然后git push到博客源码的仓库，就会触发daocloud的自动集成，博客就发布好了。</strong>是不是方便了很多呢？O(∩_∩)O。</p>
 <h2 id="daocloud与docker"><a href="#daocloud与docker" class="headerlink" title="daocloud与docker"></a>daocloud与docker</h2><p>既然理解了daocloud其实就是一个云容器(当然可能还有其他的部分)，那么与docker就脱不了干系。那么构建的过程原理是如何的呢?</p>
-<p>daocloud使用daocloud.yml文件脚本进行持续构建，daocloud.yml是一系列的命令的集合，自动集成前需要一个docker镜像，这个docker镜像可以是公有的docker镜像，也可以是自己构建的镜像。然后daocloud执行daocloud.yml中一系列的命令就是基于这个镜像，直至最后的博客自动发布。那么如果是自己构建的镜像，如之前的文章<a href="http://rebootcat.com/2016/12/20/docker-made-hexoimage/" target="_blank" rel="noopener">使用docker制作hexo镜像</a>中讲的一样，需要自己编写Dockerfile，然后构建镜像。</p>
+<p>daocloud使用daocloud.yml文件脚本进行持续构建，daocloud.yml是一系列的命令的集合，自动集成前需要一个docker镜像，这个docker镜像可以是公有的docker镜像，也可以是自己构建的镜像。然后daocloud执行daocloud.yml中一系列的命令就是基于这个镜像，直至最后的博客自动发布。那么如果是自己构建的镜像，如之前的文章<a href="http://rebootcat.com/2016/12/20/docker-made-hexoimage/">使用docker制作hexo镜像</a>中讲的一样，需要自己编写Dockerfile，然后构建镜像。</p>
 <p>下面是详细的步骤。</p>
 <h1 id="使用daocloud详细步骤"><a href="#使用daocloud详细步骤" class="headerlink" title="使用daocloud详细步骤"></a>使用daocloud详细步骤</h1><h2 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h2><p>在博客根目录新建Dockerfile,内容如下：</p>
 <figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:slim</span><br><span class="line"><span class="keyword">MAINTAINER</span> nick &lt;linuxcode2niki@gmail.com&gt;</span><br><span class="line"><span class="comment"># instal basic tool </span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apt-get update &amp;&amp; apt-get install -y git ssh-client ca-certificates --no-install-recommends &amp;&amp; rm -r /var/lib/apt/lists/*</span></span><br><span class="line"><span class="comment"># set time zone</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> <span class="string">"Asia/Shanghai"</span> &gt; /etc/timezone &amp;&amp; dpkg-reconfigure -f noninteractive tzdata</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> npm install</span></span><br><span class="line"><span class="comment"># install hexo</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> npm install hexo-cli -g</span></span><br><span class="line"><span class="comment"># install hexo server</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> npm install hexo-server</span></span><br><span class="line"><span class="comment"># set base dir</span></span><br><span class="line"><span class="comment">#RUN mkdir /hexo</span></span><br><span class="line"><span class="comment">#WORKDIR /hexo</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">4000</span></span><br><span class="line"><span class="comment">#CMD ["/bin/bash"]</span></span><br></pre></td></tr></table></figure>
@@ -362,9 +348,9 @@
 <p>到目前为止，博客的环境迁移，自动发布折腾的差不多了，以后就是坚持写博客，记录知识，分享知识。好吧，坚持不容易，加油！</p>
 <p>Blog:</p>
 <ul>
-<li><p><a href="http://rebootcat.com" target="_blank" rel="noopener">rebootcat.com</a></p>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#117;&#x78;&#x63;&#x6f;&#x64;&#101;&#50;&#110;&#105;&#107;&#105;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#x6f;&#x6d;">&#x6c;&#x69;&#x6e;&#117;&#x78;&#x63;&#x6f;&#x64;&#101;&#50;&#110;&#105;&#107;&#105;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#x6f;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#108;&#x69;&#x6e;&#117;&#120;&#x63;&#111;&#x64;&#x65;&#x32;&#x6e;&#x69;&#x6b;&#105;&#64;&#x67;&#109;&#97;&#x69;&#108;&#46;&#x63;&#111;&#x6d;">&#108;&#x69;&#x6e;&#117;&#120;&#x63;&#111;&#x64;&#x65;&#x32;&#x6e;&#x69;&#x6b;&#105;&#64;&#x67;&#109;&#97;&#x69;&#108;&#46;&#x63;&#111;&#x6d;</a></p>
 </li>
 </ul>
 <p>2016-12-21 于杭州<br><em>By  <a href="http://weibo.com/2793607050/profile?topnav=1&wvr=6&is_all=1" target="_blank" rel="noopener">史矛革</a></em></p>
@@ -381,10 +367,10 @@
       <div class="popular-posts-title"><a href="/2016/12/06/daocloud-hexo/" rel="bookmark">daocloud测试</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="/2016/12/01/docker-test/" rel="bookmark">docker-hexo镜像测试</a></div>
+      <div class="popular-posts-title"><a href="/2016/12/20/docker-made-hexoimage/" rel="bookmark">使用docker制作hexo镜像</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="/2016/12/20/docker-made-hexoimage/" rel="bookmark">使用docker制作hexo镜像</a></div>
+      <div class="popular-posts-title"><a href="/2016/12/01/docker-test/" rel="bookmark">docker-hexo镜像测试</a></div>
     </li>
     <li class="popular-posts-item">
       <div class="popular-posts-title"><a href="/2018/02/13/new_picture_bed_github/" rel="bookmark">博客图床切换 Github + jsDelivr + PicGo</a></div>
@@ -551,20 +537,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">77</span>
+        <span class="site-state-item-count">80</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -643,6 +629,12 @@
         <span id="busuanzi_value_site_pv"></span>
       </span>
     </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
 </div>
 
 

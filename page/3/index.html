@@ -54,15 +54,6 @@
   
 
 
-  <script>
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?0ae82ec702c0b02e761cf87eee4a552c";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
 
 
 
@@ -90,7 +81,6 @@
   </style>
 </noscript>
 
-	<script data-ad-client="ca-pub-1980033281129568" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
 </head>
 
@@ -223,6 +213,218 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/12/14/instability-of-cpu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/12/14/instability-of-cpu/" class="post-title-link" itemprop="url">CPU.IOWAIT 偏高问题</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-14 11:23:58" itemprop="dateCreated datePublished" datetime="2017-12-14T11:23:58+08:00">2017-12-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:40:34" itemprop="dateModified" datetime="2020-09-20T09:40:34+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/12/14/instability-of-cpu/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/12/14/instability-of-cpu/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>小米监控发现我自己的一台机器的cpu.iowait偏高，波动很严重。</p>
+<p><img src="/images/problem.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/12/14/instability-of-cpu/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" class="post-title-link" itemprop="url">nginx 写日志对响应速度的影响探究（一）</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-06 11:23:58" itemprop="dateCreated datePublished" datetime="2017-12-06T11:23:58+08:00">2017-12-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:38:59" itemprop="dateModified" datetime="2020-09-20T09:38:59+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/nginx/" itemprop="url" rel="index"><span itemprop="name">nginx</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="惯例闲聊"><a href="#惯例闲聊" class="headerlink" title="惯例闲聊"></a>惯例闲聊</h1><p>现在是杭州的冬天，鼻炎让我一直难受，特别不舒服，鼻子快被我拧坏了，最近过的也很糟心，各种烦心事，几乎一周一件烦心事甚至一周好几件烦心事，最近过得感觉很不好！以前我感觉我自己很潇洒，很酷，现在越来越发现我不酷了，连自身形象我都懒得去整理了，胡子一周不想剃，衣服放一周不想洗，头发每天乱糟糟的，几乎每天都不敢去看镜子了。</p>
+<p>真的很不喜欢冬天！不喜欢冷！不喜欢浑浑噩噩！不喜欢越来越没激情！</p>
+<p>这已经是2017年的最后一个月了，回想年初定下的目标，几乎没有一件事达成或满意，一直想学的茶道一直也没去做，茶具也没买，骑车这件大事也慢慢落下了，身体也慢慢垮了，唯一感觉工作本身成长很大，这样下去不行的！</p>
+<p>好了，废话不多说，这篇博文是完完全全的工作内容，所以内容会很技术，很严肃很干货。</p>
+<h1 id="问题提出"><a href="#问题提出" class="headerlink" title="问题提出"></a>问题提出</h1><p>为了精细化提高 nginx(marxxx) 的性能, 现分析写日志对于请求的影响。</p>
+<ul>
+<li>条件</li>
+</ul>
+<ol>
+<li>日志大小为 500 字节</li>
+<li>响应大小  111 字节</li>
+<li>除日志外 nginx 服务不进行任何 io 操作，使用 nginx 语法直接返回响应</li>
+</ol>
+<ul>
+<li>变量</li>
+</ul>
+<ol>
+<li>qps服务压力了决定的磁盘承受的写日志的压力</li>
+<li>request time分布</li>
+<li>nginx log buffer: 分别测试 log buffer 为 4k,  64k, 128k 以及关闭log的情况</li>
+</ol>
+<h1 id="探究结论"><a href="#探究结论" class="headerlink" title="探究结论"></a>探究结论</h1>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/12/06/influence_of_dumplog_to_performance_of_nginx/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/10/16/pull_history_data_from_open-falcon/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -254,7 +456,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:28:48" itemprop="dateModified" datetime="2020-09-20T09:28:48+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -262,11 +464,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
                 </span>
             </span>
 
@@ -356,7 +554,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:27:14" itemprop="dateModified" datetime="2020-09-20T09:27:14+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -364,11 +562,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
                 </span>
             </span>
 
@@ -459,7 +653,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:29:17" itemprop="dateModified" datetime="2020-09-20T09:29:17+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -467,11 +661,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
                 </span>
             </span>
 
@@ -598,7 +788,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:36:09" itemprop="dateModified" datetime="2020-09-20T09:36:09+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -606,11 +796,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
                 </span>
             </span>
 
@@ -700,7 +886,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:34:18" itemprop="dateModified" datetime="2020-09-20T09:34:18+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -708,11 +894,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%85%B6%E4%BB%96/" itemprop="url" rel="index"><span itemprop="name">其他</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%85%B6%E4%BB%96/%E8%81%8A%E4%B8%80%E8%81%8A/" itemprop="url" rel="index"><span itemprop="name">聊一聊</span></a>
+                  <a href="/categories/smalltalk/" itemprop="url" rel="index"><span itemprop="name">smalltalk</span></a>
                 </span>
             </span>
 
@@ -741,7 +923,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="食言了"><a href="#食言了" class="headerlink" title="食言了"></a>食言了</h1><p>记得刚写好之前的一篇博客<a href="http://rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/" target="_blank" rel="noopener">c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率</a>时在文末承诺下一篇写面试的经验与感想，然而下一篇并没有写关于面试的东西。刚才的这篇博文是我离职上一个公司的最后几天写的，那个时候已经找到了新的工作，也面试了好几家公司，因此想趁热打铁，好好记录下面试的过程，分享下面试的感想，然而一直拖到了今天。因此我食言了。废话不多说，东拉西扯开始了。</p>
+          <h1 id="食言了"><a href="#食言了" class="headerlink" title="食言了"></a>食言了</h1><p>记得刚写好之前的一篇博客<a href="http://rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/">c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率</a>时在文末承诺下一篇写面试的经验与感想，然而下一篇并没有写关于面试的东西。刚才的这篇博文是我离职上一个公司的最后几天写的，那个时候已经找到了新的工作，也面试了好几家公司，因此想趁热打铁，好好记录下面试的过程，分享下面试的感想，然而一直拖到了今天。因此我食言了。废话不多说，东拉西扯开始了。</p>
 <h1 id="躲不过去的追问"><a href="#躲不过去的追问" class="headerlink" title="躲不过去的追问"></a>躲不过去的追问</h1><p>当我们谈面试的时候，意味着离职，那么我们必然要问“你为什么离职？”这个问题的答案有很多方面，每个人的答案或许都有不同，但总是离不开两个至关重要的因素，这也是马云爸爸说过的，“要么是不开心，要么是钱少了”，然而钱在一定程度上影响了大部分的开心或不开心，所以归根结底，大多数离职是因为“不开心”。这里不跟别人争辩，我只说大多数，当然还有很多因素，比如发展，比如规划，比如各种各种很有正能量的道理，但这些我并没有否认。</p>
 <p>那么既然说了“不开心”,再追问“为什么不开心？”我想这个地方追问得到的答案才是千变万化，比如“这跟我之前的预期不太一样”“这完全发挥不了自己的能力”“公司技术氛围不是很浓厚”“团队氛围不好，内部学和尚的太多”，当然还有很多很多。</p>
 <p>那么既然已经追问得到了这些深层次的原因，那么为什么就已经得到了解答。但这跟离职之之间好像还间隔一个问题可以再追问，“你为什么不尝试找解决方法，你为什么不改变自己适应环境，你有没有想过是你自己不够优秀？”诚然，这些都对，这些都是值得思考的问题。我一直觉得，工作就像恋爱，开心最重要，从相识相知到相爱，但还有可能从相识相知相爱到相不爱。由相爱到相不爱的过程，我们也尝试过各种解决办法，我们也曾怀疑自己不够优秀，我们也在努力的坚持。但不合适或许就该放手，懂得妥协也许是一种最正确的处世哲学。说得偏了些，简而言之，目前的工作不适合自己，我应该找合适的工作，发挥自己的最大价值，实现自己的理想，因为我生活的理想啊，就是理想的生活。</p>
@@ -803,7 +985,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:31:08" itemprop="dateModified" datetime="2020-09-20T09:31:08+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -812,10 +994,6 @@
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/blog/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
                 </span>
             </span>
 
@@ -847,9 +1025,9 @@
           <h1 id="哎"><a href="#哎" class="headerlink" title="哎"></a>哎</h1><p>事实证明，之前做的那些自动化集成并没有很好的运用，现如今换了电脑，需要写博客，还是想重新再mac上搭建一个全新的hexo博客，哎，折腾的人生！</p>
 <p>搭建过程类似我之前写过的博客，请自行查阅。这篇博文为了测试！</p>
 <h1 id="还是简要记录下"><a href="#还是简要记录下" class="headerlink" title="还是简要记录下"></a>还是简要记录下</h1><p>重新换电脑搭建博客，相对来说快了很多，大概用了1个小时搞定（还是有点久？）下面简单记录下步骤吧~</p>
-<h2 id="安装hexo，安装node-js"><a href="#安装hexo，安装node-js" class="headerlink" title="安装hexo，安装node.js"></a>安装hexo，安装node.js</h2><p>步骤很简单。略。这里的就会埋下隐患，因为hexo是最新版，node.js也是，如果采用前面的博文<a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端同步编写博客</a>中的方法就会出现问题。原因是最初搭建博客时候的hexo和node.js的版本与现在的不一样了。</p>
+<h2 id="安装hexo，安装node-js"><a href="#安装hexo，安装node-js" class="headerlink" title="安装hexo，安装node.js"></a>安装hexo，安装node.js</h2><p>步骤很简单。略。这里的就会埋下隐患，因为hexo是最新版，node.js也是，如果采用前面的博文<a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/">使用coding私有仓库多终端同步编写博客</a>中的方法就会出现问题。原因是最初搭建博客时候的hexo和node.js的版本与现在的不一样了。</p>
 <p>好吧，我们另觅他径。</p>
-<h2 id="另外的办法"><a href="#另外的办法" class="headerlink" title="另外的办法"></a>另外的办法</h2><p>参照之前的博文<a href="http://rebootcat.com/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" target="_blank" rel="noopener">我的个人博客搭建记录</a>中的方法，<strong>配置好ssh key</strong>后，执行下方几个命令：</p>
+<h2 id="另外的办法"><a href="#另外的办法" class="headerlink" title="另外的办法"></a>另外的办法</h2><p>参照之前的博文<a href="http://rebootcat.com/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/">我的个人博客搭建记录</a>中的方法，<strong>配置好ssh key</strong>后，执行下方几个命令：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo npm install hexo-cli -g</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> hexo init blog</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> blog</span></span><br></pre></td></tr></table></figure>
 <p>完了之后你可以用hexo s命令看看是不是能看到helloworld的博文。能的话基本证明博客框架是没问题的。那么接下来怎么做呢？</p>
           <!--noindex-->
@@ -909,7 +1087,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:35:17" itemprop="dateModified" datetime="2020-09-20T09:35:17+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -917,11 +1095,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/c-c/" itemprop="url" rel="index"><span itemprop="name">c/c++</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/c-c/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
                 </span>
             </span>
 
@@ -1014,7 +1188,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
+                <time title="修改时间：2020-09-20 09:44:00" itemprop="dateModified" datetime="2020-09-20T09:44:00+08:00">2020-09-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1022,7 +1196,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/fix/" itemprop="url" rel="index"><span itemprop="name">fix</span></a>
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
                 </span>
             </span>
 
@@ -1051,223 +1225,12 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="先扯一扯"><a href="#先扯一扯" class="headerlink" title="先扯一扯"></a>先扯一扯</h1><p>&emsp;上一篇博文<a href="http://rebootcat.com/2017/02/09/FIX-protocol-introduce/" target="_blank" rel="noopener">FIX协议介绍</a>中对FIX协议背景，语法格式等做了介绍。文中也提到我是由于工作中某个模块需要实现fix报文和xml报文之间的转换对FIX协议进行的接触和了解。文末也给出了一个实现fix协议的开源或闭源的一些代码库的列表。而我采用的是Quickfix引擎。目前国内开发用的多的还是Quickfix,它是一个C++实现的fix引擎。<br>&emsp;<strong>这篇博文我打算对Quickfix源代码进行一些分析！</strong></p>
+          <h1 id="先扯一扯"><a href="#先扯一扯" class="headerlink" title="先扯一扯"></a>先扯一扯</h1><p>&emsp;上一篇博文<a href="http://rebootcat.com/2017/02/09/FIX-protocol-introduce/">FIX协议介绍</a>中对FIX协议背景，语法格式等做了介绍。文中也提到我是由于工作中某个模块需要实现fix报文和xml报文之间的转换对FIX协议进行的接触和了解。文末也给出了一个实现fix协议的开源或闭源的一些代码库的列表。而我采用的是Quickfix引擎。目前国内开发用的多的还是Quickfix,它是一个C++实现的fix引擎。<br>&emsp;<strong>这篇博文我打算对Quickfix源代码进行一些分析！</strong></p>
 <h1 id="Quickfix下载（安装）"><a href="#Quickfix下载（安装）" class="headerlink" title="Quickfix下载（安装）"></a>Quickfix下载（安装）</h1><p>两个途径：<br>&emsp;&emsp;Quickfix官网:<a href="http://www.quickfixengine.org/" target="_blank" rel="noopener">http://www.quickfixengine.org/</a><br>&emsp;&emsp;Github上：<a href="https://github.com/quickfix/quickfix" target="_blank" rel="noopener">https://github.com/quickfix/quickfix</a><br>&emsp;下载好Quickfix的源代码后（或许不需要编译安装？）。我自己是直接把quickfix的源代码刨去部分后直接拉进我自己的项目中。如果选择编译安装或许也可以，直接在makefile里链fix的库。</p>
 <h1 id="代码目录介绍"><a href="#代码目录介绍" class="headerlink" title="代码目录介绍"></a>代码目录介绍</h1>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2017/02/10/sourcecode-of-quickfix/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/02/09/FIX-protocol-introduce/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/02/09/FIX-protocol-introduce/" class="post-title-link" itemprop="url">FIX协议介绍</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2017-02-09 11:23:58" itemprop="dateCreated datePublished" datetime="2017-02-09T11:23:58+08:00">2017-02-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/fix/" itemprop="url" rel="index"><span itemprop="name">fix</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2017/02/09/FIX-protocol-introduce/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2017/02/09/FIX-protocol-introduce/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>FIX协议是什么？我为什么会接触到FIX协议？由于工作上的关系，自己负责的一个模块需要实现fix报文与xml报文之间的转换。故需要了解fix是个什么东西才能实现这个转换功能。总体看来，FIX协议还是有些许的复杂，些许的不好理解。闲话少叙，开干！</p>
-<h1 id="什么是FIX"><a href="#什么是FIX" class="headerlink" title="什么是FIX"></a>什么是FIX</h1><p>Financial Information eXchange(FIX)金融信息交换协议的制定是由多个致力于提升其相互间交易流程效率的金融机构和经纪商于1992年共同发起。这些企业把他们及他们的行业视为一个整体，认为能够从对交易指示，交易指令及交易执行的高效电子数据交换的驱动中获利。FIX由此诞生，一个不受单一实体控制的开放消息标准，一个能够被调整组建适用于任何一个企业的商务需求的协议。</p>
-<p>FIX协议包含2个层次：会话层和应用层。会话层与数据的通信相关；而应用层定义了商务相关数据内容。<br>2006年10月，FPL发布了FIX5.0。FIX5.0引入TI（the transport independence ）传输无关框架。TI将FIX会话层从应用层协议中分离出来。在TI框架下，应用层协议消息可以通过任意合适的传输技术进行传送，在这里，FIX会话层协议是FIX应用层消息的可选传输传输协议之一。两个协议层的版本标注将会有所不同，FIX X.Y为FIX应用层协议版本；FIXT X.Y 为FIX会话层协议版本编号。如下图：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/fixxml.png" alt=""></p>
-<p>关于FIX协议会话层的细节和内容这篇博文不会展开介绍，会话层更多关于通信细节，此文重点介绍应用层的内容，这也是我用来进行报文转换的基础。</p>
-<h1 id="FIX协议格式"><a href="#FIX协议格式" class="headerlink" title="FIX协议格式"></a>FIX协议格式</h1>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/02/09/FIX-protocol-introduce/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2016/12/21/use-daocloud-buildhexo/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/12/21/use-daocloud-buildhexo/" class="post-title-link" itemprop="url">使用daocloud持续化构建hexo博客</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2016-12-21 11:23:58" itemprop="dateCreated datePublished" datetime="2016-12-21T11:23:58+08:00">2016-12-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/" itemprop="url" rel="index"><span itemprop="name">docker</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2016/12/21/use-daocloud-buildhexo/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2016/12/21/use-daocloud-buildhexo/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前面的话"><a href="#前面的话" class="headerlink" title="前面的话"></a>前面的话</h1><p>前面几篇博客陆续记录了我使用coding仓库备份博客网站源码，以及构建了hexo的docker镜像，也提到了使用daocloud进行自动化构建hexo博客的功能。这篇博文就是记录使用daocloud持续化构建hexo博客的折腾。前面的折腾如下：</p>
-<ul>
-<li><a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/" target="_blank" rel="noopener">使用coding私有仓库多终端编写博客</a></li>
-<li><a href="http://rebootcat.com/2016/12/20/docker-made-hexoimage/" target="_blank" rel="noopener">使用docker制作hexo镜像</a></li>
-</ul>
-<h1 id="daocloud"><a href="#daocloud" class="headerlink" title="daocloud"></a>daocloud</h1><p>其实我是很喜欢简单粗暴的，直接，爽快，干净，利落。我可以直接记录我搭建的过程，中间可以略去对daocloud的介绍，对碰到的问题的介绍，但是，博客的目的不只是记录啊，更多的还是分享自己碰到的问题，或者自己的理解。所以，对于daocloud的介绍还是打算来一下下。</p>
-<h2 id="什么是daocloud？"><a href="#什么是daocloud？" class="headerlink" title="什么是daocloud？"></a>什么是daocloud？</h2><blockquote>
-<p>官网: <a href="https://www.daocloud.io/" target="_blank" rel="noopener"><strong>www.daocloud.io</strong></a></p>
-</blockquote>
-<p>什么是daocloud?daocloud有什么用？正如官网的主页介绍的：</p>
-<blockquote>
-<p>重新定义计算的边界</p>
-<p>业界领先的企业级容器云及解决方案</p>
-</blockquote>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/12/21/use-daocloud-buildhexo/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1358,20 +1321,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">77</span>
+        <span class="site-state-item-count">80</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1450,6 +1413,12 @@
         <span id="busuanzi_value_site_pv"></span>
       </span>
     </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
 </div>
 
 
