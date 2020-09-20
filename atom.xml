@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://rebootcat.com/"/>
-  <updated>2020-09-20T04:02:51.704Z</updated>
+  <updated>2020-09-20T05:25:54.734Z</updated>
   <id>http://rebootcat.com/</id>
   
   <author>
@@ -15,6 +15,44 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Hexo 配置 Cloudflare 免费 CDN</title>
+    <link href="http://rebootcat.com/2020/09/20/cloudflare/"/>
+    <id>http://rebootcat.com/2020/09/20/cloudflare/</id>
+    <published>2020-09-20T05:23:58.000Z</published>
+    <updated>2020-09-20T05:25:54.734Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="CDN"><a href="#CDN" class="headerlink" title="CDN"></a>CDN</h1><p>关于 CDN 是什么，我想应该不用做过多的介绍，毕竟现在是一个 “云” 的时代，你至少也听说过 阿里云 或者 腾讯云 吧，当然其中就包括 CDN 业务。</p><p>CDN 的作用有很多，比如可以用来加速网站的访问，可以用来防护网站等。本篇文章讨论的就是使用 cloudflare 作为 CDN 来加速博客网站，并让博客开启 https，提升博客安全等级。 </p><ul><li>加速网站访问</li><li>开启https</li></ul><p>选择什么 CDN 呢？</p><p>选择 CDN，对于个人博客来说，主要考虑的还是访问速度以及价格，当然也有免费的 CDN。<a href="https://cloudflare.com" target="_blank" rel="noopener">Cloudflare</a> 就是一家提供免费 CDN 的公司，也是在 CDN 领域比较知名的公司。</p><p>话不多说，关于 cloudflare 的配置网上可以搜到很多文章，这里我就简单记录一下。</p><p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/0.png" alt=""></p><a id="more"></a><h1 id="Cloudflare-配置"><a href="#Cloudflare-配置" class="headerlink" title="Cloudflare 配置"></a>Cloudflare 配置</h1><p>由于我的博客 <a href="https://rebootcat.com">rebootcat.com</a> 已经迁移到香港的虚拟主机了，并且开启了 https 访问，详见博文： <a href="https://rebootcat.com/2020/09/20/virtual_space_blog/">迁移博客到香港虚拟空间</a>，故我以我另外的一个博客 <a href="http://loveyxq.online/" target="_blank" rel="noopener">loveyxq.online</a> 为例说明。</p><p><a href="http://loveyxq.online/" target="_blank" rel="noopener">loveyxq.online</a> 这个博客是我给我女朋友搭建的，放了一些图片之类的，之前也是托管于 github pages 上。</p><h2 id="开始配置"><a href="#开始配置" class="headerlink" title="开始配置"></a>开始配置</h2><p>1 开始之前，需要限注册一个 <a href="https://cloudflare.com" target="_blank" rel="noopener">Cloudflare</a> 账号，这个没说的</p><p>2 注册好之后 <code>Add site</code> 添加你的博客域名</p><p>3 然后选择一个计划 <code>Select a plan</code>，此处我们选择免费版本的（当然你也可以选择收费版），然后点击 <code>Confirm plan</code></p><p>4 然后添加 DNS 记录</p><p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/1.png" alt=""></p><p>5 完成之后需要去到你的域名注册网站，修改 nameservers 为 cloudflare 自己的，通常是：</p><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">Type</span><span class="selector-tag">Value</span></span><br><span class="line"><span class="selector-tag">NS</span><span class="selector-tag">deb</span><span class="selector-class">.ns</span><span class="selector-class">.cloudflare</span><span class="selector-class">.com</span></span><br><span class="line"><span class="selector-tag">NS</span><span class="selector-tag">wilson</span><span class="selector-class">.ns</span><span class="selector-class">.cloudflare</span><span class="selector-class">.com</span></span><br></pre></td></tr></table></figure><p>6 完成之后点击 <code>Recheck Nameservers</code> 来检查配置是否正确。</p><h2 id="https-开启"><a href="#https-开启" class="headerlink" title="https 开启"></a>https 开启</h2><p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/2.png" alt=""></p><p>如上图所示，选择 <code>Full mode</code>。</p><p>设置完成后需要等待一段时间，才能使用  https 的方式去访问。此处是一个坑，设置完成以后别着急，可能要等待一个小时左右（具体忘了），cloudflare 在做 ssl 验证。</p><h1 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h1><p>实话实说，效果没有很好，毕竟免费版本的 cloudflare 给的解析节点其实不多， 如下图红框内部所示。然后也可以看到，全球各地对 loveyxq.online 的解析都是到了 cloudflare 上，已经没有 github pages 的 IP 了。</p><p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/3.png" alt=""></p><p>另外，使用了 cloudflare 之后，cloudflare 也会对网站的访问情况以及防御情况做统计：</p><p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/4.png" alt=""></p><h1 id="The-End"><a href="#The-End" class="headerlink" title="The End"></a>The End</h1><p>关于 CDN 的介绍，以后有空再重新分享一篇吧。主要是涉及到 CDN 的安全以及源站的防护这块。</p><p>Blog:</p><ul><li><p><a href="http://rebootcat.com">rebootcat.com</a></p></li><li><p>email: <a href="mailto:&#108;&#x69;&#110;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#110;&#x69;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#x6d;">&#108;&#x69;&#110;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#110;&#x69;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#x6d;</a></p></li></ul><p>2020-09-20 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;CDN&quot;&gt;&lt;a href=&quot;#CDN&quot; class=&quot;headerlink&quot; title=&quot;CDN&quot;&gt;&lt;/a&gt;CDN&lt;/h1&gt;&lt;p&gt;关于 CDN 是什么，我想应该不用做过多的介绍，毕竟现在是一个 “云” 的时代，你至少也听说过 阿里云 或者 腾讯云 吧，当然其中就包括 CDN 业务。&lt;/p&gt;
+&lt;p&gt;CDN 的作用有很多，比如可以用来加速网站的访问，可以用来防护网站等。本篇文章讨论的就是使用 cloudflare 作为 CDN 来加速博客网站，并让博客开启 https，提升博客安全等级。 &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;加速网站访问&lt;/li&gt;
+&lt;li&gt;开启https&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;选择什么 CDN 呢？&lt;/p&gt;
+&lt;p&gt;选择 CDN，对于个人博客来说，主要考虑的还是访问速度以及价格，当然也有免费的 CDN。&lt;a href=&quot;https://cloudflare.com&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Cloudflare&lt;/a&gt; 就是一家提供免费 CDN 的公司，也是在 CDN 领域比较知名的公司。&lt;/p&gt;
+&lt;p&gt;话不多说，关于 cloudflare 的配置网上可以搜到很多文章，这里我就简单记录一下。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/0.png&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="blog" scheme="http://rebootcat.com/categories/blog/"/>
+    
+    
+      <category term="hexo" scheme="http://rebootcat.com/tags/hexo/"/>
+    
+      <category term="blog" scheme="http://rebootcat.com/tags/blog/"/>
+    
+      <category term="cdn" scheme="http://rebootcat.com/tags/cdn/"/>
+    
+      <category term="cloudflare" scheme="http://rebootcat.com/tags/cloudflare/"/>
+    
+  </entry>
   
   <entry>
     <title>迁移博客到香港虚拟空间</title>
@@ -796,41 +834,6 @@
       <category term="wda" scheme="http://rebootcat.com/tags/wda/"/>
     
       <category term="macos" scheme="http://rebootcat.com/tags/macos/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>nginx 写⽇志对响应速度的影响探究（二）</title>
-    <link href="http://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/"/>
-    <id>http://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/</id>
-    <published>2018-01-04T08:23:58.000Z</published>
-    <updated>2020-09-20T01:39:18.600Z</updated>
-    
-    <content type="html"><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《<a href="http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/">nginx写日志对于响应速度的影响探究（一）</a>》中其实提出了两个问题还有待研究：</p><ul><li>log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ?</li><li>request time 成周期性波动，周期为 60s，即大概每 60s request time 会出现一个突峰，如下图。so why ？<br><img src="/images/requesttimebodong.png" alt=""></li></ul><a id="more"></a><h1 id="过程"><a href="#过程" class="headerlink" title="过程"></a>过程</h1><p>这里的记录将会比较简陋，因为完成之后发现实在没什么更好的干货，不过可以学习下探究的过程方法。</p><h2 id="问题一"><a href="#问题一" class="headerlink" title="问题一"></a>问题一</h2><blockquote><p>log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ?</p></blockquote><h3 id="猜想"><a href="#猜想" class="headerlink" title="猜想"></a>猜想</h3><p>发现这个问题后，有个直观的感觉就是 nginx 每次根据 log buffer 的大小 dump log，即每次写磁盘的大小分别为 4k、64k、128k，写磁盘的大小较小就会导致写的次数过多，写的大小过大就会导致每次耗时较多，在 dump log 的次数与 dump log 的大小之间需要做一个平衡，故相对来看 64k 时表现较优。</p><p>这里有点类似 iostat -x 命令看到的 avgrq-sz，表示设备读写块大小（扇区数）。</p><p>那么是不是这样呢？</p><h3 id="简单探究"><a href="#简单探究" class="headerlink" title="简单探究"></a>简单探究</h3><p>探究过程略，基本方法就是固定其他条件，改变某一个变量（log buffer 大小），然后分别测试 nginx 性能，收集数据，然后绘制曲线图，进行对比分析。</p><ul><li><p>log buffer = 4k<br><img src="/images/4k.png" alt=""></p></li><li><p>log buffer = 32k<br><img src="/images/32k.png" alt=""></p></li><li><p>log buffer = 64k/128k<br><img src="/images/64_128k.png" alt=""></p></li></ul><p>简单对比了小米监控收集的曲线图，还是能看到 log buffer 从 4k 到 32k，再到 64k/128k ，qps是增加了的。只是在 64k/128k 的时候比较不是很明显。</p><h3 id="初步结论"><a href="#初步结论" class="headerlink" title="初步结论"></a>初步结论</h3><p>通过上述对比，<strong>确实发现 log buffer 调整对 nginx 性能有影响，大致为 log buffer 64k 时性能最优！</strong></p><h2 id="问题二"><a href="#问题二" class="headerlink" title="问题二"></a>问题二</h2><blockquote><p>request time 成周期性波动，周期为 60s，即大概每 60s request time 会出现一个突峰，如下图。so why ？</p></blockquote><h3 id="猜想-1"><a href="#猜想-1" class="headerlink" title="猜想"></a>猜想</h3><p>一般周期性波动的可能考虑到周期性的一些命令，比如 crontab 的任务，故可能是由于这些定时脚本执行引发了系统的抖动。</p><h3 id="简单探究-1"><a href="#简单探究-1" class="headerlink" title="简单探究"></a>简单探究</h3><p>探究方法很简单，多次测试，对比。测试的时候也是固定其他条件不变，改变某一个变量进行研究。这里的变量可能需要考虑很多，比如最终这次研究考虑到的一些变量有：</p><ul><li>定时脚本影响</li><li>log on / log off 影响</li><li>压测客户端的请求稳定度</li><li>nginx 一些配置参数，比如 keep_alive影响</li><li>不同机器的影响</li><li>压测客户端与 nginx 是否位于同一台机器的影响</li></ul><p>可以看到上面考虑了很多，也是由于探究过程一步步深入，一步步考虑更多的。这里可以对每次探究的变量进行下解释：</p><h4 id="定时脚本"><a href="#定时脚本" class="headerlink" title="定时脚本"></a>定时脚本</h4><p>关闭这台机器所有定时任务，对比之前的曲线图。</p><h4 id="log-on-log-off"><a href="#log-on-log-off" class="headerlink" title="log on /log off"></a>log on /log off</h4><p>关闭日志与否也可能是导致 request time 周期性突峰的原因，故分别对两种情况进行对比压测。</p><h4 id="压测客户端请求稳定度"><a href="#压测客户端请求稳定度" class="headerlink" title="压测客户端请求稳定度"></a>压测客户端请求稳定度</h4><p>压测客户端能不能以均匀的速率稳定发出请求也可能导致 request time 周期性波动，这里的压测客户端先后使用了 wrk 和 ab 进行压测。</p><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nohup wrk -c <span class="number">100</span> -t <span class="number">8</span> -d20m http:<span class="comment">//127.0.0.1:8088 -s /disk/ssd1/ngx/benchngx_logof</span></span><br><span class="line">f.lua &gt; /dev/<span class="literal">null</span> &amp; <span class="number">2</span>&gt;&amp;<span class="number">1</span></span><br><span class="line"></span><br><span class="line">ab -n <span class="number">5000000</span> -c <span class="number">8</span> -v <span class="number">3</span> -k http:<span class="comment">//127.0.0.1:8088/ |grep 'X-Time' |cut -d ' '</span></span><br><span class="line"> -f <span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span> &gt;&gt; off8jv13.a</span><br></pre></td></tr></table></figure><p>其中 wrk -s 参数后面的是 lua 脚本：</p><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Copyright 2017 smaug</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="built_in">write</span> = <span class="built_in">io</span>.<span class="built_in">write</span></span><br><span class="line"><span class="keyword">local</span> unique_id = <span class="built_in">tostring</span>( &#123;&#125; ):<span class="built_in">sub</span>(<span class="number">8</span>)</span><br><span class="line">filename = <span class="built_in">string</span>.<span class="built_in">format</span>(<span class="string">"/disk/ssd1/ngx/donev2/off8j_%s.a"</span>,unique_id)</span><br><span class="line">file = <span class="built_in">io</span>.<span class="built_in">open</span>(filename,<span class="string">"a"</span>)</span><br><span class="line"><span class="built_in">io</span>.<span class="built_in">output</span>(file)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">response = <span class="function"><span class="keyword">function</span><span class="params">(status, headers, body)</span></span></span><br><span class="line">   rtime = headers[<span class="string">"X-RTime"</span>]</span><br><span class="line">   ltime = headers[<span class="string">"X-LTime"</span>]</span><br><span class="line">   <span class="built_in">io</span>.<span class="built_in">write</span>(<span class="built_in">string</span>.<span class="built_in">format</span>(<span class="string">"[%s] %s\n"</span>,ltime ,rtime))</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure><p>每次请求后会执行函数，获取 header 中的某些字段，目的是<strong>在关闭日志后收集request time，由于 response body 很小，body 发送时间几乎可以忽略</strong>。此处 nginx 配置如下：</p><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">8088</span>;</span><br><span class="line"></span><br><span class="line">   <span class="attribute">location</span> / &#123;</span><br><span class="line">        <span class="attribute">return</span> <span class="number">200</span> <span class="string">"hello world xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</span>;</span><br><span class="line">        <span class="comment">#proxy_pass http://127.0.0.1:8089;</span></span><br><span class="line">       <span class="comment">#access_log /disk/ssd1/jmh/access.log simple buffer=32k;</span></span><br><span class="line">       <span class="attribute">access_log</span> <span class="literal">off</span>;</span><br><span class="line">       <span class="attribute">error_log</span>  <span class="literal">off</span>;</span><br><span class="line">       <span class="attribute">add_header</span>  X-RTime <span class="variable">$request_time</span>;</span><br><span class="line">       <span class="attribute">add_header</span>  X-LTime <span class="variable">$time_local</span>;</span><br><span class="line">       <span class="attribute">add_header</span>  X-Time <span class="string">'[<span class="variable">$time_local</span>] <span class="variable">$request_time</span>'</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>最后过滤日志文件得到 request time，当然这是关闭日志的情况下，如果没有关闭日志，自然只需要分析 access.log 文件即可。</p><p>ab -v 参数可以获取 response header ，使用 linux 管道等命令收集 request time，也是在关闭日志的情况下。</p><h4 id="keep-alive"><a href="#keep-alive" class="headerlink" title="keep_alive"></a>keep_alive</h4><p>改变这个参数的值，进行对比压测。</p><h4 id="不同机器"><a href="#不同机器" class="headerlink" title="不同机器"></a>不同机器</h4><p>request time 波动的情况是否只是出现在这一台机器还是其他机器也会出现，故需要对比其他机器，对其他机器进行压测对比。</p><h4 id="压测客户端（wrk-ab）与-nginx-是否位于同一台机器"><a href="#压测客户端（wrk-ab）与-nginx-是否位于同一台机器" class="headerlink" title="压测客户端（wrk/ab）与 nginx 是否位于同一台机器"></a>压测客户端（wrk/ab）与 nginx 是否位于同一台机器</h4><p>压测客户端也是需要需要大量 cpu 资源的，甚至 I/O 资源，如果与 nginx 两者位于同一台机器，是否也可能对 nginx 产生影响呢？故让压测客户端从另外一台机器发起请求，然后对比分析。</p><h3 id="初步结论-1"><a href="#初步结论-1" class="headerlink" title="初步结论"></a>初步结论</h3><p><strong>很遗憾，经过上述的探究，没有得出很确切的结论，request time 波动情况一直存在，不过可以注意到的是对不同机器进行压测的时候，我选择了好几台机器，其中包括我自己本地的一台虚拟机，就没有出现 request time 波动的情况，初步可以怀疑是那批机器本身的一些问题，可能是内核方面的问题，因为那批机器内核是经过了裁剪的。但不能确定，依然是模凌两可的结论。</strong></p><h2 id="末了"><a href="#末了" class="headerlink" title="末了"></a>末了</h2><p>探究过程是一个比较无聊的过程，改变某个变量，重复的进行研究，想起了高中做的一些化学实验，确实比较无趣。</p><p><strong>但是很多问题不可能是暴露在表面的，而且埋的很深，甚至最后都没法找到确切的根源，这些就需要很细心的分析，考虑的也要很周全，要根据当前的情况考虑更多的可能性，要排除一切可能导致的原因。这种分析过程，这种全面考虑问题的能力能得到提高和锻炼！</strong></p>]]></content>
-    
-    <summary type="html">
-    
-      &lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《&lt;a href=&quot;http://rebootcat.com/2017/12/06/influence_of_dumplog_to_performance_of_nginx/&quot;&gt;nginx写日志对于响应速度的影响探究（一）&lt;/a&gt;》中其实提出了两个问题还有待研究：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ?&lt;/li&gt;
-&lt;li&gt;request time 成周期性波动，周期为 60s，即大概每 60s request time 会出现一个突峰，如下图。so why ？&lt;br&gt;&lt;img src=&quot;/images/requesttimebodong.png&quot; alt=&quot;&quot;&gt;&lt;/li&gt;
-&lt;/ul&gt;
-    
-    </summary>
-    
-    
-      <category term="nginx" scheme="http://rebootcat.com/categories/nginx/"/>
-    
-    
-      <category term="cpu" scheme="http://rebootcat.com/tags/cpu/"/>
-    
-      <category term="wrk" scheme="http://rebootcat.com/tags/wrk/"/>
-    
-      <category term="ab" scheme="http://rebootcat.com/tags/ab/"/>
-    
-      <category term="nginx" scheme="http://rebootcat.com/tags/nginx/"/>
-    
-      <category term="lua" scheme="http://rebootcat.com/tags/lua/"/>
     
   </entry>
   

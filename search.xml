@@ -3848,4 +3848,57 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
         <tag>ftp</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Hexo 配置 Cloudflare 免费 CDN</title>
+    <url>/2020/09/20/cloudflare/</url>
+    <content><![CDATA[<h1 id="CDN"><a href="#CDN" class="headerlink" title="CDN"></a>CDN</h1><p>关于 CDN 是什么，我想应该不用做过多的介绍，毕竟现在是一个 “云” 的时代，你至少也听说过 阿里云 或者 腾讯云 吧，当然其中就包括 CDN 业务。</p>
+<p>CDN 的作用有很多，比如可以用来加速网站的访问，可以用来防护网站等。本篇文章讨论的就是使用 cloudflare 作为 CDN 来加速博客网站，并让博客开启 https，提升博客安全等级。 </p>
+<ul>
+<li>加速网站访问</li>
+<li>开启https</li>
+</ul>
+<p>选择什么 CDN 呢？</p>
+<p>选择 CDN，对于个人博客来说，主要考虑的还是访问速度以及价格，当然也有免费的 CDN。<a href="https://cloudflare.com" target="_blank" rel="noopener">Cloudflare</a> 就是一家提供免费 CDN 的公司，也是在 CDN 领域比较知名的公司。</p>
+<p>话不多说，关于 cloudflare 的配置网上可以搜到很多文章，这里我就简单记录一下。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/0.png" alt=""></p>
+<a id="more"></a>
+
+<h1 id="Cloudflare-配置"><a href="#Cloudflare-配置" class="headerlink" title="Cloudflare 配置"></a>Cloudflare 配置</h1><p>由于我的博客 <a href="https://rebootcat.com">rebootcat.com</a> 已经迁移到香港的虚拟主机了，并且开启了 https 访问，详见博文： <a href="https://rebootcat.com/2020/09/20/virtual_space_blog/">迁移博客到香港虚拟空间</a>，故我以我另外的一个博客 <a href="http://loveyxq.online/" target="_blank" rel="noopener">loveyxq.online</a> 为例说明。</p>
+<p><a href="http://loveyxq.online/" target="_blank" rel="noopener">loveyxq.online</a> 这个博客是我给我女朋友搭建的，放了一些图片之类的，之前也是托管于 github pages 上。</p>
+<h2 id="开始配置"><a href="#开始配置" class="headerlink" title="开始配置"></a>开始配置</h2><p>1 开始之前，需要限注册一个 <a href="https://cloudflare.com" target="_blank" rel="noopener">Cloudflare</a> 账号，这个没说的</p>
+<p>2 注册好之后 <code>Add site</code> 添加你的博客域名</p>
+<p>3 然后选择一个计划 <code>Select a plan</code>，此处我们选择免费版本的（当然你也可以选择收费版），然后点击 <code>Confirm plan</code></p>
+<p>4 然后添加 DNS 记录</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/1.png" alt=""></p>
+<p>5 完成之后需要去到你的域名注册网站，修改 nameservers 为 cloudflare 自己的，通常是：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">Type</span>	<span class="selector-tag">Value</span></span><br><span class="line"><span class="selector-tag">NS</span>	<span class="selector-tag">deb</span><span class="selector-class">.ns</span><span class="selector-class">.cloudflare</span><span class="selector-class">.com</span></span><br><span class="line"><span class="selector-tag">NS</span>	<span class="selector-tag">wilson</span><span class="selector-class">.ns</span><span class="selector-class">.cloudflare</span><span class="selector-class">.com</span></span><br></pre></td></tr></table></figure>
+
+<p>6 完成之后点击 <code>Recheck Nameservers</code> 来检查配置是否正确。</p>
+<h2 id="https-开启"><a href="#https-开启" class="headerlink" title="https 开启"></a>https 开启</h2><p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/2.png" alt=""></p>
+<p>如上图所示，选择 <code>Full mode</code>。</p>
+<p>设置完成后需要等待一段时间，才能使用  https 的方式去访问。此处是一个坑，设置完成以后别着急，可能要等待一个小时左右（具体忘了），cloudflare 在做 ssl 验证。</p>
+<h1 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h1><p>实话实说，效果没有很好，毕竟免费版本的 cloudflare 给的解析节点其实不多， 如下图红框内部所示。然后也可以看到，全球各地对 loveyxq.online 的解析都是到了 cloudflare 上，已经没有 github pages 的 IP 了。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/3.png" alt=""></p>
+<p>另外，使用了 cloudflare 之后，cloudflare 也会对网站的访问情况以及防御情况做统计：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/4.png" alt=""></p>
+<h1 id="The-End"><a href="#The-End" class="headerlink" title="The End"></a>The End</h1><p>关于 CDN 的介绍，以后有空再重新分享一篇吧。主要是涉及到 CDN 的安全以及源站的防护这块。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#x69;&#110;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#110;&#x69;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#x6d;">&#108;&#x69;&#110;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#110;&#x69;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#x6d;</a></p>
+</li>
+</ul>
+<p>2020-09-20 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+]]></content>
+      <categories>
+        <category>blog</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>blog</tag>
+        <tag>cdn</tag>
+        <tag>cloudflare</tag>
+      </tags>
+  </entry>
 </search>

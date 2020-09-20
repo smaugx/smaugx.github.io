@@ -213,6 +213,105 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/" class="post-title-link" itemprop="url">Hessian通信案例(java)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-17 15:35:34" itemprop="dateCreated datePublished" datetime="2016-11-17T15:35:34+08:00">2016-11-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:45:04" itemprop="dateModified" datetime="2020-09-20T09:45:04+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index"><span itemprop="name">java</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>由于工作的原因，接触到了hessain,项目需要做hessain和xml之间的报文转换。但是对于hessian是个什么东西一头雾水。于是接下来的时间了解了hessain协议的序列化规则以及hessian协议进行通信的方式。这篇文章是在完成了这个模块之后很长一段时间（大概3个月）才记录的。一来这个时候没什么事，二来当时就一直打算记录下学习的过程，后来搁置了。故本文对hessain协议做一个简单介绍，然后搭建了一个Java版的hessian客户端和服务端，实现了hessian通信。</p>
+<h1 id="什么是Hessian"><a href="#什么是Hessian" class="headerlink" title="什么是Hessian"></a>什么是Hessian</h1><h2 id="什么是rpc"><a href="#什么是rpc" class="headerlink" title="什么是rpc?"></a>什么是rpc?</h2><p>RPC（Remote Procedure Call Protocol）——远程过程调用协议，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。RPC协议假定某些传输协议的存在，如TCP或UDP，为通信程序之间携带信息数据。在OSI网络通信模型中，RPC跨越了传输层和应用层。RPC使得开发包括网络分布式多程序在内的应用程序更加容易。RMI是J2EE中标准的RPC服务，RPC的完美封装是的将业务逻辑可以进行分布式部署，将运算密集型的工作进行分流（但请求还是同步的），在使用过程中间封装起实现可以实现在客户端调用的时候完全透明(需要在RMI客户端调用方式进行封装)。</p>
+<h2 id="什么是hessian"><a href="#什么是hessian" class="headerlink" title="什么是hessian?"></a>什么是hessian?</h2><p>Hessian是一个轻量级的,自定义描述的二进制RPC协议。Hessian主要用作面向对象的消息通信。</p>
+<h2 id="hessian序列化规则"><a href="#hessian序列化规则" class="headerlink" title="hessian序列化规则"></a>hessian序列化规则</h2><p>hessian序列化方式目前有两个版本1.0和2.0，具体可以查看官网<a href="http://hessian.caucho.com/doc/hessian-serialization.html" target="_blank" rel="noopener">http://hessian.caucho.com/doc/hessian-serialization.html</a>。另外我在我的七牛空间上传了<a href="http://o8fj2jbwb.bkt.clouddn.com/hessian%E5%8D%8F%E8%AE%AE%E4%B8%AD%E6%96%87%E7%89%88.docx" target="_blank" rel="noopener">hessian协议2.0中文版</a>，有需要的话可以下载，防止官网全英文看不懂。另外hessian<a href="http://hessian.caucho.com/index.xtp" target="_blank" rel="noopener">官网</a>上提供了各种版本的hessian协议的实现，包括java,c++,c#,Python,.NET,Ruby等，上面其实有比较详细的demo。可以参考，当时我也是参考过的。</p>
+<h1 id="Hessian通信案列-java"><a href="#Hessian通信案列-java" class="headerlink" title="Hessian通信案列(java)"></a>Hessian通信案列(java)</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2016/06/14/%E5%90%8C%E6%97%B6%E6%89%98%E7%AE%A1%E5%8D%9A%E5%AE%A2%E5%88%B0coding%E5%92%8Cgithub/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -889,7 +988,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -902,7 +1001,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">82</span>
+        <span class="site-state-item-count">83</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
