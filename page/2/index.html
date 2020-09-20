@@ -213,6 +213,121 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/12/network_attack_of_blockchain_eclipse_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-12 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-12T11:23:58+08:00">2020-04-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-22 22:52:56" itemprop="dateModified" datetime="2020-04-22T22:52:56+08:00">2020-04-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/12/network_attack_of_blockchain_eclipse_attack/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/12/network_attack_of_blockchain_eclipse_attack/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
+</ul>
+<h1 id="日蚀攻击（Eclipse-Attack"><a href="#日蚀攻击（Eclipse-Attack" class="headerlink" title="日蚀攻击（Eclipse Attack)"></a>日蚀攻击（Eclipse Attack)</h1><h2 id="P2P-网络"><a href="#P2P-网络" class="headerlink" title="P2P 网络"></a>P2P 网络</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>在介绍什么是日蚀攻击之前，有必要先对区块链系统的底层 P2P 网络做一个简单的介绍，因为日蚀攻击就是利用了 P2P 网络的特性来进行的攻击。</p>
+<p>P2P 即 Peer to Peer，中文意思是对等网络，它是分布式系统和计算机网络相结合的产物。对等的意思就是网络中的节点角色、地位是平等的，任何节点具有极强的自由，可以任意加入、离开网络。这跟传统的 C/S 模型的结构有很大区别，任何节点既是 client ，也是 server，或者说网络中没有 server 节点，任何节点 down 掉不会对整个网络产生致命的影响，具有极强的伸缩性。</p>
+<p>P2P 网络从诞生到现在经过了几个阶段，分别是混合式 P2P，无结构化 P2P以及结构化 P2P。</p>
+<ul>
+<li>混合式：顾名思义，P2P 网络混合了传统的 C/S 模型，网络中有角色充当 server 角色</li>
+<li>无结构化：也就是网状结构模型，纯分布式网络，典型代表就是比特币网络，节点之间以一种随机的，松散的方式组织在一起</li>
+<li>结构化：节点按照一定规则组织在一起，路由算法比较精准，比如 DHT 算法</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_eclipse_attack/2.png" alt=""></p>
+<center>混合式</center>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/12/network_attack_of_blockchain_eclipse_attack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1178,105 +1293,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2018/01/04/analyze-of-high-iowait/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/01/04/analyze-of-high-iowait/" class="post-title-link" itemprop="url">CPU.IOWAIT 偏高问题《二》</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-01-04 11:23:58" itemprop="dateCreated datePublished" datetime="2018-01-04T11:23:58+08:00">2018-01-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-20 09:29:43" itemprop="dateModified" datetime="2020-09-20T09:29:43+08:00">2020-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2018/01/04/analyze-of-high-iowait/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2018/01/04/analyze-of-high-iowait/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>今天是 2018 年 01 月 04 号，已经是 2018 年的第四天了，最近这几天一直在做年终总结，回顾自己整年的工作，成长，问题，计划新的一年。2017年对于我来说，”tough year”!发生了太多的事，太多太多的事，开心的，烦恼的，2017年初计划的事情没有一件让我自己满意，想想嘘嘘不已！</p>
-<p>这几天好好的写一篇总结！2018年对我来说，很重要！</p>
-<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><p>上一篇文章 <a href="http://rebootcat.com/2017/12/14/instability-of-cpu/">CPU.IOWAIT 偏高问题</a>中其实已经大致分析出了问题所在。</p>
-<p>文中『Find The Murderer』章节也指出了可能造成 IOWAIT% 偏高的进程，但不够有说服力。故此文尝试进一步的分析造成 IOWAIT% 偏高的原因！</p>
-<p><img src="/images/problem.png" alt=""></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/01/04/analyze-of-high-iowait/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1348,7 +1364,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">46</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1361,7 +1377,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">80</span>
+        <span class="site-state-item-count">82</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

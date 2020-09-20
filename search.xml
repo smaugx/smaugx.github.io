@@ -3745,4 +3745,107 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
         <tag>jsdelivr</tag>
       </tags>
   </entry>
+  <entry>
+    <title>迁移博客到香港虚拟空间</title>
+    <url>/2020/09/20/virtual_space_blog/</url>
+    <content><![CDATA[<h1 id="缘起"><a href="#缘起" class="headerlink" title="缘起"></a>缘起</h1><p>我的博客一直采用的是 github pages 来托管，中间断断续续的也没怎么管理过，偶尔写几篇博客，所以也就没怎么关心过访问速度，搜索引擎收录等问题。</p>
+<p>不过我对博客一直还是情有独钟，我觉得像我一样的软件工程师，如果能有个人博客，并且保持一定程度的更新率还是很有必要的。</p>
+<p>这次迁移主要考虑三个原因：</p>
+<ul>
+<li>访问速度较慢</li>
+<li>博客还不支持 https</li>
+<li>谷歌搜索引擎收录较少</li>
+</ul>
+<p>github pages 服务器位于美国，对于中文博客来说，访问还是有一些慢的，且不说 github 未来在我国很有可能被 feng，所以打算迁移到国内来。之前博客其实是有部署过双线的，国外走 github，国内走 coding，但奈何 coding 不争气，后来我干脆停了 coding 的解析。现在打算找一个付费的香港虚拟主机，一年几十块钱搞定。</p>
+<p>另外就是由于之前已经采用了 <strong>rebootcat.com</strong> 这个域名，所以无法在 github pages 上开启 https（当然方法是有的，比如使用 cloudflare 加速，这个详见我另外一篇博文），所以这次的迁移也打算开启全站 https。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/1.png" alt=""></p>
+<a id="more"></a>
+
+<h1 id="购买香港虚拟主机"><a href="#购买香港虚拟主机" class="headerlink" title="购买香港虚拟主机"></a>购买香港虚拟主机</h1><p>虚拟主机是什么？</p>
+<blockquote>
+<p>虚拟主机（英语：virtual hosting）或称 共享主机（shared web hosting），又称虚拟服务器，是一种在单一主机或主机群上，实现多网域服务的方法，可以运行多个网站或服务的技术。虚拟主机之间完全独立，并可由用户自行管理，虚拟并非指不存在，而是指空间是由实体的服务器延伸而来，其硬件系统可以是基于服务器群，或者单个服务器。(来自某百科）</p>
+</blockquote>
+<p>简单来说，虚拟主机就是你可以用来托管网站，给你一定量的存储空间，以及访问流量，还有IP 或者域名绑定等。</p>
+<p>这里需要说明的是，你能搜到很多免费的虚拟空间，免费的我个人不太建议，免费的有很多问题这里就不细说了，况且付费的也没有很贵，一年几十块钱，当然还是有可能跑路的（手动狗头）！</p>
+<p>如上图所示，这是我购买的虚拟主机的控制面板，提供了比较方便的中文管理面板，比如域名绑定，缓存设置，SSL 设置，FTP 管理等。</p>
+<p>具体是哪一家，我就不说了（没有给我广告费，我的服务商看到了欢迎联系）。</p>
+<h2 id="绑定域名"><a href="#绑定域名" class="headerlink" title="绑定域名"></a>绑定域名</h2><p>由于之前是解析到 github pages 的，现在购买了虚拟主机后，会有一个新的 IP，需要重新解析域名到这个 IP 上</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/2.png" alt=""></p>
+<p>如上图所示，红色框里面的就是新加的两条 DNS 解析记录，黄色框里面就是之前解析到 github pages 的记录，现在我把他们全部暂停了（以防后期会用到）。</p>
+<p>解析完成之后，等待生效，使用多地 ping 的工具去测试一下 DNS 解析是否生效了。或者你本地使用 ping 看是否生效了。</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">$<span class="built_in"> ping </span>rebootcat.com -c 4                                            [10:45:50]</span><br><span class="line">PING rebootcat.com (109.206.246.144): 56 data bytes</span><br><span class="line">64 bytes <span class="keyword">from</span> 109.206.246.144: <span class="attribute">icmp_seq</span>=0 <span class="attribute">ttl</span>=52 <span class="attribute">time</span>=44.976 ms</span><br><span class="line">64 bytes <span class="keyword">from</span> 109.206.246.144: <span class="attribute">icmp_seq</span>=1 <span class="attribute">ttl</span>=52 <span class="attribute">time</span>=49.814 ms</span><br><span class="line">64 bytes <span class="keyword">from</span> 109.206.246.144: <span class="attribute">icmp_seq</span>=2 <span class="attribute">ttl</span>=52 <span class="attribute">time</span>=46.947 ms</span><br><span class="line">64 bytes <span class="keyword">from</span> 109.206.246.144: <span class="attribute">icmp_seq</span>=3 <span class="attribute">ttl</span>=52 <span class="attribute">time</span>=46.809 ms</span><br><span class="line"></span><br><span class="line">--- rebootcat.com<span class="built_in"> ping </span>statistics ---</span><br><span class="line">4 packets transmitted, 4 packets received, 0.0% packet loss</span><br><span class="line">round-trip min/avg/max/stddev = 44.976/47.136/49.814/1.731 ms</span><br></pre></td></tr></table></figure>
+
+<p>可以看到上面解析到了新的 IP 上。</p>
+<h2 id="FTP-上传网站源码"><a href="#FTP-上传网站源码" class="headerlink" title="FTP 上传网站源码"></a>FTP 上传网站源码</h2><p>我的博客是基于  hexo 搭建的，之前是直接把网站源码发布到 github pages 上了：</p>
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">hexo d -g</span></span><br></pre></td></tr></table></figure>
+<p>现在需要把生成的网站源码打包上传到虚拟主机上。</p>
+<p>hexo 生成的网站源码位于  <code>public</code> 目录下：</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><span class="line"><span class="built_in">zip</span> -r blog.<span class="built_in">zip</span> <span class="keyword">public</span></span><br></pre></td></tr></table></figure>
+<p>然后把 blog.zip 通过面板上的 <strong>在线文件管理</strong> 上传到虚拟主机的根目录里，比如我的根目录是 <code>/wwwroot/</code>，然后点击解压。</p>
+<p>完成之后，浏览器输入网站</p>
+<figure class="highlight dts"><table><tr><td class="code"><pre><span class="line"><span class="symbol">http:</span><span class="comment">//rebootcat.com</span></span><br></pre></td></tr></table></figure>
+<p>看能否正确响应。一般来说，没什么问题，如果无法访问，请联系你的虚拟主机提供商。</p>
+<h2 id="自动化上传网站源码"><a href="#自动化上传网站源码" class="headerlink" title="自动化上传网站源码"></a>自动化上传网站源码</h2><p>上面的步骤，基本上已经完成了博客迁移的大部分工作了。不过对于程序员来说，怎么能每次更新博文之后还要重复上面的步骤，甚至是需要每次用浏览器打开虚拟主机控制面板上传网站源码，那岂不是很麻烦，并且不够极客精神。</p>
+<p>那必然是要做成自动化的方式，一个命令搞定网站更新。</p>
+<p>其实也简单，就是利用服务商提供的 FTP 口令，使用 python 脚本自动化上传网站源码，实现自动化更新。</p>
+<p>python 脚本可以直接从我的 github 下载：</p>
+<p><a href="https://github.com/smaugx/dailytools/blob/master/ftpblog.py" target="_blank" rel="noopener">https://github.com/smaugx/dailytools/blob/master/ftpblog.py</a></p>
+<p>然后修改代码里的网站域名以及 ftp 口令，改成你自己的，修改上传的本地目录以及远程目录，然后执行脚本自动化上传：</p>
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line"><span class="keyword">python</span> ftpblog.<span class="keyword">py</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="配置-HTTPS"><a href="#配置-HTTPS" class="headerlink" title="配置 HTTPS"></a>配置 HTTPS</h2><p>使用的是 <a href="https://freessl.cn/" target="_blank" rel="noopener">https://freessl.cn/</a> 生成免费的 HTTPS 证书。</p>
+<p>打开网站，输入你的域名以及邮箱，根据提示下载一个工具 <strong>KeyManager</strong>，然后生成证书：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/3.png" alt=""></p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/4.png" alt=""></p>
+<p>然后回到 freessl.cn 网站页面进行 DNS 验证：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/5.png" alt=""></p>
+<p>目的就是为了验证你的域名的所有权。这里根据提示，去 DNS 解析的地方设置解析记录。</p>
+<p>验证成功之后使用 <strong>KeyManager</strong> 导出证书：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/6.png" alt=""></p>
+<p>然后会得到一个类似于 <code>rebootcat-com-nginx-0909002710.zip</code> 的包，解压之后会得到两个文件：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">rebootcat</span><span class="selector-class">.com_chain</span><span class="selector-class">.crt</span></span><br><span class="line"><span class="selector-tag">rebootcat</span><span class="selector-class">.com_key</span><span class="selector-class">.key</span></span><br></pre></td></tr></table></figure>
+<p>用编辑器打开这两个文件，或者直接 <code>cat</code> 这两个文件，一个是 SSl 的证书，一个是 SSL 密钥，把这两个文件的内容拷贝到虚拟主机面板的 SSL设置处：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/7.png" alt=""></p>
+<p>并且开启了 http 跳转 https。</p>
+<p>到此， HTTPS 证书设置就完成了。</p>
+<blockquote>
+<p>注意需要记住 KeyManager 的主密码</p>
+</blockquote>
+<p>试试用 <a href="https://rebootcat.com">https://rebootcat.com</a> 看能否正确访问呢？</p>
+<h1 id="网站云监控"><a href="#网站云监控" class="headerlink" title="网站云监控"></a>网站云监控</h1><p>由于购买的是香港的虚拟主机，毕竟一年也才几十块钱，很难说服务提供商就跑路了，为了避免这一类事情发生的时候导致博客无法访问，有必要对博客网站进行一些云监控，一旦出现异常，则告警。</p>
+<p>免费的网站监控工具有很多，我用的是阿里云的监控以及 UpTimeRobot 的网站监控：</p>
+<ul>
+<li><a href="https://uptimerobot.com/dashboard" target="_blank" rel="noopener">https://uptimerobot.com/dashboard</a></li>
+<li><a href="https://cloudmonitor.console.aliyun.com/" target="_blank" rel="noopener">https://cloudmonitor.console.aliyun.com/</a></li>
+</ul>
+<p>这个自行设置一下，注意设置好报警阈值，不然可能会造成误报：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/8.png" alt=""></p>
+<p>所以一旦出了很严重的报警，那么说明你的服务商跑路了。。。</p>
+<h1 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h1><p>这里就简单贴一下迁移前后的效果图：</p>
+<p>迁移前：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/9.png" alt=""></p>
+<p>迁移后：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/virtual_space_blog/10.png" alt=""></p>
+<p>可以看到还是有很好的改善的，毕竟服务器位于香港。</p>
+<h1 id="The-End"><a href="#The-End" class="headerlink" title="The End"></a>The End</h1><p>到此，博客迁移就完成了，访问速度提升了，也开启了 https。接下来我会考虑对博客首页做一些优化，但由于现在图片走的其实还是 jsdelivr 的国外 cdn，所以速度还是有点慢，可以考虑直接把图片放到网站根目录下，毕竟现在使用的是虚拟主机。</p>
+<p>后面再说吧，也可以考虑把图片等放到阿里云或者腾讯云对象存储上。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#x6e;&#105;&#107;&#105;&#x40;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#x63;&#111;&#109;">&#x6c;&#x69;&#x6e;&#x75;&#x78;&#x63;&#111;&#100;&#101;&#x32;&#x6e;&#105;&#107;&#105;&#x40;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#x63;&#111;&#109;</a></p>
+</li>
+</ul>
+<p>2020-09-20 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+]]></content>
+      <categories>
+        <category>blog</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>blog</tag>
+        <tag>virtualhost</tag>
+        <tag>ftp</tag>
+      </tags>
+  </entry>
 </search>
