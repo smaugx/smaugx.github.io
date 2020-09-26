@@ -213,6 +213,203 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/06/10/demos-about-data-visualization-using-matplotlib/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/06/10/demos-about-data-visualization-using-matplotlib/" class="post-title-link" itemprop="url">matplotlib数据可视化小试</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-06-10 11:23:58" itemprop="dateCreated datePublished" datetime="2017-06-10T11:23:58+08:00">2017-06-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:36:09" itemprop="dateModified" datetime="2020-09-20T09:36:09+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/06/10/demos-about-data-visualization-using-matplotlib/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/06/10/demos-about-data-visualization-using-matplotlib/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="为什么有这么一出"><a href="#为什么有这么一出" class="headerlink" title="为什么有这么一出"></a>为什么有这么一出</h1><p>最早接触到数据可视化应该是大学的时候了吧，那个时候使用的工具是matlab,可以用matlat对数据进行分析，进行可视化。但是那个时候总觉得matlab很难用，或者说matlab的代码不太友好，不过我现在也基本忘记了具体怎么使用matlab了。</p>
+<p>工作的原因，需要利用监控数据进行软件性能的定标，这个过程就需要用到数据可视化。把海量的数据进行分析，然后可视化，或者可视化然后分析，也算数据挖掘的范畴吧。具体内容是，拉取小米监控(<a href="https://book.open-falcon.org/zh/index.html" target="_blank" rel="noopener">open-falcon</a>)的历史数据，然后分析CPU,QPS,BandWidth之间的关系。</p>
+<h1 id="选择了matplotlib"><a href="#选择了matplotlib" class="headerlink" title="选择了matplotlib"></a>选择了matplotlib</h1><p>数据可视化工具有很多，各种语言的也不一样。我的老本行是使用c/c++，这方面的类库好像很少，正好，刚入门了python，python的第三方库很丰富，数据可视化方面的类库也很丰富，说出来的有Pandas、Seaborn、ggplot、Bokeh、pygal、Plotly、matplotlib,详细可以查看<a href="http://python.jobbole.com/85601/" target="_blank" rel="noopener">这篇文章</a>。最终选择了<a href="http://matplotlib.org/" target="_blank" rel="noopener">matplotlib</a>作为我的数据可视化工具，原因很简单，我分析了自己的需求，需要实现坐标图，可能涉及动画，可能涉及3D，可能涉及散点图等，同时网上关于matplotlib的例子很丰富，官网上的例子也很详尽，上手应该很容易，所以最终选择了matplotlib。</p>
+<p>关于matplotlib的介绍，官网如是说：</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/06/10/demos-about-data-visualization-using-matplotlib/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/05/29/smalltalk_about_interview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/05/29/smalltalk_about_interview/" class="post-title-link" itemprop="url">聊聊面试那点事</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-05-29 11:23:58" itemprop="dateCreated datePublished" datetime="2017-05-29T11:23:58+08:00">2017-05-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:34:18" itemprop="dateModified" datetime="2020-09-20T09:34:18+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/smalltalk/" itemprop="url" rel="index"><span itemprop="name">smalltalk</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/05/29/smalltalk_about_interview/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/05/29/smalltalk_about_interview/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="食言了"><a href="#食言了" class="headerlink" title="食言了"></a>食言了</h1><p>记得刚写好之前的一篇博客<a href="http://rebootcat.com/2017/03/17/use-gcov-in-hugeprogram/">c++单元测试框架CPPUNIT的使用以及gcov统计大型项目的测试覆盖率</a>时在文末承诺下一篇写面试的经验与感想，然而下一篇并没有写关于面试的东西。刚才的这篇博文是我离职上一个公司的最后几天写的，那个时候已经找到了新的工作，也面试了好几家公司，因此想趁热打铁，好好记录下面试的过程，分享下面试的感想，然而一直拖到了今天。因此我食言了。废话不多说，东拉西扯开始了。</p>
+<h1 id="躲不过去的追问"><a href="#躲不过去的追问" class="headerlink" title="躲不过去的追问"></a>躲不过去的追问</h1><p>当我们谈面试的时候，意味着离职，那么我们必然要问“你为什么离职？”这个问题的答案有很多方面，每个人的答案或许都有不同，但总是离不开两个至关重要的因素，这也是马云爸爸说过的，“要么是不开心，要么是钱少了”，然而钱在一定程度上影响了大部分的开心或不开心，所以归根结底，大多数离职是因为“不开心”。这里不跟别人争辩，我只说大多数，当然还有很多因素，比如发展，比如规划，比如各种各种很有正能量的道理，但这些我并没有否认。</p>
+<p>那么既然说了“不开心”,再追问“为什么不开心？”我想这个地方追问得到的答案才是千变万化，比如“这跟我之前的预期不太一样”“这完全发挥不了自己的能力”“公司技术氛围不是很浓厚”“团队氛围不好，内部学和尚的太多”，当然还有很多很多。</p>
+<p>那么既然已经追问得到了这些深层次的原因，那么为什么就已经得到了解答。但这跟离职之之间好像还间隔一个问题可以再追问，“你为什么不尝试找解决方法，你为什么不改变自己适应环境，你有没有想过是你自己不够优秀？”诚然，这些都对，这些都是值得思考的问题。我一直觉得，工作就像恋爱，开心最重要，从相识相知到相爱，但还有可能从相识相知相爱到相不爱。由相爱到相不爱的过程，我们也尝试过各种解决办法，我们也曾怀疑自己不够优秀，我们也在努力的坚持。但不合适或许就该放手，懂得妥协也许是一种最正确的处世哲学。说得偏了些，简而言之，目前的工作不适合自己，我应该找合适的工作，发挥自己的最大价值，实现自己的理想，因为我生活的理想啊，就是理想的生活。</p>
+<h1 id="面试"><a href="#面试" class="headerlink" title="面试"></a>面试</h1>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/05/29/smalltalk_about_interview/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2017/03/22/rebuild_hexoblog_in_mac/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1015,210 +1212,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2016/12/01/docker-test/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/12/01/docker-test/" class="post-title-link" itemprop="url">docker-hexo镜像测试</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2016-12-01 11:23:58" itemprop="dateCreated datePublished" datetime="2016-12-01T11:23:58+08:00">2016-12-01</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/" itemprop="url" rel="index"><span itemprop="name">docker</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2016/12/01/docker-test/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2016/12/01/docker-test/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="TEST"><a href="#TEST" class="headerlink" title="TEST"></a>TEST</h1><p>利用docker构建了hexo的镜像，迁移到另外的PC上构建博客。<br>success!!</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/" class="post-title-link" itemprop="url">hessiancpp编译和使用(C++版)</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2016-11-22 11:23:58" itemprop="dateCreated datePublished" datetime="2016-11-22T11:23:58+08:00">2016-11-22</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-20 09:38:17" itemprop="dateModified" datetime="2020-09-20T09:38:17+08:00">2020-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="许下的承诺"><a href="#许下的承诺" class="headerlink" title="许下的承诺"></a>许下的承诺</h1><p>前两篇博客<a href="http://rebootcat.com/2016/11/17/Hessian%E6%A1%88%E4%BE%8B%E2%80%94%E2%80%94java/">Hessian通信案例(java)</a>和<a href="http://rebootcat.com/2016/11/18/Hessian%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E2%80%94%E2%80%94java/">Hessian源码分析(java)</a>介绍了Java版的hessian的使用以及源码分析。当时也说过打算写一下C++版的hessian的使用和源码分析，现在就是兑现承诺的时候了。其实我项目中实际用到的是C++版的hessian，java版的hessian是我最初接触用来理解hessian，并进行联调测试的部分。</p>
-<p>hessian的<a href="http://hessian.caucho.com/#C" target="_blank" rel="noopener">官网</a>上也提供了C++版的hessian的实现。只不过当时在网上找到的说法是hessiancpp的活跃度比较低，而且编译出问题很多，但是还是决定自己亲自一试，毕竟”绝知此事要躬行”嘛，嘿嘿！当然也有其他版本的C++实现，比如<a href="https://github.com/pukkaone/hessianorb" target="_blank" rel="noopener">hessianorb项目</a>。</p>
-<h1 id="Hessiancpp编译"><a href="#Hessiancpp编译" class="headerlink" title="Hessiancpp编译"></a>Hessiancpp编译</h1><p>现在是回过头来写，故早先编译碰到的问题我已经没办法复现，此处就只记录正确的编译步骤和方法。</p>
-<h2 id="下载hessiancpp"><a href="#下载hessiancpp" class="headerlink" title="下载hessiancpp"></a>下载hessiancpp</h2><p>到官网下载源码包：<a href="https://sourceforge.net/projects/hessiancpp/" target="_blank" rel="noopener">https://sourceforge.net/projects/hessiancpp/</a>,我自己当时的版本是hessiancpp-hessaincpp-1.1.0.tar.gz。</p>
-<h2 id="解压编译"><a href="#解压编译" class="headerlink" title="解压编译"></a>解压编译</h2><p>解压上面下载的tar.gz压缩包</p>
-<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">tar</span>  <span class="selector-tag">zxvf</span>  <span class="selector-tag">hessiancpp-hessaincpp-1</span><span class="selector-class">.1</span><span class="selector-class">.0</span><span class="selector-class">.tar</span><span class="selector-class">.gz</span></span><br></pre></td></tr></table></figure>
-<p>然后进入顶层目录hessiancpp:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> hessaincpp</span><br></pre></td></tr></table></figure>
-
-<p>你可以先查看此目录下的Makefile文件，然后试着执行:</p>
-<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">make</span> <span class="keyword">all</span></span><br></pre></td></tr></table></figure>
-
-<p>结果，不出所料，编译出错，错误如下：</p>
-<blockquote>
-<p>In file included from hessian_proxy.cpp:19:0:<br>hessian_proxy.h:31:19: 致命错误：ssl++.h：没有那个文件或目录<br>编译中断。<br>make: *** [hessian_proxy.o] 错误 1</p>
-</blockquote>
-<p>可见缺少了一个叫做ssl++.h的头文件，我们再仔细查看Makefile文件，可以看到第一行代码是：</p>
-<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">SSLPP</span>=../sslpp</span><br></pre></td></tr></table></figure>
-
-<p>显然需要另外一个库。这个库就是提供http代理的功能。网上有人碰到这个问题后，选择了libcurl重写一个http代理，据说还可行。</p>
-<p>言归正传，我们需要一个叫做sslpp的库。</p>
-<h2 id="下载hessian-sslpp"><a href="#下载hessian-sslpp" class="headerlink" title="下载hessian-sslpp"></a>下载hessian-sslpp</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/11/22/hessiancpp%E7%BC%96%E8%AF%91%E5%92%8C%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94C++%E7%89%88/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1290,7 +1283,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">50</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1303,7 +1296,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">85</span>
+        <span class="site-state-item-count">95</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

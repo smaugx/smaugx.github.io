@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://rebootcat.com/2020/09/26/epoll_examples/</loc>
+    
+    <lastmod>2020-09-25T12:30:06.935Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://rebootcat.com/2020/09/26/epoll_cookbook/</loc>
+    
+    <lastmod>2020-09-25T12:28:48.219Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://rebootcat.com/2020/09/20/wiki/</loc>
     
     <lastmod>2020-09-20T16:24:47.349Z</lastmod>

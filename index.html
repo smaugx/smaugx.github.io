@@ -213,6 +213,217 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/09/26/epoll_examples/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/26/epoll_examples/" class="post-title-link" itemprop="url">epoll 入门例子 tcp server/client</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-26 11:50:58" itemprop="dateCreated datePublished" datetime="2020-09-26T11:50:58+08:00">2020-09-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-25 20:30:06" itemprop="dateModified" datetime="2020-09-25T20:30:06+08:00">2020-09-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/26/epoll_examples/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/26/epoll_examples/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="复习一下"><a href="#复习一下" class="headerlink" title="复习一下"></a>复习一下</h1><p>上一篇博文 <a href="https://rebootcat.com/2020/09/26/epoll_cookbook/">epoll原理深入分析</a> 详细分析了 epoll 底层的实现原理，如果对 epoll 原理有模糊的建议先看一下这篇文章。那么本文就开始用 epoll 实现一个简单的 tcp server/client。</p>
+<p>本文基于我的 github: <a href="https://github.com/smaugx/epoll_examples" target="_blank" rel="noopener">https://github.com/smaugx/epoll_examples</a>。</p>
+<h1 id="epoll-实现范式"><a href="#epoll-实现范式" class="headerlink" title="epoll 实现范式"></a>epoll 实现范式</h1><figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># create listen socket</span></span><br><span class="line"><span class="keyword">int</span> listenfd = ::socket();</span><br><span class="line"></span><br><span class="line"><span class="meta"># bind to local port and ip</span></span><br><span class="line"><span class="keyword">int</span> r = ::bind();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta"># create epoll instance and get an epoll-fd</span></span><br><span class="line"><span class="keyword">int</span> epollfd = epoll_create(<span class="number">1</span>);</span><br><span class="line"> </span><br><span class="line"><span class="meta"># add listenfd to epoll instance</span></span><br><span class="line"><span class="keyword">int</span> r = epoll_ctl(..., listenfd, ...);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta"># begin epoll_wait, wait for ready socket</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span>* <span class="title">alive_events</span> =  <span class="title">static_cast</span>&lt;epoll_event*&gt;(<span class="title">calloc</span>(<span class="title">kMaxEvents</span>, <span class="title">sizeof</span>(<span class="title">epoll_event</span>)));</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">            <span class="keyword">int</span> num = epoll_wait(epollfd, alive_events, kMaxEvents, kEpollWaitTime);</span><br><span class="line">    </span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; num; ++i) &#123;</span><br><span class="line">            <span class="keyword">int</span> fd = alive_events[i].data.fd;</span><br><span class="line">            <span class="keyword">int</span> events = alive_events[i].events;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> ( (events &amp; EPOLLERR) || (events &amp; EPOLLHUP) ) &#123;</span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"epoll_wait error!"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">                <span class="comment">// An error has occured on this fd, or the socket is not ready for reading (why were we notified then?).</span></span><br><span class="line">                ::<span class="built_in">close</span>(fd);</span><br><span class="line">            &#125; <span class="keyword">else</span>  <span class="keyword">if</span> (events &amp; EPOLLRDHUP) &#123;</span><br><span class="line">                <span class="comment">// Stream socket peer closed connection, or shut down writing half of connection.</span></span><br><span class="line">                <span class="comment">// more inportant, We still to handle disconnection when read()/recv() return 0 or -1 just to be sure.</span></span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"fd:"</span> &lt;&lt; fd &lt;&lt; <span class="string">" closed EPOLLRDHUP!"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">                <span class="comment">// close fd and epoll will remove it</span></span><br><span class="line">                ::<span class="built_in">close</span>(fd);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> ( events &amp; EPOLLIN ) &#123;</span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"epollin"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">                <span class="keyword">if</span> (fd == handle_) &#123;</span><br><span class="line">                    <span class="comment">// listen fd coming connections</span></span><br><span class="line">                    OnSocketAccept();</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// other fd read event coming, meaning data coming</span></span><br><span class="line">                    OnSocketRead(fd);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> ( events &amp; EPOLLOUT ) &#123;</span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"epollout"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">                <span class="comment">// write event for fd (not including listen-fd), meaning send buffer is available for big files</span></span><br><span class="line">                OnSocketWrite(fd);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"unknow epoll event!"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="comment">// end for (int i = 0; ...</span></span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>epoll 编程基本是按照上面的范式进行的，这里要注意的是上面的反应的只是单进程或者单线程的情况。</p>
+<p>如果涉及到多线程或者多进程，那么通常来说会在 listen() 创建完成之后，创建多线程或者多进程，然后再操作 epoll.</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/26/epoll_examples/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/09/26/epoll_cookbook/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/26/epoll_cookbook/" class="post-title-link" itemprop="url">Epoll原理深入分析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-26 10:50:58" itemprop="dateCreated datePublished" datetime="2020-09-26T10:50:58+08:00">2020-09-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-25 20:28:48" itemprop="dateModified" datetime="2020-09-25T20:28:48+08:00">2020-09-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/26/epoll_cookbook/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/26/epoll_cookbook/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Epoll-的出现"><a href="#Epoll-的出现" class="headerlink" title="Epoll 的出现"></a>Epoll 的出现</h1><p>想必能搜到这篇文章的，应该对 select/poll 有一些了解和认识，一般说 epoll 都会与 select/poll 进行一些对比，select、poll 和 epoll 都是一种 IO 多路复用机制。</p>
+<h2 id="select-的问题"><a href="#select-的问题" class="headerlink" title="select 的问题"></a>select 的问题</h2><p>select 的问题在于描述符的限制，能监控的文件描述符最大为 FD_SETSIZE，对于连接数很多的场景就无法满足；</p>
+<p>另外select 还有一个问题是，每次调用 select 都需要从用户空间把描述符集合拷贝到内核空间，当描述符集合变大之后，用户空间和内核空间的内存拷贝会导致效率低下；</p>
+<p>另外每次调用 select 都需要在内核线性遍历文件描述符的集合，当描述符增多，效率低下。</p>
+<h2 id="poll-的问题"><a href="#poll-的问题" class="headerlink" title="poll 的问题"></a>poll 的问题</h2><p>由于 select 存在上面的问题，于是 poll 被提了出来，它能解决 select 对文件描述符数量有限制的问题，但是依然不能解决线性遍历以及用户空间和内核空间的低效数据拷贝问题。</p>
+<h2 id="epoll-是什么"><a href="#epoll-是什么" class="headerlink" title="epoll 是什么"></a>epoll 是什么</h2><p>select/poll 在互联网早期应该是没什么问题的，因为没有很多的互联网服务，也没有很多的客户端，但是随着互联网的发展，<a href="http://www.kegel.com/c10k.html#related" target="_blank" rel="noopener">C10K</a> 等问题的出现，select/poll 已经不能满足要求了，这个时候 epoll 上场了。</p>
+<p>epoll 是 linux 内核 2.6 之后支持的，epoll 同 select/poll 一样，也是 IO 多路复用的一种机制，不过它避免了 select/poll 的缺点。下面详细讲解一下 epoll 反应堆的原理。</p>
+<h1 id="Epoll-反应堆"><a href="#Epoll-反应堆" class="headerlink" title="Epoll 反应堆"></a>Epoll 反应堆</h1><h2 id="epoll-原理"><a href="#epoll-原理" class="headerlink" title="epoll 原理"></a>epoll 原理</h2><blockquote>
+<p><strong>要完整描述 epoll 的原理，需要涉及到内核、网卡、中断、软中断、协议栈、套接字等知识，本文尽量从比较全面的角度来分析 epoll 的原理</strong>。</p>
+</blockquote>
+<p>上面其实讨论了 select/poll 几个缺点，针对这几个缺点，就需要解决以下几件事：</p>
+<ul>
+<li>如何突破文件描述符数量的限制</li>
+<li>如何避免用户态和内核态对文件描述符集合的拷贝</li>
+<li>socket 就绪后，如何避免线性遍历文件描述符集合</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/26/epoll_cookbook/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/09/20/wiki/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1053,219 +1264,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/06/16/valgrind_massif_memory_analysing/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/06/16/valgrind_massif_memory_analysing/" class="post-title-link" itemprop="url">valgrind massif 分析内存问题</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2020-06-16 08:23:58 / 修改时间：08:01:55" itemprop="dateCreated datePublished" datetime="2020-06-16T08:23:58+08:00">2020-06-16</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/06/16/valgrind_massif_memory_analysing/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/06/16/valgrind_massif_memory_analysing/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Valgrind-Massif"><a href="#Valgrind-Massif" class="headerlink" title="Valgrind Massif"></a>Valgrind Massif</h1><p>valgrind 是什么，这里直接引用其他人的博客：</p>
-<blockquote>
-<p>Valgrind是一套Linux下，开放源代码（GPL<br>V2）的仿真调试工具的集合。Valgrind由内核（core）以及基于内核的其他调试工具组成。</p>
-</blockquote>
-<blockquote>
-<p>内核类似于一个框架（framework），它模拟了一个CPU环境，并提供服务给其他工具；而其他工具则类似于插件 (plug-in)，利用内核提供的服务完成各种特定的内存调试任务。</p>
-<p>Valgrind的体系结构如下图所示：</p>
-</blockquote>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/valgrind_massif_memory_analysing/1.png" alt=""></p>
-<h1 id="Massif-命令行选项"><a href="#Massif-命令行选项" class="headerlink" title="Massif 命令行选项"></a>Massif 命令行选项</h1><p>关于 massif 命令行选项，可以直接查看 valgrind 的 help 信息：</p>
-<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">MASSIF OPTIONS</span><br><span class="line">       <span class="comment">--heap=&lt;yes|no&gt; [default: yes]</span></span><br><span class="line">           Specifies whether heap profiling should be done.</span><br><span class="line"></span><br><span class="line">       <span class="comment">--heap-admin=&lt;size&gt; [default: 8]</span></span><br><span class="line">           If heap profiling <span class="keyword">is</span> enabled, gives <span class="keyword">the</span> <span class="built_in">number</span> <span class="keyword">of</span> administrative bytes per block <span class="keyword">to</span> use. This should be an estimate <span class="keyword">of</span> <span class="keyword">the</span> average, <span class="keyword">since</span> <span class="keyword">it</span> may vary. For example, <span class="keyword">the</span></span><br><span class="line">           allocator used <span class="keyword">by</span> glibc <span class="keyword">on</span> Linux requires somewhere <span class="keyword">between</span> <span class="number">4</span> <span class="keyword">to</span> <span class="number">15</span> bytes per block, depending <span class="keyword">on</span> various factors. That allocator also requires admin <span class="literal">space</span> <span class="keyword">for</span> freed blocks,</span><br><span class="line">           <span class="keyword">but</span> Massif cannot account <span class="keyword">for</span> this.</span><br><span class="line"></span><br><span class="line">       <span class="comment">--stacks=&lt;yes|no&gt; [default: no]</span></span><br><span class="line">           Specifies whether stack profiling should be done. This option slows Massif down greatly, <span class="keyword">and</span> so <span class="keyword">is</span> off <span class="keyword">by</span> default. Note <span class="keyword">that</span> Massif assumes <span class="keyword">that</span> <span class="keyword">the</span> main stack has size zero</span><br><span class="line">           <span class="keyword">at</span> start-up. This <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">true</span>, <span class="keyword">but</span> doing otherwise accurately <span class="keyword">is</span> difficult. Furthermore, starting <span class="keyword">at</span> zero better indicates <span class="keyword">the</span> size <span class="keyword">of</span> <span class="keyword">the</span> part <span class="keyword">of</span> <span class="keyword">the</span> main stack <span class="keyword">that</span> a user</span><br><span class="line">           program actually has control <span class="keyword">over</span>.</span><br><span class="line"></span><br><span class="line">       <span class="comment">--pages-as-heap=&lt;yes|no&gt; [default: no]</span></span><br><span class="line">           Tells Massif <span class="keyword">to</span> profile memory <span class="keyword">at</span> <span class="keyword">the</span> page level rather than <span class="keyword">at</span> <span class="keyword">the</span> malloc'd block level. See <span class="keyword">above</span> <span class="keyword">for</span> details.</span><br><span class="line"></span><br><span class="line">       <span class="comment">--depth=&lt;number&gt; [default: 30]</span></span><br><span class="line">           Maximum depth <span class="keyword">of</span> <span class="keyword">the</span> allocation trees recorded <span class="keyword">for</span> detailed snapshots. Increasing <span class="keyword">it</span> will make Massif <span class="built_in">run</span> somewhat more slowly, use more memory, <span class="keyword">and</span> produce bigger output</span><br><span class="line">           files.</span><br><span class="line"></span><br><span class="line">       <span class="comment">--alloc-fn=&lt;name&gt;</span></span><br><span class="line">           Functions specified <span class="keyword">with</span> this option will be treated <span class="keyword">as</span> though they were a heap allocation function such <span class="keyword">as</span> malloc. This <span class="keyword">is</span> useful <span class="keyword">for</span> functions <span class="keyword">that</span> are wrappers <span class="keyword">to</span> malloc <span class="keyword">or</span></span><br><span class="line">           new, which can fill up <span class="keyword">the</span> allocation trees <span class="keyword">with</span> uninteresting information. This option can be specified multiple <span class="keyword">times</span> <span class="keyword">on</span> <span class="keyword">the</span> command line, <span class="keyword">to</span> <span class="built_in">name</span> multiple functions.</span><br><span class="line"></span><br><span class="line">           Note <span class="keyword">that</span> <span class="keyword">the</span> named function will only be treated this way <span class="keyword">if</span> <span class="keyword">it</span> <span class="keyword">is</span> <span class="keyword">the</span> top entry <span class="keyword">in</span> a stack trace, <span class="keyword">or</span> just <span class="keyword">below</span> another function treated this way. For example, <span class="keyword">if</span> you have a</span><br><span class="line">           function malloc1 <span class="keyword">that</span> wraps malloc, <span class="keyword">and</span> malloc2 <span class="keyword">that</span> wraps malloc1, just specifying <span class="comment">--alloc-fn=malloc2 will have no effect. You need to specify --alloc-fn=malloc1 as well.</span></span><br><span class="line">           This <span class="keyword">is</span> a little inconvenient, <span class="keyword">but</span> <span class="keyword">the</span> reason <span class="keyword">is</span> <span class="keyword">that</span> checking <span class="keyword">for</span> allocation functions <span class="keyword">is</span> slow, <span class="keyword">and</span> <span class="keyword">it</span> saves a lot <span class="keyword">of</span> <span class="built_in">time</span> <span class="keyword">if</span> Massif can stop looking <span class="keyword">through</span> <span class="keyword">the</span> stack trace</span><br><span class="line">           entries <span class="keyword">as</span> soon <span class="keyword">as</span> <span class="keyword">it</span> finds one <span class="keyword">that</span> doesn't match rather than having <span class="keyword">to</span> <span class="keyword">continue</span> <span class="keyword">through</span> all <span class="keyword">the</span> entries.</span><br><span class="line"></span><br><span class="line">           Note <span class="keyword">that</span> C++ names are demangled. Note also <span class="keyword">that</span> overloaded C++ names must be written <span class="keyword">in</span> full. Single quotes may be necessary <span class="keyword">to</span> prevent <span class="keyword">the</span> shell <span class="keyword">from</span> breaking them up. For</span><br><span class="line">           example:</span><br><span class="line"></span><br><span class="line">               <span class="comment">--alloc-fn='operator new(unsigned, std::nothrow_t const&amp;)'</span></span><br><span class="line"></span><br><span class="line">       <span class="comment">--ignore-fn=&lt;name&gt;</span></span><br><span class="line">           Any direct heap allocation (i.e. a call <span class="keyword">to</span> malloc, new, etc, <span class="keyword">or</span> a call <span class="keyword">to</span> a function named <span class="keyword">by</span> an <span class="comment">--alloc-fn option) that occurs in a function specified by this option will be</span></span><br><span class="line">           ignored. This <span class="keyword">is</span> mostly useful <span class="keyword">for</span> testing purposes. This option can be specified multiple <span class="keyword">times</span> <span class="keyword">on</span> <span class="keyword">the</span> command line, <span class="keyword">to</span> <span class="built_in">name</span> multiple functions.</span><br><span class="line"></span><br><span class="line">           Any realloc <span class="keyword">of</span> an ignored block will also be ignored, even <span class="keyword">if</span> <span class="keyword">the</span> realloc call <span class="keyword">does</span> <span class="keyword">not</span> occur <span class="keyword">in</span> an ignored function. This avoids <span class="keyword">the</span> possibility <span class="keyword">of</span> negative heap sizes <span class="keyword">if</span></span><br><span class="line">           ignored blocks are shrunk <span class="keyword">with</span> realloc.</span><br><span class="line"></span><br><span class="line">           The rules <span class="keyword">for</span> writing C++ function names are <span class="keyword">the</span> same <span class="keyword">as</span> <span class="keyword">for</span> <span class="comment">--alloc-fn above.</span></span><br><span class="line"></span><br><span class="line">       <span class="comment">--threshold=&lt;m.n&gt; [default: 1.0]</span></span><br><span class="line">           The significance threshold <span class="keyword">for</span> heap allocations, <span class="keyword">as</span> a percentage <span class="keyword">of</span> total memory size. Allocation tree entries <span class="keyword">that</span> account <span class="keyword">for</span> <span class="keyword">less than</span> this will be aggregated. Note <span class="keyword">that</span></span><br><span class="line">           this should be specified <span class="keyword">in</span> tandem <span class="keyword">with</span> ms_print's option <span class="keyword">of</span> <span class="keyword">the</span> same <span class="built_in">name</span>.</span><br><span class="line"></span><br><span class="line">       <span class="comment">--peak-inaccuracy=&lt;m.n&gt; [default: 1.0]</span></span><br><span class="line">           Massif <span class="keyword">does</span> <span class="keyword">not</span> necessarily <span class="built_in">record</span> <span class="keyword">the</span> actual <span class="keyword">global</span> memory allocation peak; <span class="keyword">by</span> default <span class="keyword">it</span> records a peak only when <span class="keyword">the</span> <span class="keyword">global</span> memory allocation size exceeds <span class="keyword">the</span> previous peak</span><br><span class="line">           <span class="keyword">by</span> <span class="keyword">at</span> least <span class="number">1.0</span>%. This <span class="keyword">is</span> because there can be many <span class="keyword">local</span> allocation peaks along <span class="keyword">the</span> way, <span class="keyword">and</span> doing a detailed snapshot <span class="keyword">for</span> <span class="keyword">every</span> one would be expensive <span class="keyword">and</span> wasteful, <span class="keyword">as</span> all</span><br><span class="line">           <span class="keyword">but</span> one <span class="keyword">of</span> them will be later discarded. This inaccuracy can be changed (even <span class="keyword">to</span> <span class="number">0.0</span>%) via this option, <span class="keyword">but</span> Massif will <span class="built_in">run</span> drastically slower <span class="keyword">as</span> <span class="keyword">the</span> <span class="built_in">number</span> approaches zero.</span><br><span class="line"></span><br><span class="line">       <span class="comment">--time-unit=&lt;i|ms|B&gt; [default: i]</span></span><br><span class="line">           The <span class="built_in">time</span> unit used <span class="keyword">for</span> <span class="keyword">the</span> profiling. There are three possibilities: instructions executed (i), which <span class="keyword">is</span> good <span class="keyword">for</span> most cases; <span class="built_in">real</span> (wallclock) <span class="built_in">time</span> (ms, i.e. milliseconds),</span><br><span class="line">           which <span class="keyword">is</span> sometimes useful; <span class="keyword">and</span> bytes allocated/deallocated <span class="keyword">on</span> <span class="keyword">the</span> heap <span class="keyword">and</span>/<span class="keyword">or</span> stack (B), which <span class="keyword">is</span> useful <span class="keyword">for</span> very short-<span class="built_in">run</span> programs, <span class="keyword">and</span> <span class="keyword">for</span> testing purposes, because <span class="keyword">it</span> <span class="keyword">is</span></span><br><span class="line">           <span class="keyword">the</span> most reproducible across different machines.</span><br><span class="line"></span><br><span class="line">       <span class="comment">--detailed-freq=&lt;n&gt; [default: 10]</span></span><br><span class="line">           Frequency <span class="keyword">of</span> detailed snapshots. With <span class="comment">--detailed-freq=1, every snapshot is detailed.</span></span><br><span class="line"></span><br><span class="line">       <span class="comment">--max-snapshots=&lt;n&gt; [default: 100]</span></span><br><span class="line">           The maximum <span class="built_in">number</span> <span class="keyword">of</span> snapshots recorded. If <span class="keyword">set</span> <span class="keyword">to</span> N, <span class="keyword">for</span> all programs except very short-<span class="built_in">running</span> ones, <span class="keyword">the</span> final <span class="built_in">number</span> <span class="keyword">of</span> snapshots will be <span class="keyword">between</span> N/<span class="number">2</span> <span class="keyword">and</span> N.</span><br><span class="line"></span><br><span class="line">       <span class="comment">--massif-out-file=&lt;file&gt; [default: massif.out.%p]</span></span><br><span class="line">           Write <span class="keyword">the</span> profile data <span class="keyword">to</span> <span class="built_in">file</span> rather than <span class="keyword">to</span> <span class="keyword">the</span> default output <span class="built_in">file</span>, massif.out.&lt;pid&gt;. The %p <span class="keyword">and</span> %q format specifiers can be used <span class="keyword">to</span> embed <span class="keyword">the</span> process ID <span class="keyword">and</span>/<span class="keyword">or</span> <span class="keyword">the</span></span><br><span class="line">           <span class="built_in">contents</span> <span class="keyword">of</span> an environment variable <span class="keyword">in</span> <span class="keyword">the</span> <span class="built_in">name</span>, <span class="keyword">as</span> <span class="keyword">is</span> <span class="keyword">the</span> case <span class="keyword">for</span> <span class="keyword">the</span> core option <span class="comment">--log-file.</span></span><br></pre></td></tr></table></figure>
-
-<p>对其中几个常用的选项做一个说明：</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/06/16/valgrind_massif_memory_analysing/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/16/network_attack_of_blockchain_other_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-04-16 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-16T11:23:58+08:00">2020-04-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-19 00:29:28" itemprop="dateModified" datetime="2020-04-19T00:29:28+08:00">2020-04-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/16/network_attack_of_blockchain_other_attack/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/16/network_attack_of_blockchain_other_attack/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
-<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
-<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
-<p>同系列：</p>
-<ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a> </li>
-</ul>
-<h1 id="异形攻击"><a href="#异形攻击" class="headerlink" title="异形攻击"></a>异形攻击</h1><p>异形攻击又称地址污染攻击，是指诱使同类链的节点之间互相发现、互联、侵入的一种攻击手法。同类链的意思是底层 P2P 网络使用了相同或者相似的 P2P 通信协议。这尤其针对比特币和以太坊系列的公链。</p>
-<p>众所周知，最近几年区块链行业蓬勃发展，又过于浮躁。其中很多劣质公链大量 COPY 以太坊、比特币的源码，甚至不做修改，仅仅修改下名字成为一条新的公链，这就导致大量的公链的底层是相同的或者兼容的。</p>
-<p>那么如果攻击者执行了异形攻击，就有可能导致同类链的节点之间互相缠绕在一起，影响公链节点内部的通信和路由，进而影响到交易、共识和安全。从而让攻击者有机会施行其他的攻击，比如 DDoS 攻击，网络分裂攻击。</p>
-<p>本质上还是由于伸手党的存在，并且不加以修饰和对节点的检测造成了异形攻击。应对办法也很简单，首先是拒绝做伸手党，即便伸手党，起码也要研究下别人的代码，做点创新和原创的东西；其次加强对本公链的节点类型的检测，比如节点地址不符合的一切拒绝，通信协议不一致的一切拒绝，通信报文头特殊字段不一致的一切拒绝等等。</p>
-<img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_other_attack/1.png" style="zoom:100%;margin:auto;"/>
-
-<center>配图与本文无关</center>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/04/16/network_attack_of_blockchain_other_attack/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1337,7 +1335,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">50</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1350,7 +1348,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">85</span>
+        <span class="site-state-item-count">95</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
