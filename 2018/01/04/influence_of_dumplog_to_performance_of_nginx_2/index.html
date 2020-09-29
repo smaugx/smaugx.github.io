@@ -27,14 +27,14 @@
   <meta name="description" content="前言问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《nginx写日志对于响应速度的影响探究（一）》中其实提出了两个问题还有待研究：  log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ? requ">
 <meta property="og:type" content="article">
 <meta property="og:title" content="nginx 写⽇志对响应速度的影响探究（二）">
-<meta property="og:url" content="http://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/index.html">
+<meta property="og:url" content="https://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/index.html">
 <meta property="og:site_name" content="林夕水共">
 <meta property="og:description" content="前言问题的提出是为了精细化提高 nginx(marxxx) 的性能，遂分析写日志对于请求的影响，上一篇《nginx写日志对于响应速度的影响探究（一）》中其实提出了两个问题还有待研究：  log buffer 分别为 4k、64k、128k 不同情况下，相较而言 log buffer 为 64k 时 nginx 性能表现更优，这里的表现指 cpu 压满情况下 qps 更高。so why ? requ">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://rebootcat.com/images/requesttimebodong.png">
-<meta property="og:image" content="http://rebootcat.com/images/4k.png">
-<meta property="og:image" content="http://rebootcat.com/images/32k.png">
-<meta property="og:image" content="http://rebootcat.com/images/64_128k.png">
+<meta property="og:image" content="https://rebootcat.com/images/requesttimebodong.png">
+<meta property="og:image" content="https://rebootcat.com/images/4k.png">
+<meta property="og:image" content="https://rebootcat.com/images/32k.png">
+<meta property="og:image" content="https://rebootcat.com/images/64_128k.png">
 <meta property="article:published_time" content="2018-01-04T08:23:58.000Z">
 <meta property="article:modified_time" content="2020-09-20T01:39:18.600Z">
 <meta property="article:author" content="Smaug">
@@ -44,9 +44,9 @@
 <meta property="article:tag" content="nginx">
 <meta property="article:tag" content="lua">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://rebootcat.com/images/requesttimebodong.png">
+<meta name="twitter:image" content="https://rebootcat.com/images/requesttimebodong.png">
 
-<link rel="canonical" href="http://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/">
+<link rel="canonical" href="https://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/">
 
 
 <script id="page-configurations">
@@ -223,7 +223,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
@@ -400,7 +400,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" title="nginx 写⽇志对响应速度的影响探究（二）">http://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/</a>
+    <a href="https://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/" title="nginx 写⽇志对响应速度的影响探究（二）">https://rebootcat.com/2018/01/04/influence_of_dumplog_to_performance_of_nginx_2/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
