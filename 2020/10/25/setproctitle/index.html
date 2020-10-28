@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+<meta name="google-site-verification" content="IpNgA5aPb7fAewOpvbq-eVkYwuCplcLKol7cG2itN5M" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="nginx 进程名使用 nginx 的过程中，我们经常看到 nginx 的进程名是不同的，如下： 12345$ ps -ef |grep nginx smaug    1183  1115  0 05:46 pts&#x2F;2    00:00:00 grep --color&#x3D;auto nginxroot     14201     1  0  2019 ?        00:00:00 nginx:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="模仿nginx修改进程名">
+<meta property="og:url" content="https://rebootcat.com/2020/10/25/setproctitle/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="nginx 进程名使用 nginx 的过程中，我们经常看到 nginx 的进程名是不同的，如下： 12345$ ps -ef |grep nginx smaug    1183  1115  0 05:46 pts&#x2F;2    00:00:00 grep --color&#x3D;auto nginxroot     14201     1  0  2019 ?        00:00:00 nginx:">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-10-25T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-10-28T15:09:43.235Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="nginx">
+<meta property="article:tag" content="setproctitle">
+<meta property="article:tag" content="fork">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://rebootcat.com/2020/10/25/setproctitle/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>模仿nginx修改进程名 | 林夕水共</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+        <li class="menu-item menu-item-wiki">
+
+    <a href="/wiki/" rel="section"><i class="fa fa-fw fa-wikipedia-w"></i>维基</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/10/25/setproctitle/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          模仿nginx修改进程名
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-25 11:23:58" itemprop="dateCreated datePublished" datetime="2020-10-25T11:23:58+08:00">2020-10-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-10-28 23:09:43" itemprop="dateModified" datetime="2020-10-28T23:09:43+08:00">2020-10-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/10/25/setproctitle/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/25/setproctitle/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="nginx-进程名"><a href="#nginx-进程名" class="headerlink" title="nginx 进程名"></a>nginx 进程名</h1><p>使用 nginx 的过程中，我们经常看到 nginx 的进程名是不同的，如下：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ ps -ef |grep nginx </span><br><span class="line">smaug    <span class="number">1183</span>  <span class="number">1115</span>  <span class="number">0</span> <span class="number">05</span>:<span class="number">46</span> pts/<span class="number">2</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> grep --color=<span class="built_in">auto</span> nginx</span><br><span class="line">root     <span class="number">14201</span>     <span class="number">1</span>  <span class="number">0</span>  <span class="number">2019</span> ?        <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> nginx: master process ./sbin/nginx</span><br><span class="line">nobody   <span class="number">28887</span> <span class="number">14201</span>  <span class="number">0</span> Oct14 ?        <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> nginx: worker process</span><br><span class="line">nobody   <span class="number">28888</span> <span class="number">14201</span>  <span class="number">0</span> Oct14 ?        <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> nginx: worker process</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 nginx 的进程名是不同的，那么它是怎么做到的呢？</p>
+<h1 id="argv-0"><a href="#argv-0" class="headerlink" title="argv[0]"></a>argv[0]</h1><p>首先来看一下 C 语言中的 main 函数的定义：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>这个应该大家都是比较熟悉的，argc 表示命令行参数个数， argv 保存了各个命令行参数的内容。<strong>其中 <code>argv[0]</code> 表示的是进程的名字</strong>，这就是修改进程名的关键点所在。</p>
+<p><strong>只需要修改  argv[0] 的值即可完成修改进程名</strong>。</p>
+<h2 id="hello-world"><a href="#hello-world" class="headerlink" title="hello world"></a>hello world</h2><p>下面以程序员经典入门代码为例说明：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// filename: hello_world_setproctitle.cc</span></span><br><span class="line"><span class="comment">// build: g++ hello_world_setproctitle.cc -o hello_world_setproctitle</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"hello world\n"</span>);</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="comment">// block here</span></span><br><span class="line">        <span class="keyword">char</span> c = getchar();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译运行：</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">g</span>++ <span class="comment">hello_world_setproctitle</span><span class="string">.</span><span class="comment">cc</span> <span class="literal">-</span><span class="comment">o</span> <span class="comment">hello_world_setproctitle</span></span><br><span class="line"><span class="comment"></span><span class="string">.</span><span class="comment">/hello_world_setproctitle</span></span><br></pre></td></tr></table></figure>
+
+<p>查看一下进程名：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># ps -ef |grep hello_world</span><br><span class="line">root     <span class="number">26356</span> <span class="number">12289</span>  <span class="number">0</span> <span class="number">14</span>:<span class="number">17</span> pts/<span class="number">3</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> ./hello_world_setproctitle</span><br><span class="line">root     <span class="number">26366</span> <span class="number">20422</span>  <span class="number">0</span> <span class="number">14</span>:<span class="number">18</span> pts/<span class="number">1</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> grep --color=<span class="built_in">auto</span> hello_world</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<p>可以看到进程名是 <code>hello_world_setproctitle</code>，接下来我们修改一下 argv[0] 的值，代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// filename: hello_world_setproctitle.cc</span></span><br><span class="line"><span class="comment">// build: g++ hello_world_setproctitle.cc -o hello_world_setproctitle</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="comment">// new process name</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* new_name = <span class="string">"new_new_hello_world_setproctitle"</span>;</span><br><span class="line">    <span class="built_in">strcpy</span>(argv[<span class="number">0</span>], new_name);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"hello world\n"</span>);</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="comment">// block here</span></span><br><span class="line">        <span class="keyword">char</span> c = getchar();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译运行之后，查看进程名：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># ps -ef |grep hello_world</span><br><span class="line">root     <span class="number">26750</span> <span class="number">12289</span>  <span class="number">0</span> <span class="number">14</span>:<span class="number">23</span> pts/<span class="number">3</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> new_new_hello_world_setproctitle</span><br><span class="line">root     <span class="number">26754</span> <span class="number">20422</span>  <span class="number">0</span> <span class="number">14</span>:<span class="number">23</span> pts/<span class="number">1</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> grep --color=<span class="built_in">auto</span> hello_world</span><br></pre></td></tr></table></figure>
+<p>可以看到进程名已经修改为 <code>new_new_hello_world_setproctitle</code> 了。</p>
+<p>是不是很简单？</p>
+<p><strong>不过上面的代码是有一定的风险的，如果新的进程名超过了原来 argv[0] 的长度，就可能会影响到后面的 environ 的内容</strong>。</p>
+<h1 id="环境变量-environ"><a href="#环境变量-environ" class="headerlink" title="环境变量 environ"></a>环境变量 environ</h1><p>C 语言中 main 函数的定义还有一个:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[], <span class="keyword">char</span> *envp[])</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>这个版本提供了第三个参数，大多数 Unix 系统支持，但是  POSIX.1 不建议这么做，如果要访问环境变量建议使用 <code>getenv</code> 和 <code>putenv</code> 接口。这里就不展开讲了。</p>
+<p>envp 这个参数表示环境变量，<strong>每一个进程都有与之相关的环境变量，其中每个字符串都以(name=value)形式定义，并且 envp 的地址紧跟在 argv 之后</strong>。</p>
+<h2 id="hello-world-environ"><a href="#hello-world-environ" class="headerlink" title="hello world environ"></a>hello world environ</h2><p>接下来我们打印一下 envp 这个参数的值，基于上面的代码，简单修改一下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// filename: hello_world_setproctitle.cc</span></span><br><span class="line"><span class="comment">// build: g++ hello_world_setproctitle.cc -o hello_world_setproctitle</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[], <span class="keyword">char</span> *envp[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; argc; ++i) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"mem:%p len:%d argv[%d]: %s\n"</span>, argv[i], <span class="built_in">strlen</span>(argv[i]), i, argv[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; envp[i] != <span class="literal">NULL</span>; ++i) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"mem:%p len:%d envp[%d]: %s\n"</span>, envp[i], <span class="built_in">strlen</span>(envp[i]), i, envp[i]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* new_name = <span class="string">"new_new_hello_world_setproctitle"</span>;</span><br><span class="line">    <span class="built_in">strcpy</span>(argv[<span class="number">0</span>], new_name);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"hello world\n"</span>);</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="comment">// block here</span></span><br><span class="line">        <span class="keyword">char</span> c = getchar();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码同时也打印了每个参数的地址以及长度，编译并执行：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"># ./hello_world_setproctitle <span class="number">1</span> <span class="number">22</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf7544</span> len:<span class="number">26</span> argv[<span class="number">0</span>]: ./hello_world_setproctitle</span><br><span class="line">mem:<span class="number">0x7ffc84cf755f</span> len:<span class="number">1</span> argv[<span class="number">1</span>]: <span class="number">1</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf7561</span> len:<span class="number">2</span> argv[<span class="number">2</span>]: <span class="number">22</span></span><br><span class="line"></span><br><span class="line">mem:<span class="number">0x7ffc84cf7564</span> len:<span class="number">19</span> envp[<span class="number">0</span>]: XDG_SESSION_ID=<span class="number">2554</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf7578</span> len:<span class="number">13</span> envp[<span class="number">1</span>]: HOSTNAME=Jiao</span><br><span class="line">mem:<span class="number">0x7ffc84cf7586</span> len:<span class="number">23</span> envp[<span class="number">2</span>]: SELINUX_ROLE_REQUESTED=</span><br><span class="line">mem:<span class="number">0x7ffc84cf759e</span> len:<span class="number">19</span> envp[<span class="number">3</span>]: TERM=xterm<span class="number">-256</span>color</span><br><span class="line">mem:<span class="number">0x7ffc84cf75b2</span> len:<span class="number">15</span> envp[<span class="number">4</span>]: SHELL=/bin/bash</span><br><span class="line">mem:<span class="number">0x7ffc84cf75c2</span> len:<span class="number">13</span> envp[<span class="number">5</span>]: HISTSIZE=<span class="number">1000</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf75d0</span> len:<span class="number">31</span> envp[<span class="number">6</span>]: SSH_CLIENT=<span class="number">192.168</span><span class="number">.1</span><span class="number">.3</span> <span class="number">61311</span> <span class="number">22</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf75f0</span> len:<span class="number">26</span> envp[<span class="number">7</span>]: SELINUX_USE_CURRENT_RANGE=</span><br><span class="line">mem:<span class="number">0x7ffc84cf760b</span> len:<span class="number">75</span> envp[<span class="number">8</span>]: ANDROID_NDK_TOOLCHAIN_ROOT=/root/smaug/software/android-ndk-r16b/toolchains</span><br><span class="line">mem:<span class="number">0x7ffc84cf7657</span> len:<span class="number">12</span> envp[<span class="number">9</span>]: OLDPWD=/root</span><br><span class="line">mem:<span class="number">0x7ffc84cf7664</span> len:<span class="number">18</span> envp[<span class="number">10</span>]: SSH_TTY=/dev/pts/<span class="number">3</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf7677</span> len:<span class="number">9</span> envp[<span class="number">11</span>]: USER=root</span><br><span class="line">mem:<span class="number">0x7ffc84cf7681</span> len:<span class="number">75</span> envp[<span class="number">12</span>]: LD_LIBRARY_PATH=/usr/local/lib:/usr/local/python3/lib::/usr/local/topio/lib</span><br><span class="line">mem:<span class="number">0x7ffc84cf76cd</span> len:<span class="number">1719</span> envp[<span class="number">13</span>]: LS_COLORS=rs=<span class="number">0</span>:di=<span class="number">38</span>;<span class="number">5</span>;<span class="number">27</span>:ln=<span class="number">38</span>;<span class="number">5</span>;<span class="number">51</span>:mh=<span class="number">44</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:pi=<span class="number">40</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">11</span>:so=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:<span class="keyword">do</span>=<span class="number">38</span>;<span class="number">5</span>;<span class="number">5</span>:bd=<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">11</span>:cd=<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">3</span>:<span class="keyword">or</span>=<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:mi=<span class="number">05</span>;<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:su=<span class="number">48</span>;<span class="number">5</span>;<span class="number">196</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:sg=<span class="number">48</span>;<span class="number">5</span>;<span class="number">11</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">16</span>:ca=<span class="number">48</span>;<span class="number">5</span>;<span class="number">196</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">226</span>:tw=<span class="number">48</span>;<span class="number">5</span>;<span class="number">10</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">16</span>:ow=<span class="number">48</span>;<span class="number">5</span>;<span class="number">10</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">21</span>:st=<span class="number">48</span>;<span class="number">5</span>;<span class="number">21</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:ex=<span class="number">38</span>;<span class="number">5</span>;<span class="number">34</span>:*.tar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tgz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.arc=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.arj=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.taz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lha=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lz4=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lzh=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lzma=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tlz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.txz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tzo=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.t7z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.zip=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.Z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.dz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.gz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lrz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lzo=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.xz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.bz2=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.bz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tbz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tbz2=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.deb=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.rpm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.jar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.war=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.ear=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.sar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.rar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.alz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.ace=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.zoo=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.cpio=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*<span class="number">.7</span>z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.rz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.cab=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.jpg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.jpeg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.gif=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.bmp=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.pbm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.pgm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ppm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.tga=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xbm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xpm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.tif=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.tiff=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.png=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.svg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.svgz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mng=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.pcx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mov=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mpg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mpeg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.m2v=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mkv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.webm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ogm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mp4=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.m4v=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mp4v=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.vob=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.qt=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.nuv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.wmv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.asf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.rm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.rmvb=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.flc=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.avi=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.fli=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.flv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.gl=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.dl=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xcf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xwd=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.yuv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.cgm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.emf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.axv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.anx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ogv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ogx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.aac=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.au=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.flac=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mid=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.midi=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mka=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mp3=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mpc=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.ogg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.ra=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.wav=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.axa=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.oga=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.spx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.xspf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:</span><br><span class="line">mem:<span class="number">0x7ffc84cf7d85</span> len:<span class="number">25</span> envp[<span class="number">14</span>]: MAIL=/var/spool/mail/root</span><br><span class="line">mem:<span class="number">0x7ffc84cf7d9f</span> len:<span class="number">193</span> envp[<span class="number">15</span>]: PATH=/root/.cargo/bin:/root/.cargo/bin:/usr/local/vim/bin:/usr/local/bin:/usr/loca/python3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/local/go/bin:/root/bin:/usr/local/topio/bin</span><br><span class="line">mem:<span class="number">0x7ffc84cf7e61</span> len:<span class="number">21</span> envp[<span class="number">16</span>]: MARKPATH=/root/.marks</span><br><span class="line">mem:<span class="number">0x7ffc84cf7e77</span> len:<span class="number">14</span> envp[<span class="number">17</span>]: PWD=/root/temp</span><br><span class="line">mem:<span class="number">0x7ffc84cf7e86</span> len:<span class="number">16</span> envp[<span class="number">18</span>]: LANG=zh_CN.UTF<span class="number">-8</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf7e97</span> len:<span class="number">38</span> envp[<span class="number">19</span>]: PS1=\[\e[<span class="number">32</span>;<span class="number">1</span>m\][\<span class="symbol">u@</span>\h \w]\$ \[\e[<span class="number">0</span>m\]</span><br><span class="line">mem:<span class="number">0x7ffc84cf7ebe</span> len:<span class="number">24</span> envp[<span class="number">20</span>]: SELINUX_LEVEL_REQUESTED=</span><br><span class="line">mem:<span class="number">0x7ffc84cf7ed7</span> len:<span class="number">22</span> envp[<span class="number">21</span>]: HISTCONTROL=ignoredups</span><br><span class="line">mem:<span class="number">0x7ffc84cf7eee</span> len:<span class="number">7</span> envp[<span class="number">22</span>]: SHLVL=<span class="number">1</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf7ef6</span> len:<span class="number">10</span> envp[<span class="number">23</span>]: HOME=/root</span><br><span class="line">mem:<span class="number">0x7ffc84cf7f01</span> len:<span class="number">12</span> envp[<span class="number">24</span>]: LOGNAME=root</span><br><span class="line">mem:<span class="number">0x7ffc84cf7f0e</span> len:<span class="number">47</span> envp[<span class="number">25</span>]: SSH_CONNECTION=<span class="number">192.168</span><span class="number">.1</span><span class="number">.3</span> <span class="number">61311</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span> <span class="number">22</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf7f3e</span> len:<span class="number">16</span> envp[<span class="number">26</span>]: GOPATH=/root/.go</span><br><span class="line">mem:<span class="number">0x7ffc84cf7f4f</span> len:<span class="number">34</span> envp[<span class="number">27</span>]: LESSOPEN=||/usr/bin/lesspipe.sh %s</span><br><span class="line">mem:<span class="number">0x7ffc84cf7f72</span> len:<span class="number">49</span> envp[<span class="number">28</span>]: ANDROID_NDK=/root/smaug/software/android-ndk-r16b</span><br><span class="line">mem:<span class="number">0x7ffc84cf7fa4</span> len:<span class="number">27</span> envp[<span class="number">29</span>]: XDG_RUNTIME_DIR=/run/user/<span class="number">0</span></span><br><span class="line">mem:<span class="number">0x7ffc84cf7fc0</span> len:<span class="number">28</span> envp[<span class="number">30</span>]: _=./hello_world_setproctitle</span><br><span class="line">hello world</span><br></pre></td></tr></table></figure>
+
+<p>可以看到上述各个 argv 的值以及 envp 参数的内容。</p>
+<p>这里需要重点注意一下最后一个 argv[2] 参数以及第一个 envp[0] 参数的地址：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mem:<span class="number">0x7ffc84cf7561</span> len:<span class="number">2</span> argv[<span class="number">2</span>]: <span class="number">22</span></span><br><span class="line"></span><br><span class="line">mem:<span class="number">0x7ffc84cf7564</span> len:<span class="number">19</span> envp[<span class="number">0</span>]: XDG_SESSION_ID=<span class="number">2554</span></span><br></pre></td></tr></table></figure>
+
+<p>0x7ffc84cf7564 正好等于 0x7ffc84cf7561 + 3 （argv[2] 的长度加上最后一个 ‘\0’)。可以多试几次，不同的参数个数验证下这个。</p>
+<p>所以 environ 的地址（envp[0] 的地址）是紧跟在 argv 后面的，那么前面提到的如果当新的进程名长度超出 argv 的长度后，可能就会覆盖后面的 environ 内容，导致其他一些问题。</p>
+<h2 id="新进程名过长，覆盖-envp"><a href="#新进程名过长，覆盖-envp" class="headerlink" title="新进程名过长，覆盖 envp"></a>新进程名过长，覆盖 envp</h2><p>修改如上代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// filename: hello_world_setproctitle.cc</span></span><br><span class="line"><span class="comment">// build: g++ hello_world_setproctitle.cc -o hello_world_setproctitle</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[], <span class="keyword">char</span> *envp[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* new_name = <span class="string">"new_new_hello_world_setproctitlexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</span>;</span><br><span class="line">    <span class="built_in">strcpy</span>(argv[<span class="number">0</span>], new_name);</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; argc; ++i) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"mem:%p len:%d argv[%d]: %s\n"</span>, argv[i], <span class="built_in">strlen</span>(argv[i]), i, argv[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; envp[i] != <span class="literal">NULL</span>; ++i) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"mem:%p len:%d envp[%d]: %s\n"</span>, envp[i], <span class="built_in">strlen</span>(envp[i]), i, envp[i]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"hello world\n"</span>);</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="comment">// block here</span></span><br><span class="line">        <span class="keyword">char</span> c = getchar();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译运行：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># ./hello_world_setproctitle</span><br><span class="line">mem:<span class="number">0x7fff872c3549</span> len:<span class="number">125</span> argv[<span class="number">0</span>]: new_new_hello_world_setproctitlexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br><span class="line"></span><br><span class="line">mem:<span class="number">0x7fff872c3564</span> len:<span class="number">98</span> envp[<span class="number">0</span>]: titlexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br><span class="line">mem:<span class="number">0x7fff872c3578</span> len:<span class="number">78</span> envp[<span class="number">1</span>]: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br><span class="line">mem:<span class="number">0x7fff872c3586</span> len:<span class="number">64</span> envp[<span class="number">2</span>]: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br><span class="line">mem:<span class="number">0x7fff872c359e</span> len:<span class="number">40</span> envp[<span class="number">3</span>]: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br><span class="line">mem:<span class="number">0x7fff872c35b2</span> len:<span class="number">20</span> envp[<span class="number">4</span>]: xxxxxxxxxxxxxxxxxxxx</span><br><span class="line">mem:<span class="number">0x7fff872c35c2</span> len:<span class="number">4</span> envp[<span class="number">5</span>]: xxxx</span><br><span class="line">mem:<span class="number">0x7fff872c35d0</span> len:<span class="number">31</span> envp[<span class="number">6</span>]: SSH_CLIENT=<span class="number">192.168</span><span class="number">.1</span><span class="number">.3</span> <span class="number">55187</span> <span class="number">22</span></span><br><span class="line">mem:<span class="number">0x7fff872c35f0</span> len:<span class="number">26</span> envp[<span class="number">7</span>]: SELINUX_USE_CURRENT_RANGE=</span><br><span class="line">mem:<span class="number">0x7fff872c360b</span> len:<span class="number">75</span> envp[<span class="number">8</span>]: ANDROID_NDK_TOOLCHAIN_ROOT=/root/smaug/software/android-ndk-r16b/toolchains</span><br><span class="line">mem:<span class="number">0x7fff872c3657</span> len:<span class="number">12</span> envp[<span class="number">9</span>]: OLDPWD=/root</span><br><span class="line">mem:<span class="number">0x7fff872c3664</span> len:<span class="number">18</span> envp[<span class="number">10</span>]: SSH_TTY=/dev/pts/<span class="number">1</span></span><br><span class="line">mem:<span class="number">0x7fff872c3677</span> len:<span class="number">9</span> envp[<span class="number">11</span>]: USER=root</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，上面打印出来的 envp[0], envp[1].. envp[5] 都已经被覆盖了。</p>
+<p>所以，<strong>通过 argv[0] 修改进程名，如果新进程名过长，需要考虑到 envp 的覆盖问题，通常做法是把 envp 的内容先保存，然后指向新的内存，再把保存的环境变量复制到新的内存，然后再去修改 argv[0]</strong>。</p>
+<h1 id="setproctitle-修改进程名"><a href="#setproctitle-修改进程名" class="headerlink" title="setproctitle 修改进程名"></a>setproctitle 修改进程名</h1><p>可以参考 nginx 的源码: <a href="https://github.com/nginx/nginx/blob/master/src/os/unix/ngx_setproctitle.c" target="_blank" rel="noopener">https://github.com/nginx/nginx/blob/master/src/os/unix/ngx_setproctitle.c</a></p>
+<p>下面直接上源码，源码可以在我的 github 找到：</p>
+<p><a href="https://github.com/smaugx/setproctitle" target="_blank" rel="noopener">https://github.com/smaugx/setproctitle</a></p>
+<blockquote>
+<p>setproctitle.h</p>
+</blockquote>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// author: smaug</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> _SMAUG_SETPROCTITLE_H_INCLUDED_</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _SMAUG_SETPROCTITLE_H_INCLUDED_</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SMAUG_PROCTITLE_ERROR  -1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SMAUG_PROCTITLE_OK   0</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">smaug_init_setproctitle</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">smaug_setproctitle</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *title)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">/* _SMAUG_SETPROCTITLE_H_INCLUDED_ */</span></span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>setproctitle.cc</p>
+</blockquote>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// author: smaug</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"setproctitle.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdlib&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdint&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * To change the process title in Linux and Solaris we have to set argv[1]</span></span><br><span class="line"><span class="comment"> * to NULL and to copy the title to the same place where the argv[0] points to.</span></span><br><span class="line"><span class="comment"> * However, argv[0] may be too small to hold a new title.  Fortunately, Linux</span></span><br><span class="line"><span class="comment"> * and Solaris store argv[] and environ[] one after another.  So we should</span></span><br><span class="line"><span class="comment"> * ensure that is the continuous memory and then we allocate the new memory</span></span><br><span class="line"><span class="comment"> * for environ[] and copy it.  After this we could use the memory starting</span></span><br><span class="line"><span class="comment"> * from argv[0] for our process title.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">char</span> **environ;</span><br><span class="line"><span class="comment">// same as argv</span></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">char</span>** smaug_os_argv;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">char</span> *smaug_os_argv_last;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">smaug_init_setproctitle</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *p;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">uint32_t</span> <span class="built_in">size</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 统计所有 environ 环境变量的长度(+1 是表示每个字符串后的 '\0')</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; environ[i]; i++) &#123;</span><br><span class="line">        <span class="built_in">size</span> += <span class="built_in">strlen</span>(environ[i]) + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 重新分配一段内存，待会用来保存 environ 指向的环境变量</span></span><br><span class="line">    p = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="built_in">size</span>);</span><br><span class="line">    <span class="keyword">if</span> (p == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> SMAUG_PROCTITLE_ERROR;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    smaug_os_argv_last = smaug_os_argv[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 遍历 argv，完成后指向 argv 最后一个参数的 '\0' 的下一个位置，也就是 envp[0] 的地址</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; smaug_os_argv[i]; i++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (smaug_os_argv_last == smaug_os_argv[i]) &#123;</span><br><span class="line">            smaug_os_argv_last = smaug_os_argv[i] + <span class="built_in">strlen</span>(smaug_os_argv[i]) + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; environ[i]; i++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (smaug_os_argv_last == environ[i]) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 包括 '\0'</span></span><br><span class="line">            <span class="built_in">size</span> = <span class="built_in">strlen</span>(environ[i]) + <span class="number">1</span>;</span><br><span class="line">            <span class="comment">// smaug_os_argv_last 接着往前递进, 经过每一个环境变量</span></span><br><span class="line">            smaug_os_argv_last = environ[i] + <span class="built_in">size</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 拷贝每一个 环境变量到上面刚申请的新内存中</span></span><br><span class="line">            <span class="built_in">strncpy</span>(p, environ[i], <span class="built_in">size</span>);</span><br><span class="line">            <span class="comment">// 修改 environ[i] 指向这块新的内存地址（避免后续修改 argv[0] 造成覆盖)</span></span><br><span class="line">            environ[i] = (<span class="keyword">char</span> *) p;</span><br><span class="line">            <span class="comment">// 新内存指针 p 前移，称为下一轮 environ[i+1] 的值</span></span><br><span class="line">            p += <span class="built_in">size</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指针往前移 1 个字节，指向 最后一个环境变量的 '\0' 位置</span></span><br><span class="line">    smaug_os_argv_last--;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> SMAUG_PROCTITLE_OK;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">smaug_setproctitle</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *title)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 设置 argv[1] = NULL 通常不必要，加上更安全</span></span><br><span class="line">    smaug_os_argv[<span class="number">1</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">    char new_title[1024];</span></span><br><span class="line"><span class="comment">    bzero(new_title, sizeof(new_title));</span></span><br><span class="line"><span class="comment">    sprintf(new_title, "%s%s", "smaug: ", title);</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// smaug_os_argv_last - smaug_os_argv[0] 就是最初 argv + envp 所有字符串的长度, 拷贝新进程名到 argv[0]</span></span><br><span class="line">    <span class="built_in">strncpy</span>(smaug_os_argv[<span class="number">0</span>], title, smaug_os_argv_last - smaug_os_argv[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> DEBUG</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"set title:%s\n"</span>, new_title);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译运行：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"># sh build.sh</span><br><span class="line"># ./main</span><br><span class="line"></span><br><span class="line">#######<span class="keyword">this</span> <span class="keyword">is</span> father process###########</span><br><span class="line">master mem:<span class="number">0x7ffce4714573</span> len:<span class="number">20</span> argv[<span class="number">0</span>]: setproctitle: master</span><br><span class="line"></span><br><span class="line">master mem:<span class="number">0x12e0c20</span> len:<span class="number">19</span> envp[<span class="number">0</span>]: XDG_SESSION_ID=<span class="number">2554</span></span><br><span class="line">master mem:<span class="number">0x12e0c34</span> len:<span class="number">13</span> envp[<span class="number">1</span>]: HOSTNAME=Jiao</span><br><span class="line">master mem:<span class="number">0x12e0c42</span> len:<span class="number">23</span> envp[<span class="number">2</span>]: SELINUX_ROLE_REQUESTED=</span><br><span class="line">master mem:<span class="number">0x12e0c5a</span> len:<span class="number">19</span> envp[<span class="number">3</span>]: TERM=xterm<span class="number">-256</span>color</span><br><span class="line">master mem:<span class="number">0x12e0c6e</span> len:<span class="number">15</span> envp[<span class="number">4</span>]: SHELL=/bin/bash</span><br><span class="line">master mem:<span class="number">0x12e0c7e</span> len:<span class="number">13</span> envp[<span class="number">5</span>]: HISTSIZE=<span class="number">1000</span></span><br><span class="line">master mem:<span class="number">0x12e0c8c</span> len:<span class="number">31</span> envp[<span class="number">6</span>]: SSH_CLIENT=<span class="number">192.168</span><span class="number">.1</span><span class="number">.3</span> <span class="number">61311</span> <span class="number">22</span></span><br><span class="line">master mem:<span class="number">0x12e0cac</span> len:<span class="number">26</span> envp[<span class="number">7</span>]: SELINUX_USE_CURRENT_RANGE=</span><br><span class="line">master mem:<span class="number">0x12e0cc7</span> len:<span class="number">75</span> envp[<span class="number">8</span>]: ANDROID_NDK_TOOLCHAIN_ROOT=/root/smaug/software/android-ndk-r16b/toolchains</span><br><span class="line">master mem:<span class="number">0x12e0d13</span> len:<span class="number">17</span> envp[<span class="number">9</span>]: OLDPWD=/root/temp</span><br><span class="line">master mem:<span class="number">0x12e0d25</span> len:<span class="number">18</span> envp[<span class="number">10</span>]: SSH_TTY=/dev/pts/<span class="number">3</span></span><br><span class="line">master mem:<span class="number">0x12e0d38</span> len:<span class="number">9</span> envp[<span class="number">11</span>]: USER=root</span><br><span class="line">master mem:<span class="number">0x12e0d42</span> len:<span class="number">75</span> envp[<span class="number">12</span>]: LD_LIBRARY_PATH=/usr/local/lib:/usr/local/python3/lib::/usr/local/topio/lib</span><br><span class="line">master mem:<span class="number">0x12e0d8e</span> len:<span class="number">1719</span> envp[<span class="number">13</span>]: LS_COLORS=rs=<span class="number">0</span>:di=<span class="number">38</span>;<span class="number">5</span>;<span class="number">27</span>:ln=<span class="number">38</span>;<span class="number">5</span>;<span class="number">51</span>:mh=<span class="number">44</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:pi=<span class="number">40</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">11</span>:so=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:<span class="keyword">do</span>=<span class="number">38</span>;<span class="number">5</span>;<span class="number">5</span>:bd=<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">11</span>:cd=<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">3</span>:<span class="keyword">or</span>=<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:mi=<span class="number">05</span>;<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:su=<span class="number">48</span>;<span class="number">5</span>;<span class="number">196</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:sg=<span class="number">48</span>;<span class="number">5</span>;<span class="number">11</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">16</span>:ca=<span class="number">48</span>;<span class="number">5</span>;<span class="number">196</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">226</span>:tw=<span class="number">48</span>;<span class="number">5</span>;<span class="number">10</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">16</span>:ow=<span class="number">48</span>;<span class="number">5</span>;<span class="number">10</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">21</span>:st=<span class="number">48</span>;<span class="number">5</span>;<span class="number">21</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:ex=<span class="number">38</span>;<span class="number">5</span>;<span class="number">34</span>:*.tar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tgz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.arc=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.arj=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.taz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lha=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lz4=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lzh=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lzma=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tlz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.txz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tzo=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.t7z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.zip=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.Z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.dz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.gz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lrz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lzo=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.xz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.bz2=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.bz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tbz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tbz2=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.deb=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.rpm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.jar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.war=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.ear=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.sar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.rar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.alz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.ace=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.zoo=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.cpio=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*<span class="number">.7</span>z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.rz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.cab=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.jpg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.jpeg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.gif=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.bmp=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.pbm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.pgm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ppm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.tga=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xbm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xpm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.tif=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.tiff=<span class="number">38</span>;</span><br><span class="line"><span class="number">5</span>;<span class="number">13</span>:*.png=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.svg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.svgz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mng=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.pcx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mov=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mpg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mpeg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.m2v=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mkv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.webm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ogm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mp4=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.m4v=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mp4v=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.vob=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.qt=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.nuv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.wmv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.asf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.rm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.rmvb=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.flc=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.avi=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.fli=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.flv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.gl=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.dl=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xcf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xwd=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.yuv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.cgm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.emf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.axv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.anx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ogv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ogx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.aac=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.au=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.flac=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mid=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.midi=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mka=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mp3=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mpc=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.ogg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.ra=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.wav=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.axa=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.oga=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.spx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.xspf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:</span><br><span class="line"></span><br><span class="line">master mem:<span class="number">0x12e1446</span> len:<span class="number">25</span> envp[<span class="number">14</span>]: MAIL=/var/spool/mail/root</span><br><span class="line">master mem:<span class="number">0x12e1460</span> len:<span class="number">193</span> envp[<span class="number">15</span>]: PATH=/root/.cargo/bin:/root/.cargo/bin:/usr/local/vim/bin:/usr/local/bin:/usr/loca/python3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/local/go/bin:/root/bin:/usr/local/topio/bin</span><br><span class="line">master mem:<span class="number">0x12e1522</span> len:<span class="number">21</span> envp[<span class="number">16</span>]: MARKPATH=/root/.marks</span><br><span class="line">#######<span class="keyword">this</span> <span class="keyword">is</span> child process###########</span><br><span class="line">master mem:<span class="number">0x12e1538</span> len:<span class="number">27</span> envp[<span class="number">17</span>]: PWD=/root/temp/setproctitle</span><br><span class="line">master mem:<span class="number">0x12e1554</span> len:<span class="number">16</span> envp[<span class="number">18</span>]: LANG=zh_CN.UTF<span class="number">-8</span></span><br><span class="line">worker mem:<span class="number">0x7ffce4714573</span> len:<span class="number">20</span> argv[<span class="number">0</span>]: setproctitle: worker</span><br><span class="line"></span><br><span class="line">worker mem:<span class="number">0x12e0c20</span> len:<span class="number">19</span> envp[<span class="number">0</span>]: XDG_SESSION_ID=<span class="number">2554</span></span><br><span class="line">worker mem:<span class="number">0x12e0c34</span> len:<span class="number">13</span> envp[<span class="number">1</span>]: HOSTNAME=Jiao</span><br><span class="line">worker mem:<span class="number">0x12e0c42</span> len:<span class="number">23</span> envp[<span class="number">2</span>]: SELINUX_ROLE_REQUESTED=</span><br><span class="line">worker mem:<span class="number">0x12e0c5a</span> len:<span class="number">19</span> envp[<span class="number">3</span>]: TERM=xterm<span class="number">-256</span>color</span><br><span class="line">worker mem:<span class="number">0x12e0c6e</span> len:<span class="number">15</span> envp[<span class="number">4</span>]: SHELL=/bin/bash</span><br><span class="line">worker mem:<span class="number">0x12e0c7e</span> len:<span class="number">13</span> envp[<span class="number">5</span>]: HISTSIZE=<span class="number">1000</span></span><br><span class="line">worker mem:<span class="number">0x12e0c8c</span> len:<span class="number">31</span> envp[<span class="number">6</span>]: SSH_CLIENT=<span class="number">192.168</span><span class="number">.1</span><span class="number">.3</span> <span class="number">61311</span> <span class="number">22</span></span><br><span class="line">worker mem:<span class="number">0x12e0cac</span> len:<span class="number">26</span> envp[<span class="number">7</span>]: SELINUX_USE_CURRENT_RANGE=</span><br><span class="line">worker mem:<span class="number">0x12e0cc7</span> len:<span class="number">75</span> envp[<span class="number">8</span>]: ANDROID_NDK_TOOLCHAIN_ROOT=/root/smaug/software/android-ndk-r16b/toolchains</span><br><span class="line">worker mem:<span class="number">0x12e0d13</span> len:<span class="number">17</span> envp[<span class="number">9</span>]: OLDPWD=/root/temp</span><br><span class="line">worker mem:<span class="number">0x12e0d25</span> len:<span class="number">18</span> envp[<span class="number">10</span>]: SSH_TTY=/dev/pts/<span class="number">3</span></span><br><span class="line">worker mem:<span class="number">0x12e0d38</span> len:<span class="number">9</span> envp[<span class="number">11</span>]: USER=root</span><br><span class="line">worker mem:<span class="number">0x12e0d42</span> len:<span class="number">75</span> envp[<span class="number">12</span>]: LD_LIBRARY_PATH=/usr/local/lib:/usr/local/python3/lib::/usr/local/topio/lib</span><br><span class="line">worker mem:<span class="number">0x12e0d8e</span> len:<span class="number">1719</span> envp[<span class="number">13</span>]: LS_COLORS=rs=<span class="number">0</span>:di=<span class="number">38</span>;<span class="number">5</span>;<span class="number">27</span>:ln=<span class="number">38</span>;<span class="number">5</span>;<span class="number">51</span>:mh=<span class="number">44</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:pi=<span class="number">40</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">11</span>:so=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:<span class="keyword">do</span>=<span class="number">38</span>;<span class="number">5</span>;<span class="number">5</span>:bd=<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">11</span>:cd=<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">3</span>:<span class="keyword">or</span>=<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:mi=<span class="number">05</span>;<span class="number">48</span>;<span class="number">5</span>;<span class="number">232</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:su=<span class="number">48</span>;<span class="number">5</span>;<span class="number">196</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:sg=<span class="number">48</span>;<span class="number">5</span>;<span class="number">11</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">16</span>:ca=<span class="number">48</span>;<span class="number">5</span>;<span class="number">196</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">226</span>:tw=<span class="number">48</span>;<span class="number">5</span>;<span class="number">10</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">16</span>:ow=<span class="number">48</span>;<span class="number">5</span>;<span class="number">10</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">21</span>:st=<span class="number">48</span>;<span class="number">5</span>;<span class="number">21</span>;<span class="number">38</span>;<span class="number">5</span>;<span class="number">15</span>:ex=<span class="number">38</span>;<span class="number">5</span>;<span class="number">34</span>:*.tar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tgz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.arc=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.arj=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.taz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lha=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lz4=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lzh=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lzma=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tlz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.txz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tzo=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.t7z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.zip=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.Z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.dz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.gz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lrz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.lzo=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.xz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.bz2=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.bz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tbz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tbz2=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.tz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.deb=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.rpm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.jar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.war=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.ear=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.sar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.rar=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.alz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.ace=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.zoo=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.cpio=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*<span class="number">.7</span>z=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.rz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.cab=<span class="number">38</span>;<span class="number">5</span>;<span class="number">9</span>:*.jpg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.jpeg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.gif=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.bmp=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.pbm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.pgm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ppm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.tga=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xbm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xpm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.tif=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.tiff=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.png=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.svg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.svgz=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mng=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.pcx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mov=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mpg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mpeg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.m2v=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mkv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.webm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ogm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mp4=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.m4v=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.mp4v=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.vob=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.qt=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.nuv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.wmv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.asf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.rm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.rmvb=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.flc=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.avi=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.fli=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.flv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.gl=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.dl=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xcf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.xwd=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.yuv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.cgm=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.emf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.axv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.anx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ogv=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.ogx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">13</span>:*.aac=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.au=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.flac=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mid=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.midi=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mka=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mp3=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.mpc=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.ogg=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.ra=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.wav=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.axa=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.oga=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.spx=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:*.xspf=<span class="number">38</span>;<span class="number">5</span>;<span class="number">45</span>:</span><br><span class="line">worker mem:<span class="number">0x12e1446</span> len:<span class="number">25</span> envp[<span class="number">14</span>]: MAIL=/var/spool/mail/root</span><br><span class="line">worker mem:<span class="number">0x12e1460</span> len:<span class="number">193</span> envp[<span class="number">15</span>]: PATH=/root/.cargo/bin:/root/.cargo/bin:/usr/local/vim/bin:/usr/local/bin:/usr/loca/python3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/local/go/bin:/root/bin:/usr/local/topio/bin</span><br><span class="line">worker mem:<span class="number">0x12e1522</span> len:<span class="number">21</span> envp[<span class="number">16</span>]: MARKPATH=/root/.marks</span><br><span class="line">worker mem:<span class="number">0x12e1538</span> len:<span class="number">27</span> envp[<span class="number">17</span>]: PWD=/root/temp/setproctitle</span><br><span class="line">worker mem:<span class="number">0x12e1554</span> len:<span class="number">16</span> envp[<span class="number">18</span>]: LANG=zh_CN.UTF<span class="number">-8</span></span><br><span class="line">worker mem:<span class="number">0x12e1565</span> len:<span class="number">38</span> envp[<span class="number">19</span>]: PS1=\[\e[<span class="number">32</span>;<span class="number">1</span>m\][\<span class="symbol">u@</span>\h \w]\$ \[\e[<span class="number">0</span>m\]</span><br><span class="line">worker mem:<span class="number">0x12e158c</span> len:<span class="number">24</span> envp[<span class="number">20</span>]: SELINUX_LEVEL_REQUESTED=</span><br><span class="line">worker mem:<span class="number">0x12e15a5</span> len:<span class="number">22</span> envp[<span class="number">21</span>]: HISTCONTROL=ignoredups</span><br><span class="line">worker mem:<span class="number">0x12e15bc</span> len:<span class="number">7</span> envp[<span class="number">22</span>]: SHLVL=<span class="number">1</span></span><br><span class="line">worker mem:<span class="number">0x12e15c4</span> len:<span class="number">10</span> envp[<span class="number">23</span>]: HOME=/root</span><br><span class="line">worker mem:<span class="number">0x12e15cf</span> len:<span class="number">12</span> envp[<span class="number">24</span>]: LOGNAME=root</span><br><span class="line">worker mem:<span class="number">0x12e15dc</span> len:<span class="number">47</span> envp[<span class="number">25</span>]: SSH_CONNECTION=<span class="number">192.168</span><span class="number">.1</span><span class="number">.3</span> <span class="number">61311</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span> <span class="number">22</span></span><br><span class="line">worker mem:<span class="number">0x12e160c</span> len:<span class="number">16</span> envp[<span class="number">26</span>]: GOPATH=/root/.go</span><br><span class="line">master mem:<span class="number">0x12e1565</span> len:<span class="number">38</span> envp[<span class="number">19</span>]: PS1=\[\e[<span class="number">32</span>;<span class="number">1</span>m\][\<span class="symbol">u@</span>\h \w]\$ \[\e[<span class="number">0</span>m\]</span><br><span class="line">master mem:<span class="number">0x12e158c</span> len:<span class="number">24</span> envp[<span class="number">20</span>]: SELINUX_LEVEL_REQUESTED=</span><br><span class="line">master mem:<span class="number">0x12e15a5</span> len:<span class="number">22</span> envp[<span class="number">21</span>]: HISTCONTROL=ignoredups</span><br><span class="line">master mem:<span class="number">0x12e15bc</span> len:<span class="number">7</span> envp[<span class="number">22</span>]: SHLVL=<span class="number">1</span></span><br><span class="line">worker mem:<span class="number">0x12e161d</span> len:<span class="number">34</span> envp[<span class="number">27</span>]: LESSOPEN=||/usr/bin/lesspipe.sh %s</span><br><span class="line">worker mem:<span class="number">0x12e1640</span> len:<span class="number">49</span> envp[<span class="number">28</span>]: ANDROID_NDK=/root/smaug/software/android-ndk-r16b</span><br><span class="line">worker mem:<span class="number">0x12e1672</span> len:<span class="number">27</span> envp[<span class="number">29</span>]: XDG_RUNTIME_DIR=/run/user/<span class="number">0</span></span><br><span class="line">master mem:<span class="number">0x12e15c4</span> len:<span class="number">10</span> envp[<span class="number">23</span>]: HOME=/root</span><br><span class="line">master mem:<span class="number">0x12e15cf</span> len:<span class="number">12</span> envp[<span class="number">24</span>]: LOGNAME=root</span><br><span class="line">master mem:<span class="number">0x12e15dc</span> len:<span class="number">47</span> envp[<span class="number">25</span>]: SSH_CONNECTION=<span class="number">192.168</span><span class="number">.1</span><span class="number">.3</span> <span class="number">61311</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span> <span class="number">22</span></span><br><span class="line">worker mem:<span class="number">0x12e168e</span> len:<span class="number">8</span> envp[<span class="number">30</span>]: _=./main</span><br><span class="line">master mem:<span class="number">0x12e160c</span> len:<span class="number">16</span> envp[<span class="number">26</span>]: GOPATH=/root/.go</span><br><span class="line">master mem:<span class="number">0x12e161d</span> len:<span class="number">34</span> envp[<span class="number">27</span>]: LESSOPEN=||/usr/bin/lesspipe.sh %s</span><br><span class="line">master mem:<span class="number">0x12e1640</span> len:<span class="number">49</span> envp[<span class="number">28</span>]: ANDROID_NDK=/root/smaug/software/android-ndk-r16b</span><br><span class="line">master mem:<span class="number">0x12e1672</span> len:<span class="number">27</span> envp[<span class="number">29</span>]: XDG_RUNTIME_DIR=/run/user/<span class="number">0</span></span><br><span class="line">master mem:<span class="number">0x12e168e</span> len:<span class="number">8</span> envp[<span class="number">30</span>]: _=./main</span><br></pre></td></tr></table></figure>
+
+<p>可以看到上述的命令行参数以及环境变量在父子进程中都是正确的，查看一下进程名:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># ps -ef |grep setproc</span><br><span class="line">root      <span class="number">2584</span> <span class="number">12289</span>  <span class="number">0</span> <span class="number">16</span>:<span class="number">38</span> pts/<span class="number">3</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> setproctitle: master</span><br><span class="line">root      <span class="number">2585</span>  <span class="number">2584</span>  <span class="number">0</span> <span class="number">16</span>:<span class="number">38</span> pts/<span class="number">3</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> setproctitle: worker</span><br><span class="line">root      <span class="number">2590</span> <span class="number">20422</span>  <span class="number">0</span> <span class="number">16</span>:<span class="number">38</span> pts/<span class="number">1</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> grep --color=<span class="built_in">auto</span> setproc</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h1><p>上述代码可以完美的修改进程名，但是如果你使用查看进程信息可能还会看到旧的进程名：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># ps -ef |grep setproc</span><br><span class="line">root      <span class="number">2584</span> <span class="number">12289</span>  <span class="number">0</span> <span class="number">16</span>:<span class="number">38</span> pts/<span class="number">3</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> setproctitle: master</span><br><span class="line">root      <span class="number">2585</span>  <span class="number">2584</span>  <span class="number">0</span> <span class="number">16</span>:<span class="number">38</span> pts/<span class="number">3</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> setproctitle: worker</span><br><span class="line">root      <span class="number">2670</span> <span class="number">20422</span>  <span class="number">0</span> <span class="number">16</span>:<span class="number">39</span> pts/<span class="number">1</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> grep --color=<span class="built_in">auto</span> setproc</span><br><span class="line"></span><br><span class="line"># cat /proc/<span class="number">2585</span>/status |grep Name</span><br><span class="line">Name:	main</span><br><span class="line"></span><br><span class="line"># cat /proc/<span class="number">2584</span>/status |grep Name</span><br><span class="line">Name:	main</span><br></pre></td></tr></table></figure>
+
+<p>这个时候可以结合 prctl 使用：</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">prctl(PR_SET_NAME, <span class="keyword">new</span><span class="type">_name</span>);</span><br></pre></td></tr></table></figure>
+
+<p>具体可以查看相关资料。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#111;&#100;&#x65;&#x32;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#99;&#x6f;&#x6d;">&#x6c;&#x69;&#x6e;&#x75;&#x78;&#99;&#111;&#100;&#x65;&#x32;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#99;&#x6f;&#x6d;</a></p>
+</li>
+</ul>
+<p>2020-10-25 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/02/cmake/" rel="bookmark">cmake教程|cmake入门实战</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/22/hessiancpp编译和使用——C++版/" rel="bookmark">hessiancpp编译和使用(C++版)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/08/30/scons/" rel="bookmark">Scons构建C++项目</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/02/10/sourcecode-of-quickfix/" rel="bookmark">Quickfix源代码分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/26/epoll_examples/" rel="bookmark">epoll 入门例子 tcp server/client</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rebootcat.com/2020/10/25/setproctitle/" title="模仿nginx修改进程名">https://rebootcat.com/2020/10/25/setproctitle/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/nginx/" rel="tag"># nginx</a>
+              <a href="/tags/setproctitle/" rel="tag"># setproctitle</a>
+              <a href="/tags/fork/" rel="tag"># fork</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/26/epoll_examples/" rel="prev" title="epoll 入门例子 tcp server/client">
+      <i class="fa fa-chevron-left"></i> epoll 入门例子 tcp server/client
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#nginx-进程名"><span class="nav-number">1.</span> <span class="nav-text">nginx 进程名</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#argv-0"><span class="nav-number">2.</span> <span class="nav-text">argv[0]</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#hello-world"><span class="nav-number">2.1.</span> <span class="nav-text">hello world</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#环境变量-environ"><span class="nav-number">3.</span> <span class="nav-text">环境变量 environ</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#hello-world-environ"><span class="nav-number">3.1.</span> <span class="nav-text">hello world environ</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#新进程名过长，覆盖-envp"><span class="nav-number">3.2.</span> <span class="nav-text">新进程名过长，覆盖 envp</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#setproctitle-修改进程名"><span class="nav-number">4.</span> <span class="nav-text">setproctitle 修改进程名</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#扩展"><span class="nav-number">5.</span> <span class="nav-text">扩展</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">51</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">97</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://loveyxq.online/" title="http:&#x2F;&#x2F;loveyxq.online&#x2F;" rel="noopener" target="_blank">子不语</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'd5vhXhrHKkiBVVpR1WJJLgQP-gzGzoHsz',
+      appKey     : 'BRzIFYxjcm34z68pyNalDPtw',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

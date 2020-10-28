@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://rebootcat.com/2020/10/25/setproctitle/</loc>
+    
+    <lastmod>2020-10-28T15:09:43.235Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://rebootcat.com/2020/09/26/epoll_examples/</loc>
     
     <lastmod>2020-09-27T14:28:14.960Z</lastmod>

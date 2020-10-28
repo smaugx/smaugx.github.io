@@ -213,6 +213,117 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/10/25/setproctitle/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/25/setproctitle/" class="post-title-link" itemprop="url">模仿nginx修改进程名</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-25 11:23:58" itemprop="dateCreated datePublished" datetime="2020-10-25T11:23:58+08:00">2020-10-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-10-28 23:09:43" itemprop="dateModified" datetime="2020-10-28T23:09:43+08:00">2020-10-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/10/25/setproctitle/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/25/setproctitle/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="nginx-进程名"><a href="#nginx-进程名" class="headerlink" title="nginx 进程名"></a>nginx 进程名</h1><p>使用 nginx 的过程中，我们经常看到 nginx 的进程名是不同的，如下：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ ps -ef |grep nginx </span><br><span class="line">smaug    <span class="number">1183</span>  <span class="number">1115</span>  <span class="number">0</span> <span class="number">05</span>:<span class="number">46</span> pts/<span class="number">2</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> grep --color=<span class="built_in">auto</span> nginx</span><br><span class="line">root     <span class="number">14201</span>     <span class="number">1</span>  <span class="number">0</span>  <span class="number">2019</span> ?        <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> nginx: master process ./sbin/nginx</span><br><span class="line">nobody   <span class="number">28887</span> <span class="number">14201</span>  <span class="number">0</span> Oct14 ?        <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> nginx: worker process</span><br><span class="line">nobody   <span class="number">28888</span> <span class="number">14201</span>  <span class="number">0</span> Oct14 ?        <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> nginx: worker process</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 nginx 的进程名是不同的，那么它是怎么做到的呢？</p>
+<h1 id="argv-0"><a href="#argv-0" class="headerlink" title="argv[0]"></a>argv[0]</h1><p>首先来看一下 C 语言中的 main 函数的定义：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>这个应该大家都是比较熟悉的，argc 表示命令行参数个数， argv 保存了各个命令行参数的内容。<strong>其中 <code>argv[0]</code> 表示的是进程的名字</strong>，这就是修改进程名的关键点所在。</p>
+<p><strong>只需要修改  argv[0] 的值即可完成修改进程名</strong>。</p>
+<h2 id="hello-world"><a href="#hello-world" class="headerlink" title="hello world"></a>hello world</h2><p>下面以程序员经典入门代码为例说明：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// filename: hello_world_setproctitle.cc</span></span><br><span class="line"><span class="comment">// build: g++ hello_world_setproctitle.cc -o hello_world_setproctitle</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"hello world\n"</span>);</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="comment">// block here</span></span><br><span class="line">        <span class="keyword">char</span> c = getchar();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译运行：</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">g</span>++ <span class="comment">hello_world_setproctitle</span><span class="string">.</span><span class="comment">cc</span> <span class="literal">-</span><span class="comment">o</span> <span class="comment">hello_world_setproctitle</span></span><br><span class="line"><span class="comment"></span><span class="string">.</span><span class="comment">/hello_world_setproctitle</span></span><br></pre></td></tr></table></figure>
+
+<p>查看一下进程名：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># ps -ef |grep hello_world</span><br><span class="line">root     <span class="number">26356</span> <span class="number">12289</span>  <span class="number">0</span> <span class="number">14</span>:<span class="number">17</span> pts/<span class="number">3</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> ./hello_world_setproctitle</span><br><span class="line">root     <span class="number">26366</span> <span class="number">20422</span>  <span class="number">0</span> <span class="number">14</span>:<span class="number">18</span> pts/<span class="number">1</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> grep --color=<span class="built_in">auto</span> hello_world</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/25/setproctitle/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/09/26/epoll_examples/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1166,108 +1277,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/08/24/auto_run_aliyun_spot/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/08/24/auto_run_aliyun_spot/" class="post-title-link" itemprop="url">自动创建阿里云抢占式实例</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2020-08-24 22:23:58 / 修改时间：22:30:23" itemprop="dateCreated datePublished" datetime="2020-08-24T22:23:58+08:00">2020-08-24</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/08/24/auto_run_aliyun_spot/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/08/24/auto_run_aliyun_spot/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="aliyun-spot"><a href="#aliyun-spot" class="headerlink" title="aliyun_spot"></a><a href="https://github.com/smaugx/aliyun_spot" target="_blank" rel="noopener">aliyun_spot</a></h1><p>自动创建阿里云抢占式实例。</p>
-<h1 id="支持一下作者，购买阿里云"><a href="#支持一下作者，购买阿里云" class="headerlink" title="支持一下作者，购买阿里云"></a><a href="https://www.aliyun.com/minisite/goods?userCode=c5nuzwoj" target="_blank" rel="noopener">支持一下作者，购买阿里云</a></h1><h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>阿里云抢占式实例应该属于阿里云的一种闲置资源利用，性价比非常高，每小时的价格在 0.01 ~ 0.05 每小时，具体根据不同的配置和地域有差别，流量价格小于 1元/G.</p>
-<p>抢占式实例最高可以以<strong>一折的价格购买 ECS 实例，并能稳定持有该实例至少一个小时</strong>。一个小时后，当市场价格高于您的出价或资源供需关系变化时，<strong>抢占式实例会被自动释放</strong>，请做好数据备份工作。</p>
-<p><strong>非常适合爬虫</strong></p>
-<p><strong>非常适合爬虫</strong></p>
-<p><strong>非常适合爬虫</strong></p>
-<p>也适合程序员个人日常开发使用，上班来创建，下班释放，开销基本可以控制在在 1毛 ~ 2 毛。</p>
-<p>对于我来说，最近在写一个爬虫，看了很多代理都很贵，免费的又不稳定，正好了解到阿里云的抢占式实例，所以非常满足我的需求。</p>
-<p>但是要注意，这个实例是有可能被释放的，但是不用担心，比如<strong>香港地区的释放率最近（2020-08-19）小于 3%. 另外，每个人可以最大创建 100 个实例</strong>，所以还是不用太担心。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/auto_run_aliyun_spot/1.png" alt=""></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/08/24/auto_run_aliyun_spot/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1335,7 +1348,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">50</span>
+          <span class="site-state-item-count">51</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1348,7 +1361,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-count">97</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
