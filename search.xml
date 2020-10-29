@@ -4360,6 +4360,8 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line"># ps -ef |grep prctl</span><br><span class="line">root     <span class="number">20758</span> <span class="number">12289</span>  <span class="number">0</span> <span class="number">17</span>:<span class="number">39</span> pts/<span class="number">3</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> ./prctl_main</span><br><span class="line">root     <span class="number">20791</span> <span class="number">20422</span>  <span class="number">0</span> <span class="number">17</span>:<span class="number">39</span> pts/<span class="number">1</span>    <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> grep --color=<span class="built_in">auto</span> prctl</span><br></pre></td></tr></table></figure>
 
 <p>可以看到 ps 看到的进程名依然是 <code>prctl_main</code> 而不是 <code>prctl_new_name</code>。那么 <code>prctl</code> 函数到底修改了哪里呢？ ps 命令又是从哪里读取的进程名呢？</p>
+<a id="more"></a>
+
 <h2 id="proc-lt-pid-gt-虚拟文件夹"><a href="#proc-lt-pid-gt-虚拟文件夹" class="headerlink" title="/proc/&lt;pid&gt; 虚拟文件夹"></a>/proc/&lt;pid&gt; 虚拟文件夹</h2><p>linux 上一切皆文件，启动一个进程，就会在系统的 <code>/proc</code> 这个虚拟文件系统下创建这个进程相关的文件夹，里面记录了这个进程的数据。</p>
 <figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ls /proc/20758</span></span><br><span class="line">attr       cgroup      comm             cwd      fd       io        map_files  mountinfo   net        oom_adj        pagemap      projid_map  <span class="keyword">schedstat </span> smaps  statm    task     wchan</span><br><span class="line">autogroup  clear_refs  coredump_filter  environ  fdinfo   limits    maps       mounts      ns         oom_score      patch_state  root        sessionid  stack  status   timers</span><br><span class="line">auxv       cmdline     cpuset           exe      gid_map  loginuid  mem        mountstats  numa_maps  oom_score_adj  personality  <span class="keyword">sched </span>      setgroups  stat   <span class="keyword">syscall </span> uid_map</span><br></pre></td></tr></table></figure>
 
@@ -4402,7 +4404,7 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 <ul>
 <li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#x6c;&#105;&#110;&#x75;&#120;&#x63;&#111;&#x64;&#x65;&#50;&#110;&#x69;&#x6b;&#105;&#x40;&#x67;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#111;&#109;">&#x6c;&#105;&#110;&#x75;&#120;&#x63;&#111;&#x64;&#x65;&#50;&#110;&#x69;&#x6b;&#105;&#x40;&#x67;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#111;&#109;</a></p>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#117;&#120;&#x63;&#111;&#x64;&#101;&#50;&#x6e;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#x63;&#x6f;&#109;">&#108;&#105;&#x6e;&#117;&#120;&#x63;&#111;&#x64;&#101;&#50;&#x6e;&#105;&#107;&#x69;&#64;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#x63;&#x6f;&#109;</a></p>
 </li>
 </ul>
 <p>2020-10-25 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
