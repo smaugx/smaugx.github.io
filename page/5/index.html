@@ -213,6 +213,223 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2016/12/21/use-daocloud-buildhexo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2016/12/21/use-daocloud-buildhexo/" class="post-title-link" itemprop="url">使用daocloud持续化构建hexo博客</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-12-21 11:23:58" itemprop="dateCreated datePublished" datetime="2016-12-21T11:23:58+08:00">2016-12-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:37:07" itemprop="dateModified" datetime="2020-09-20T09:37:07+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index"><span itemprop="name">docker</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2016/12/21/use-daocloud-buildhexo/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2016/12/21/use-daocloud-buildhexo/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前面的话"><a href="#前面的话" class="headerlink" title="前面的话"></a>前面的话</h1><p>前面几篇博客陆续记录了我使用coding仓库备份博客网站源码，以及构建了hexo的docker镜像，也提到了使用daocloud进行自动化构建hexo博客的功能。这篇博文就是记录使用daocloud持续化构建hexo博客的折腾。前面的折腾如下：</p>
+<ul>
+<li><a href="http://rebootcat.com/2016/12/13/use-coding-update-blog/">使用coding私有仓库多终端编写博客</a></li>
+<li><a href="http://rebootcat.com/2016/12/20/docker-made-hexoimage/">使用docker制作hexo镜像</a></li>
+</ul>
+<h1 id="daocloud"><a href="#daocloud" class="headerlink" title="daocloud"></a>daocloud</h1><p>其实我是很喜欢简单粗暴的，直接，爽快，干净，利落。我可以直接记录我搭建的过程，中间可以略去对daocloud的介绍，对碰到的问题的介绍，但是，博客的目的不只是记录啊，更多的还是分享自己碰到的问题，或者自己的理解。所以，对于daocloud的介绍还是打算来一下下。</p>
+<h2 id="什么是daocloud？"><a href="#什么是daocloud？" class="headerlink" title="什么是daocloud？"></a>什么是daocloud？</h2><blockquote>
+<p>官网: <a href="https://www.daocloud.io/" target="_blank" rel="noopener"><strong>www.daocloud.io</strong></a></p>
+</blockquote>
+<p>什么是daocloud?daocloud有什么用？正如官网的主页介绍的：</p>
+<blockquote>
+<p>重新定义计算的边界</p>
+<p>业界领先的企业级容器云及解决方案</p>
+</blockquote>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2016/12/21/use-daocloud-buildhexo/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2016/12/20/docker-made-hexoimage/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2016/12/20/docker-made-hexoimage/" class="post-title-link" itemprop="url">使用docker制作hexo镜像</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-12-20 11:23:58" itemprop="dateCreated datePublished" datetime="2016-12-20T11:23:58+08:00">2016-12-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:36:50" itemprop="dateModified" datetime="2020-09-20T09:36:50+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index"><span itemprop="name">docker</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2016/12/20/docker-made-hexoimage/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2016/12/20/docker-made-hexoimage/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>这段时间一直在折腾我的博客，由于之前出现过一次电脑硬盘完全挂掉的情况，为了避免重新搭建博客系统，一直打算搞一个方便点的环境，能进行多机迁移之类的。正好，Docker完全满足我的要求。</p>
+<p>之前一直只是听说过Docker，听说过容器，听说过镜像，但并没有正真的了解接触过Docker。这次借助于博客的折腾，正好有了这个研究折腾Docker的机会。</p>
+<h1 id="What-is-Docker"><a href="#What-is-Docker" class="headerlink" title="What is Docker?"></a>What is Docker?</h1><p>正如<a href="https://docs.docker.com/" target="_blank" rel="noopener">Docker官网</a>介绍的那样：</p>
+<blockquote>
+<p>Docker is the world’s leading software containerization platform.</p>
+</blockquote>
+<p>关于了解Docker不是本文的重点，这里可以推荐我之前收藏的关于Docker的几个链接：</p>
+<ul>
+<li><a href="http://www.widuu.com/docker/index.html" target="_blank" rel="noopener">Docker中文指南</a></li>
+<li><a href="http://zone.gaospot.com/2016/05/11/Docker%E9%95%9C%E5%83%8F%E5%88%9B%E5%BB%BA/" target="_blank" rel="noopener">Docker镜像创建</a></li>
+<li><a href="https://yeasy.gitbooks.io/docker_practice" target="_blank" rel="noopener">Docker从入门到实战</a></li>
+<li><a href="https://blog.tankywoo.com/docker/2014/05/08/docker-4-summary.html" target="_blank" rel="noopener">Docker 4 – 总结</a></li>
+</ul>
+<p>看完上面的内容基本还是对Docker有了一个比较基础的认识，关于docker的安装，docker命令的使用,docker的设计原理等。</p>
+<h1 id="构建hexo镜像"><a href="#构建hexo镜像" class="headerlink" title="构建hexo镜像"></a>构建hexo镜像</h1>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2016/12/20/docker-made-hexoimage/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2016/12/13/use-coding-update-blog/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1010,207 +1227,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2016/06/11/%E4%BD%93%E9%AA%8CRemix%E2%80%94%E2%80%94%E5%AE%89%E5%8D%93%E7%94%B5%E8%84%91/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/06/11/%E4%BD%93%E9%AA%8CRemix%E2%80%94%E2%80%94%E5%AE%89%E5%8D%93%E7%94%B5%E8%84%91/" class="post-title-link" itemprop="url">体验Remix——安卓电脑</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2016-06-11 11:23:58" itemprop="dateCreated datePublished" datetime="2016-06-11T11:23:58+08:00">2016-06-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-20 09:40:16" itemprop="dateModified" datetime="2020-09-20T09:40:16+08:00">2020-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2016/06/11/%E4%BD%93%E9%AA%8CRemix%E2%80%94%E2%80%94%E5%AE%89%E5%8D%93%E7%94%B5%E8%84%91/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2016/06/11/%E4%BD%93%E9%AA%8CRemix%E2%80%94%E2%80%94%E5%AE%89%E5%8D%93%E7%94%B5%E8%84%91/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="第一次听说Android-X86"><a href="#第一次听说Android-X86" class="headerlink" title="第一次听说Android-X86"></a>第一次听说Android-X86</h1><p>以前玩唱吧的时候接触过PC上的安卓模拟器，不过这个只是一个软件，效果毕竟不好，想要把电脑变成安卓手机，还差远了。</p>
-<p>然后，前段时间一直纠结要不要换个手机，我现在的华为小6已经跟我差不多3年时间了，虽然中间换了好几次系统，但是感觉依然不太流畅了，可能毕竟硬件条件限制。但是又用不起苹果啊，遂想电脑能不能变成安卓手机呢？果然，首先发现了<a href="https://sourceforge.net/projects/android-x86/" target="_blank" rel="noopener">android-x86 download | SourceForge.net</a>,后来又发现了<a href="http://cn.jide.com/remixos-for-pc" target="_blank" rel="noopener">Remix OS PC版</a>，还有其他的。</p>
-<h1 id="Vmware-安装android-X86"><a href="#Vmware-安装android-X86" class="headerlink" title="Vmware 安装android-X86"></a>Vmware 安装android-X86</h1><p>选了一个最新的版本，没有安装成功。后来重新下载了一个低版本的系统，能成功安装，进去之后是字符界面，没有进入桌面系统。按照linux的做法，折腾了几下，没有成功，遂放弃。</p>
-<p><em><a href="http://www.x86android.com/forum.php" target="_blank" rel="noopener">安卓x86中文站</a></em></p>
-<h1 id="Remix-Live-USB"><a href="#Remix-Live-USB" class="headerlink" title="Remix Live USB"></a>Remix Live USB</h1><p>带着比较激动的心情，进入<a href="http://cn.jide.com/remixos-for-pc" target="_blank" rel="noopener">技德科技官网</a>，准备试用Remix.<br><img src="http://o8fj2jbwb.bkt.clouddn.com/remix%E5%AE%98%E7%BD%91.png" alt=""></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/06/11/%E4%BD%93%E9%AA%8CRemix%E2%80%94%E2%80%94%E5%AE%89%E5%8D%93%E7%94%B5%E8%84%91/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">我的个人博客搭建记录</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2016-06-10 20:32:12" itemprop="dateCreated datePublished" datetime="2016-06-10T20:32:12+08:00">2016-06-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-20 09:42:45" itemprop="dateModified" datetime="2020-09-20T09:42:45+08:00">2020-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本篇博客旨在备忘，并记录了自己折腾了3,4天后顺利搭建自己的个人博客过程中碰到的一部分问题。</p>
-<p>搭建个人独立博客有很多种方法，我暂时采用的是基于github Pages的免费博客，博客框架采用hexo静态博客框架。采用此方案的原因，是因为基于github+hexo的博客很多，碰到了什么问题也有很多解决办法。当对一个事情或事物不太熟悉的时候，尽量采用受众比较多的，无关乎随大流，无关乎跟风。这让我想起了自己当时刚刚接触linux的时候，完全陌生的情况下真是无法选择到底以那个系统进行学习，所以当时采取的办法是使用社区活跃度较高，用户群比较多的系统，比如centos和ubuntu，最终我选择了ubuntu，毕竟刚从windows转过来，当然我现在使用的是centos，当然这是题外话了。</p>
-<p><strong>一点建议：</strong><br>我不知道大家跟我是否一样，当我新接触一个事情或事物的时候，我不太习惯去看他的使用手册或者官方文档，而是去google,baidu别人的教程，我觉得这是一个很不好的习惯，以后尽量优先考虑官方手册。对于搭建这个博客来说，就让我深深的体会到了这样的好处。<strong>关于hexo的官方手册，关于next(下文会介绍)主题的官方手册，仔细阅读，如果不笨的话，是不需要再看别人的教程从而也能顺利搭建自己的博客。</strong></p>
-<h1 id="搭建准备"><a href="#搭建准备" class="headerlink" title="搭建准备"></a>搭建准备</h1><p>我的环境：win10 x64</p>
-<p>要使用hexo，需要node.js和git. </p>
-<h2 id="Node-js下载安装"><a href="#Node-js下载安装" class="headerlink" title="Node.js下载安装"></a><a href="http://www.runoob.com/nodejs/nodejs-install-setup.html" target="_blank" rel="noopener">Node.js</a>下载安装</h2><p><img src="http://o8fj2jbwb.bkt.clouddn.com/nodejs.png" alt=""><br>这里推荐大家采用安装包.msi的方式，不要下载绿色版的.exe，不然后续设置的环境变量可能不对，还有提示npm找不到的问题。可以看到标题Current Version:v4.4..5(includes npm 2.15.5),故为了正确性起见，推荐大家采用.msi的方式，按照上面地址的安装配置教程就可以顺利安装。</p>
-<p>如果后面安装hexo的时候出现npm找不到的话，也可以手动自己安装npm。</p>
-<h2 id="Git安装"><a href="#Git安装" class="headerlink" title="Git安装"></a><a href="https://git-scm.com/download/" target="_blank" rel="noopener">Git</a>安装</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/06/10/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1282,7 +1298,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">52</span>
+          <span class="site-state-item-count">54</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1295,7 +1311,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">99</span>
+        <span class="site-state-item-count">108</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
