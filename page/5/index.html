@@ -213,6 +213,105 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2017/02/09/FIX-protocol-introduce/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/02/09/FIX-protocol-introduce/" class="post-title-link" itemprop="url">FIX协议介绍</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-02-09 11:23:58" itemprop="dateCreated datePublished" datetime="2017-02-09T11:23:58+08:00">2017-02-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-20 09:44:11" itemprop="dateModified" datetime="2020-09-20T09:44:11+08:00">2020-09-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2017/02/09/FIX-protocol-introduce/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2017/02/09/FIX-protocol-introduce/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>FIX协议是什么？我为什么会接触到FIX协议？由于工作上的关系，自己负责的一个模块需要实现fix报文与xml报文之间的转换。故需要了解fix是个什么东西才能实现这个转换功能。总体看来，FIX协议还是有些许的复杂，些许的不好理解。闲话少叙，开干！</p>
+<h1 id="什么是FIX"><a href="#什么是FIX" class="headerlink" title="什么是FIX"></a>什么是FIX</h1><p>Financial Information eXchange(FIX)金融信息交换协议的制定是由多个致力于提升其相互间交易流程效率的金融机构和经纪商于1992年共同发起。这些企业把他们及他们的行业视为一个整体，认为能够从对交易指示，交易指令及交易执行的高效电子数据交换的驱动中获利。FIX由此诞生，一个不受单一实体控制的开放消息标准，一个能够被调整组建适用于任何一个企业的商务需求的协议。</p>
+<p>FIX协议包含2个层次：会话层和应用层。会话层与数据的通信相关；而应用层定义了商务相关数据内容。<br>2006年10月，FPL发布了FIX5.0。FIX5.0引入TI（the transport independence ）传输无关框架。TI将FIX会话层从应用层协议中分离出来。在TI框架下，应用层协议消息可以通过任意合适的传输技术进行传送，在这里，FIX会话层协议是FIX应用层消息的可选传输传输协议之一。两个协议层的版本标注将会有所不同，FIX X.Y为FIX应用层协议版本；FIXT X.Y 为FIX会话层协议版本编号。如下图：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/fixxml.png" alt=""></p>
+<p>关于FIX协议会话层的细节和内容这篇博文不会展开介绍，会话层更多关于通信细节，此文重点介绍应用层的内容，这也是我用来进行报文转换的基础。</p>
+<h1 id="FIX协议格式"><a href="#FIX协议格式" class="headerlink" title="FIX协议格式"></a>FIX协议格式</h1>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/02/09/FIX-protocol-introduce/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2016/12/21/use-daocloud-buildhexo/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1123,110 +1222,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2016/06/12/%E6%B5%8F%E8%A7%88%E5%99%A8%E5%88%A9%E5%99%A8%E4%B9%8Bvimium/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/06/12/%E6%B5%8F%E8%A7%88%E5%99%A8%E5%88%A9%E5%99%A8%E4%B9%8Bvimium/" class="post-title-link" itemprop="url">浏览器利器之vimium</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2016-06-12 11:23:58" itemprop="dateCreated datePublished" datetime="2016-06-12T11:23:58+08:00">2016-06-12</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-20 09:41:56" itemprop="dateModified" datetime="2020-09-20T09:41:56+08:00">2020-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/other/" itemprop="url" rel="index"><span itemprop="name">other</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2016/06/12/%E6%B5%8F%E8%A7%88%E5%99%A8%E5%88%A9%E5%99%A8%E4%B9%8Bvimium/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2016/06/12/%E6%B5%8F%E8%A7%88%E5%99%A8%E5%88%A9%E5%99%A8%E4%B9%8Bvimium/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="偶然发现"><a href="#偶然发现" class="headerlink" title="偶然发现"></a>偶然发现</h1><p>工作中使用外接键盘，在浏览器里操作的时候每次输完字都需要把手移动好长一段距离才到鼠标的位置，很浪费时间，很浪费体力。所以一直想着在浏览器里操作能不用到鼠标，提高工作的效率的同时，看上去也还可以装X.</p>
-<p>一直也很羡慕黑客们在电脑前一阵噼里啪啦狂敲，分分钟解决一个难题。那他们怎么上网的呢？于是就这么偶然的发现了Vimium.</p>
-<h1 id="安装Vimium"><a href="#安装Vimium" class="headerlink" title="安装Vimium"></a>安装Vimium</h1><p>使用linux的人都知道vim，Vimium跟vim名字这么像，必然是有联系的。vimium是chrome的一个插件，配置了一系列类似于vim使用的快捷键，可以极大效率的提高上网操作速度。<br>安装Vimium很简单，直接在chrome的扩展程序搜索该插件：<br><img src="http://o8fj2jbwb.bkt.clouddn.com/vimium.png" alt=""><br>上图显示，我的已经是安装了。</p>
-<h1 id="使用Vimium"><a href="#使用Vimium" class="headerlink" title="使用Vimium"></a>使用Vimium</h1><p>安装好后在浏览器里试着像vim的操作那样随便来几个按键，是不是发现神奇的事了？对的，好神奇，h,j,k,l这基本的键ok了。<br>快捷键的使用是一个慢慢熟练的过程，所以刚开始如果不太熟没关系，试着多使用几次就没问题了。</p>
-<p>记得我前面的博客有提到过碰到问题看官方手册或者官方文档的建议，那么对于Vimium，<strong>在normal模式输入?就可以看到vimium基本的操作提示</strong>。<br><img src="http://o8fj2jbwb.bkt.clouddn.com/vimiumhelp.png" alt=""></p>
-<p>基本常用的90%以上的快捷键都在这里了，仔细阅读多次使用，就能快速熟练。记住我的那句话，<strong>记得看官方的文档或者帮助。</strong></p>
-<h1 id="The-End"><a href="#The-End" class="headerlink" title="# The End"></a># The End</h1><p>Blog:</p>
-<ul>
-<li><p><a href="http://rebootcat.com">rebootcat.com</a> (<strong>默认</strong>)</p>
-</li>
-<li><p><a href="http://linxi4linux.github.io/" target="_blank" rel="noopener">http://linxi4linux.github.io/</a>(原地址，备用)</p>
-</li>
-<li><p><a href="http://reboot_cat.coding.me/" target="_blank" rel="noopener">http://reboot_cat.coding.me/</a> （原地址，备用）</p>
-</li>
-</ul>
-<p>email: <a href="mailto:&#108;&#x69;&#x6e;&#117;&#120;&#x63;&#111;&#100;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#64;&#103;&#109;&#x61;&#105;&#x6c;&#46;&#x63;&#x6f;&#x6d;">&#108;&#x69;&#x6e;&#117;&#120;&#x63;&#111;&#100;&#101;&#x32;&#110;&#x69;&#x6b;&#x69;&#64;&#103;&#109;&#x61;&#105;&#x6c;&#46;&#x63;&#x6f;&#x6d;</a></p>
-<p>2016-6-12 于杭州</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1298,7 +1293,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-count">55</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1311,7 +1306,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">108</span>
+        <span class="site-state-item-count">114</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

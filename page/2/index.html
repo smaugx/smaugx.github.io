@@ -213,6 +213,111 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/09/02/cmake/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/02/cmake/" class="post-title-link" itemprop="url">cmake教程|cmake入门实战</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-02 11:23:58" itemprop="dateCreated datePublished" datetime="2020-09-02T11:23:58+08:00">2020-09-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-04 06:10:54" itemprop="dateModified" datetime="2020-09-04T06:10:54+08:00">2020-09-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/02/cmake/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/02/cmake/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>我是一个 linux c++ 开发者，但是一直对 Makefile 的语法很是头痛，每次都记不住，所以每次写 Makefile 都很痛苦，Makefile 里需要你自己编写依赖和推导规则，这个过程能不能简单点呢？</p>
+<p>对于编译一个 C++ 工程来说，也许需要的就是头文件路径、库路径、编译参数，剩下的东西基本也不重要，这三样足够去编译一个工程了。所以有没有一个工具能简单点的去实现 C++ 项目的构建呢？</p>
+<p>答案是有的，上一篇博文 <a href="http://rebootcat.com/2020/08/30/scons/">scons构建C++项目</a> 介绍了 使用 scons 来构建 C++ 项目，大大提高了编写构建脚本的效率，使用起来也极为方便，对于熟悉 python 的童鞋来说真的是大大的福音；但 scons 的问题就是在大型项目的时候构建起来可能会很慢（听说的）。那么有没有其他的工具呢？</p>
+<p>当然有，cmake 就是这样的一个工具，既能满足跨平台的编译，并且屏蔽了 Makefile 蛋疼的语法，使用一种更加简单的语法编写构建脚本，用在大型项目也毫无压力。</p>
+<p>当然，对于我个人来说，cmake 的使用还是有门槛的，刚接触 cmake 可能还是会被它的语法搞的头疼（cmake 的语法也还是挺折腾的）。但是别急，沉下心来，本篇博文就带你从 cmake 入门到编写一个复杂工程的实战。</p>
+<h1 id="CMake"><a href="#CMake" class="headerlink" title="CMake"></a>CMake</h1><h2 id="什么是-cmake"><a href="#什么是-cmake" class="headerlink" title="什么是 cmake"></a>什么是 cmake</h2><p>这里直接引用官网的解释：</p>
+<blockquote>
+<p>CMake is an open-source, cross-platform family of tools designed to build, test and package software. CMake is used to control the software compilation process using simple platform and compiler independent configuration files, and generate native makefiles and workspaces that can be used in the compiler environment of your choice. The suite of CMake tools were created by Kitware in response to the need for a powerful, cross-platform build environment for open-source projects such as ITK and VTK.</p>
+</blockquote>
+<p>CMake 是一个开源的跨平台的构建工具，语法简单，编译独立，并且很多知名大型项目也在用 CMake,比如 KDE、Netflix 、ReactOS等。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cmake/1.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/02/cmake/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/08/30/scons/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1206,115 +1311,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2019/10/02/daemon/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/10/02/daemon/" class="post-title-link" itemprop="url">linux守护进程c++实现</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-10-02 11:23:58" itemprop="dateCreated datePublished" datetime="2019-10-02T11:23:58+08:00">2019-10-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-02 20:22:26" itemprop="dateModified" datetime="2020-11-02T20:22:26+08:00">2020-11-02</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2019/10/02/daemon/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2019/10/02/daemon/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Linux-进程"><a href="#Linux-进程" class="headerlink" title="Linux 进程"></a>Linux 进程</h1><p>Linux 上值得关注的几种进程分别是：</p>
-<ul>
-<li>孤儿进程</li>
-<li>僵尸进程</li>
-<li>守护进程</li>
-</ul>
-<p>孤儿进程是指子进程还在运行的时候，其父进程退出了，此时该子进程就变成 “孤儿进程”，孤儿进程会被 1 号 init(systemd) 进程收养，后续该子进程的退出清理工作就交由 init 进程来管理。</p>
-<p>僵尸进程是指父进程 fork 了子进程后，子进程运行完毕退出，但父进程并没有使用 wait 或者 waitpid 来获取子进程的状态信息，导致子进程的进程描述符依然存在系统中，如果使用 ps 、top 等命令会看到进程状态为 Z，这种进程就是僵尸进程。僵尸进程有危害，如果大量产生僵尸进程，会大量消耗系统资源。</p>
-<p>守护进程是指运行在后台的一种特殊进程，它脱离于控制终端，并且周期性地执行某种任务或等待处理某些发生的事件。linux 上大多数系统进程都是守护进程。</p>
-<p>本文重点研究一下守护进程。</p>
-<h1 id="守护进程"><a href="#守护进程" class="headerlink" title="守护进程"></a>守护进程</h1><p>先来看一个进程图：</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">PPID   PID  PGID   SID TTY      TPGID STAT   UID   TIME COMMAND</span><br><span class="line">   <span class="number">1</span>  <span class="number">1162</span>  <span class="number">1162</span>  <span class="number">1162</span> ?           <span class="number">-1</span> Ss       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span> /usr/sbin/sshd -D</span><br><span class="line"><span class="number">1162</span>  <span class="number">1460</span>  <span class="number">1460</span>  <span class="number">1460</span> ?           <span class="number">-1</span> Ss       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  \_ sshd: <span class="symbol">root@</span>pts/<span class="number">0</span></span><br><span class="line"><span class="number">1460</span>  <span class="number">1464</span>  <span class="number">1464</span>  <span class="number">1464</span> pts/<span class="number">0</span>     <span class="number">1507</span> Ss       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  |   \_ -bash</span><br><span class="line"><span class="number">1464</span>  <span class="number">1506</span>  <span class="number">1506</span>  <span class="number">1464</span> pts/<span class="number">0</span>     <span class="number">1507</span> S        <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  |       \_ ./hello_world</span><br><span class="line"><span class="number">1464</span>  <span class="number">1507</span>  <span class="number">1507</span>  <span class="number">1464</span> pts/<span class="number">0</span>     <span class="number">1507</span> S+       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  |       \_ ./hello_world_fork</span><br><span class="line"><span class="number">1507</span>  <span class="number">1508</span>  <span class="number">1507</span>  <span class="number">1464</span> pts/<span class="number">0</span>     <span class="number">1507</span> S+       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  |           \_ ./hello_world_fork</span><br><span class="line"><span class="number">1507</span>  <span class="number">1509</span>  <span class="number">1507</span>  <span class="number">1464</span> pts/<span class="number">0</span>     <span class="number">1507</span> S+       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  |           \_ ./hello_world_fork</span><br><span class="line"><span class="number">1507</span>  <span class="number">1510</span>  <span class="number">1507</span>  <span class="number">1464</span> pts/<span class="number">0</span>     <span class="number">1507</span> S+       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  |           \_ ./hello_world_fork</span><br><span class="line"><span class="number">1507</span>  <span class="number">1511</span>  <span class="number">1507</span>  <span class="number">1464</span> pts/<span class="number">0</span>     <span class="number">1507</span> S+       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  |           \_ ./hello_world_fork</span><br><span class="line"></span><br><span class="line"><span class="number">1162</span>  <span class="number">1479</span>  <span class="number">1479</span>  <span class="number">1479</span> ?           <span class="number">-1</span> Ss       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  \_ sshd: <span class="symbol">root@</span>pts/<span class="number">1</span></span><br><span class="line"><span class="number">1479</span>  <span class="number">1483</span>  <span class="number">1483</span>  <span class="number">1483</span> pts/<span class="number">1</span>     <span class="number">1516</span> Ss       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  |   \_ -bash</span><br><span class="line"><span class="number">1483</span>  <span class="number">1516</span>  <span class="number">1516</span>  <span class="number">1483</span> pts/<span class="number">1</span>     <span class="number">1516</span> S+       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  |       \_ ./hello_world</span><br><span class="line"></span><br><span class="line"><span class="number">1162</span>  <span class="number">1517</span>  <span class="number">1517</span>  <span class="number">1517</span> ?           <span class="number">-1</span> Ss       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>  \_ sshd: <span class="symbol">root@</span>pts/<span class="number">2</span></span><br><span class="line"><span class="number">1517</span>  <span class="number">1521</span>  <span class="number">1521</span>  <span class="number">1521</span> pts/<span class="number">2</span>     <span class="number">1536</span> Ss       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>      \_ -bash</span><br><span class="line"><span class="number">1521</span>  <span class="number">1536</span>  <span class="number">1536</span>  <span class="number">1521</span> pts/<span class="number">2</span>     <span class="number">1536</span> R+       <span class="number">0</span>   <span class="number">0</span>:<span class="number">00</span>          \_ ps ajxf</span><br></pre></td></tr></table></figure>
-
-<p>上面是使用  <code>ps ajxf</code> 命令的输出的其中一部分，只展示了终端相关的进程情况。可以看到这台机器上开了 3 个终端，每个终端上有不同的进程在运行。</p>
-<p>接下来就以上面的结果为例作说明。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/10/02/daemon/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1386,7 +1382,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-count">55</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1399,7 +1395,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">108</span>
+        <span class="site-state-item-count">114</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
