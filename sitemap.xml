@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://rebootcat.com/2020/09/26/thundering_herd/</loc>
+    
+    <lastmod>2020-11-07T15:38:35.317Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://rebootcat.com/about/index.html</loc>
+    
+    <lastmod>2020-11-05T15:42:59.007Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://rebootcat.com/2020/11/05/free_mem/</loc>
     
     <lastmod>2020-11-05T15:32:49.097Z</lastmod>
@@ -397,13 +411,6 @@
     <loc>https://rebootcat.com/tags/index.html</loc>
     
     <lastmod>2020-04-18T16:29:28.912Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://rebootcat.com/about/index.html</loc>
-    
-    <lastmod>2020-04-18T16:29:28.911Z</lastmod>
     
   </url>
   

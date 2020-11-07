@@ -4731,4 +4731,116 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
         <tag>sbrk</tag>
       </tags>
   </entry>
+  <entry>
+    <title>惊群效应</title>
+    <url>/2020/09/26/thundering_herd/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>上一篇博文 <a href="https://rebootcat.com/2020/09/26/epoll_cookbook/">Epoll原理深入分析</a> 在讲 <strong>accept 事件</strong> 的时候提到过 <strong>惊群效应</strong>，本文就分析一下惊群效应的原因以及解决方法。</p>
+<h1 id="惊群效应"><a href="#惊群效应" class="headerlink" title="惊群效应"></a>惊群效应</h1><h2 id="什么是惊群"><a href="#什么是惊群" class="headerlink" title="什么是惊群"></a>什么是惊群</h2><p>惊群效应就是多个进程（线程）阻塞等待同一件事情（资源）上，当事件发生（资源可用）时，操作系统可能会唤醒所有等待这个事件（资源）的进程（线程），但是最终却只有一个进程（线程）成功获取该事件（资源），而其他进程（线程）获取失败，只能重新阻塞等待事件（资源）可用，但是这就造成了额外的性能损失。这种现象就称为惊群效应。</p>
+<p>如果细心的你可能会问，为什么操作系统要同时唤醒多个进程呢？只唤醒一个不行吗？这样不就没有这种性能损失了吗？</p>
+<p>确实如此，操作系统也想只唤醒一个进程，但是它做不到啊，因为它也不知道该唤醒哪一个，只好把所有等待在这件事情（资源）的进程都一起唤醒了。</p>
+<p>那有没有办法解决呢？当然有，我们后面再说。</p>
+<p>惊群效应会造成多个进程白白唤醒而啥也做不了。那么唤醒进程损失了啥？这就涉及到进程上下文的概念。</p>
+<h2 id="惊群造成进程切换"><a href="#惊群造成进程切换" class="headerlink" title="惊群造成进程切换"></a>惊群造成进程切换</h2><p>进程上下文包括了进程的虚拟内存，栈，全局变量等用户空间的资源，还包括内核堆栈，寄存器等内核空间的状态。</p>
+<p>所以<strong>进程上下文切换就首先需要保存用户态资源以及内核态资源，然后再去加载下一个进程，首先是加载了下一个进程的内核态，然后再去刷新进程的用户态空间</strong>。</p>
+<p>然而 CPU 保存进程的用户态以及内核态资源，再去加载下一个进程的内核态和用户态是有代价的，也是耗时的，每次可能在几十纳秒到数微妙的时间，如果频繁发生进程切换，那么 CPU 将有大量的时间浪费在不断保存资源，加载资源，刷新资源等事情上，造成性能的浪费。</p>
+<p>所以惊群效应会造成多个进程切换，造成性能损失。</p>
+<h2 id="惊群测试"><a href="#惊群测试" class="headerlink" title="惊群测试"></a>惊群测试</h2><p>为了直观的了解惊群效应是什么，我们采用 mux 项目当中的 <code>echo_server</code> 为例说明：</p>
+<p><a href="https://github.com/smaugx/mux/tree/master/demo/echo" target="_blank" rel="noopener">https://github.com/smaugx/mux/tree/master/demo/echo</a></p>
+<p>编译命令详见项目说明文档。编译之后得到:</p>
+<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="keyword">echo</span>_server  <span class="keyword">echo</span>_client</span><br></pre></td></tr></table></figure>
+
+<p>我们在 <code>echo_server</code> 上开启 8 个 epoll 线程，观察当有新连接过来时是否这 8 个线程（epoll） 都被唤醒了。</p>
+<a id="more"></a>
+
+<p>首先，运行：</p>
+<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="string">./echo_server</span></span><br></pre></td></tr></table></figure>
+
+<p>再运行：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">./echo_client （或者直接用  nc <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">6666</span>）</span><br></pre></td></tr></table></figure>
+
+<p>我们观察的 <code>echo_server</code> 的 log 如下：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">smaug@smaug-VirtualBox:~/workspace/mux/cbuild/bin/log$ tail -f echo_server.log  |grep accept</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[basic_logger] [<span class="builtin-name">debug</span>] eid:3 accept<span class="built_in"> connection </span><span class="keyword">from</span> 127.0.0.1:44251 time:2020.11.07 21:55:39.30</span><br><span class="line">[basic_logger] [<span class="builtin-name">warning</span>] eid:0 accept error, thundering herd happened</span><br><span class="line">[basic_logger] [<span class="builtin-name">warning</span>] eid:4 accept error, thundering herd happened</span><br><span class="line">[basic_logger] [<span class="builtin-name">warning</span>] eid:7 accept error, thundering herd happened</span><br><span class="line">[basic_logger] [<span class="builtin-name">warning</span>] eid:6 accept error, thundering herd happened</span><br><span class="line">[basic_logger] [<span class="builtin-name">warning</span>] eid:5 accept error, thundering herd happened</span><br><span class="line">[basic_logger] [<span class="builtin-name">warning</span>] eid:2 accept error, thundering herd happened</span><br><span class="line">[basic_logger] [<span class="builtin-name">warning</span>] eid:1 accept error, thundering herd happened</span><br></pre></td></tr></table></figure>
+
+<p>从上可以看到，我们总共有 8 个线程，其中只有 3号线程（epoll）被唤醒并且成功获取了 accept 事件，其他线程均 <code>accept error</code>。</p>
+<p>多次测试会有不同的线程获取 <code>accept</code> 事件，但是只有一个能够成功获取，其余的全部失败。</p>
+<p>为了更加直观的感受惊群造成的性能损失，我们做一个并发压测：</p>
+<p><a href="https://github.com/smaugx/mux/tree/master/demo/bench" target="_blank" rel="noopener">https://github.com/smaugx/mux/tree/master/demo/bench</a></p>
+<p>编译上面的代码得到:</p>
+<figure class="highlight armasm"><table><tr><td class="code"><pre><span class="line"><span class="keyword">bench_client_accept </span> <span class="keyword">bench_server</span></span><br></pre></td></tr></table></figure>
+
+<p>首先，启动：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">./bench_server <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">10000</span> &gt; /dev/<span class="literal">null</span> <span class="number">2</span>&gt;&amp;<span class="number">1</span> &amp;</span><br></pre></td></tr></table></figure>
+
+<p>再启动：</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">./bench_client_accept <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">10000</span> <span class="number">30000</span> <span class="number">100</span> &gt; /dev/<span class="literal">null</span> <span class="number">2</span>&gt;&amp;<span class="number">1</span> &amp;</span><br></pre></td></tr></table></figure>
+
+<p>使用之前的博文 <a href="https://rebootcat.com/2019/11/05/perf_flamegraph/">一键采集cpu生成火焰图</a> 中的脚本采集火焰图如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/thundering_herd/0.png" alt=""></p>
+<p>可以看到途中 <code>__libc_accept</code> 占据了 31.7% 的 cpu，可以说是很高很高了。</p>
+<p>由此可以看到惊群效应带来的性能损失有多少了吧。</p>
+<h2 id="惊群的类型"><a href="#惊群的类型" class="headerlink" title="惊群的类型"></a>惊群的类型</h2><p>惊群的类型根据 socket 编程采用的不同方式有关。</p>
+<h3 id="传统-accept-惊群"><a href="#传统-accept-惊群" class="headerlink" title="传统 accept 惊群"></a>传统 accept 惊群</h3><p>传统的多进程 socket 编程，通常是 <code>listen()</code> 之后创建多个 worker 进程进行 accept，那么这里就会造成当有新连接过来时，多个 worker 同时去 accept 的情况，但最终只有一个 worker 进程成功 accept，其余的全部失败。</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"><span class="built_in">..</span>.</span><br><span class="line">int s = socket();</span><br><span class="line"></span><br><span class="line">bind(s);</span><br><span class="line"></span><br><span class="line">listen(s);</span><br><span class="line"></span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="attribute">i</span>=0;i &lt; 4;++i) &#123;</span><br><span class="line">    pid_t pid = fork();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (pid == 0) &#123;</span><br><span class="line">        # handle new connection</span><br><span class="line">        accept();</span><br><span class="line">        <span class="built_in">..</span>.</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此种情况下的惊群称为 <strong>accept惊群效应</strong>，这在 linux 内核2.6以后就已经解决了，所以通常情况下讨论的惊群通常不是 <strong>accept惊群</strong>，而是 <strong>epoll惊群</strong>。</p>
+<h3 id="epoll-惊群"><a href="#epoll-惊群" class="headerlink" title="epoll 惊群"></a>epoll 惊群</h3><p>epoll 的编程模型一般有两种，我们姑且先分别称为 <strong>版本1</strong> 和 <strong>版本2</strong> 吧：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">int listenfd = ::socket();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line">int epollfd = epoll_create(1);  # create epoll instance</span><br><span class="line"></span><br><span class="line">int p = fork() # 多进程 或者多线程创建</span><br><span class="line"></span><br><span class="line">int r = epoll_ctl(<span class="built_in">..</span>., listenfd, <span class="built_in">..</span>.);</span><br><span class="line"></span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">int num = epoll_wait(epollfd, alive_events, kMaxEvents, kEpollWaitTime);</span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者 <code>fork()</code> 在 <code>epoll_create()</code> 之前：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">int listenfd = ::socket();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">int p = fork() # 多进程 或者多线程创建</span><br><span class="line"></span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line">int epollfd = epoll_create(1);  # create epoll instance</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">int r = epoll_ctl(<span class="built_in">..</span>., listenfd, <span class="built_in">..</span>.);</span><br><span class="line"></span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">int num = epoll_wait(epollfd, alive_events, kMaxEvents, kEpollWaitTime);</span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>虽然上述两个版本均能实现多进程下的 epoll 编程，且都存在惊群效应，但版本1，也就是 <code>fork()</code> 在 <code>epoll_create()</code> 之后会造成<strong>事件混乱</strong>。</p>
+<p>因为<strong>多个进程等待的是同一个 epollfd，就有可能造成同一个连接，worker A 获取了 accept 事件，成功建立了连接，但是后续的读事件被 worker B 获取了，造成连接和读写事件不匹配的情况</strong>。</p>
+<p>所以通常，我们采用的是版本2，也就是 <code>fork()</code> 在 <code>epoll_create()</code> 之前，那么多个子进程其实是拥有各自不同的 epollfd，只不过对于 listenfd 而言，都被添加到了各个子进程的 epoll instance 中。</p>
+<p>当 listenfd 上有事件触发时（listenfd 上的事件自然是 accept 事件），由于有多个子进程的 epoll instance 上都有 listenfd。</p>
+<p>根据之前的博文 <a href="https://rebootcat.com/2020/09/26/epoll_cookbook/">Epoll原理深入分析</a>，当某个 fd 上有事件后，内核会把这个 fd 拷贝到 epoll 的就绪链表中，并且唤醒进程，通知应用层使用 <code>epoll_wait</code> 来处理事件。</p>
+<p>所以由于多个子进程都把 listenfd 插入到了自己的 epoll instance 中，那么当 listenfd 上有事件触发时，自然这些子进程都会被唤醒了。但是最终只有一个子进程成功获取 accept 事件，其余的均失败。这就是惊群效应，详见上面的惊群效应测试。</p>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><h2 id="传统-accept-惊群-1"><a href="#传统-accept-惊群-1" class="headerlink" title="传统 accept 惊群"></a>传统 accept 惊群</h2><p>上面提到，针对<strong>传统 accept 惊群</strong>，linux 在内核 2.6 以后就解决了，内核通过引入一个 <code>WQ_FLAG_EXCLUSIVE</code> 标志位，告诉内核排他性的唤醒，即当 socket 上有事件触发时，对于等待队列中的进程，如果这些进程没有 <code>WQ_FLAG_EXCLUSIVE</code> 这个标志位，那么就通通唤醒，如果有 <code>WQ_FLAG_EXCLUSIVE</code> 这个标志位，那么唤醒第一个有这个标志位的进程则结束。这样，就解决了<strong>传统 accept 惊群</strong>问题。</p>
+<h2 id="epoll-惊群-1"><a href="#epoll-惊群-1" class="headerlink" title="epoll 惊群"></a>epoll 惊群</h2><p>epoll 的惊群有两种解决办法。</p>
+<h3 id="SO-REUSEPORT"><a href="#SO-REUSEPORT" class="headerlink" title="SO_REUSEPORT"></a>SO_REUSEPORT</h3><p>linux 在内核 3.9 版本引入了一个 socket 选项 <code>SO_REUSEPORT</code> 用来支持多个进程监听在同一个端口上，内核负责事件触发的负载均衡。</p>
+<p>创建一个 listen socket，需要 {protocol, src_addr, src_port} 三元组，3.9 版本之前，内核不允许出现多个进程使用同样的三元组创建 socket，会出现 <code>Address already in use</code> 错误。</p>
+<p>但是，通过引入 <code>SO_REUSEPORT</code> 以及 <code>SO_REUSEADDR</code>，内核允许多个进程使用同样的三元组创建 socket，内核负责负载均衡。</p>
+<p>ok，明白了这个原理，对于解决 epoll 的惊群问题，还需要稍微修改一下编程的模型，我们姑且成为 <strong>版本3</strong> 吧：</p>
+<figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="built_in">int</span> p = fork<span class="literal">()</span> # 多进程 或者多线程创建</span><br><span class="line"></span><br><span class="line"><span class="built_in">int</span> listenfd = ::socket<span class="literal">()</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">int</span> ret = setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT,(const void *)&amp;reuse , sizeof(<span class="built_in">int</span>));</span><br><span class="line"></span><br><span class="line">bind(listenfd);</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"><span class="built_in">int</span> epollfd = epoll<span class="constructor">_create(1)</span>;  # create epoll instance</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">int</span> r = epoll<span class="constructor">_ctl(<span class="operator">...</span>, <span class="params">listenfd</span>, <span class="operator">...</span>)</span>;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line"><span class="built_in">int</span> num = epoll<span class="constructor">_wait(<span class="params">epollfd</span>, <span class="params">alive_events</span>, <span class="params">kMaxEvents</span>, <span class="params">kEpollWaitTime</span>)</span>;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以对比一下和上面的编程模型有何不同，其实区别在创建 listenfd 被移到了 <code>fork()</code> 之后，程序启动即创建多个进程，然后进程内部再创建 listenfd 以及 epollfd，等等后续一系列操作。</p>
+<p><strong>另外要注意在 <code>socket()</code> 之后，使用 <code>setsockopt()</code> 设置了 <code>SO_REUSEPORT</code> 选项</strong>。</p>
+<p>那么内核是如何做负载均衡的呢？</p>
+<p>其实很简单，每一个新的连接都具有 socket 五元组 {protocol, src_addr, src_port, dst_addr, dst_port}，那么用这个五元组哈希一下映射到不同的进程，那么就唤醒这个进程。</p>
+<p><code>SO_REUSEPORT</code> 由于采用的是哈希的方式，内核并不知道多个等待进程是否空闲，但哈希的方式依然可能还会分配到这个进程，此时这个新的 accept 就可能会超时不被处理。</p>
+<h3 id="EPOLLEXCLUSIVE"><a href="#EPOLLEXCLUSIVE" class="headerlink" title="EPOLLEXCLUSIVE"></a>EPOLLEXCLUSIVE</h3><p>linux 在内核 4.5 引入了 EPOLLEXCLUSIVE 这个标志位用来解决 epoll 的惊群。当我们使用 <code>epoll_ctl()</code> 往进程的 epoll instance 中插入一个需要监听的 fd 时，如果显示的传入 EPOLLEXCLUSIVE，那么内核会排他性的进行唤醒。</p>
+<p>当然这里通常<strong>只需要对多个子进程共同监听的 listenfd 设置 <code>EPOLLEXCLUSIVE</code> 标志位</strong>。<strong>注意，这里的 epoll 编程模型要采用上面的版本2</strong>。</p>
+<p>和解决<strong>传统 accept惊群</strong> 类似的方式，但是区别是内核可能会唤醒不只一个进程（虽然解决了不全部唤醒的问题），详见:</p>
+<p><a href="https://man7.org/linux/man-pages/man2/epoll_ctl.2.html" target="_blank" rel="noopener">https://man7.org/linux/man-pages/man2/epoll_ctl.2.html</a></p>
+<figure class="highlight livecodeserver"><table><tr><td class="code"><pre><span class="line">When <span class="keyword">a</span> wakeup event occurs <span class="keyword">and</span> multiple epoll <span class="built_in">file</span> descriptors</span><br><span class="line">are attached <span class="built_in">to</span> <span class="keyword">the</span> same target <span class="built_in">file</span> <span class="keyword">using</span> EPOLLEXCLUSIVE, <span class="literal">one</span></span><br><span class="line"><span class="keyword">or</span> more <span class="keyword">of</span> <span class="keyword">the</span> epoll <span class="built_in">file</span> descriptors will receive <span class="keyword">an</span> event</span><br><span class="line"><span class="keyword">with</span> epoll_wait(<span class="number">2</span>).  The default <span class="keyword">in</span> this scenario (when</span><br><span class="line">EPOLLEXCLUSIVE is <span class="keyword">not</span> <span class="built_in">set</span>) is <span class="keyword">for</span> all epoll <span class="built_in">file</span> descriptors</span><br><span class="line"><span class="built_in">to</span> receive <span class="keyword">an</span> event.  EPOLLEXCLUSIVE is thus useful <span class="keyword">for</span> avoid‐</span><br><span class="line">ing thundering herd problems <span class="keyword">in</span> certain scenarios.</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意上面的 <strong>one or more</strong></p>
+</blockquote>
+<h1 id="The-END"><a href="#The-END" class="headerlink" title="The END"></a>The END</h1><p>OK，到这里基本上把惊群效应的原理以及带来的问题，以及解决方法都讲清楚了，本来还想做一个加上了 EPOLLEXCLUSIVE，再采集一下火焰图和之前的进行一下对比，但是不知道是我的方式不对还是什么原因，加上 EPOLLEXCLUSIVE 标志后，连接压力测试就池池上不去，一直出现 <code>connection timeout</code> 的问题。</p>
+<p>算了，这个以后再研究下为啥。</p>
+<p>如果上文发现有什么不对的地方，欢迎指正。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#110;&#x75;&#120;&#x63;&#111;&#100;&#101;&#50;&#110;&#105;&#107;&#x69;&#x40;&#103;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;">&#108;&#105;&#110;&#x75;&#120;&#x63;&#111;&#100;&#101;&#50;&#110;&#105;&#107;&#x69;&#x40;&#103;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
+</li>
+</ul>
+<p>2020-09-26 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>cpu</tag>
+        <tag>linux</tag>
+        <tag>nginx</tag>
+        <tag>epoll</tag>
+        <tag>socket</tag>
+        <tag>thundering_herd</tag>
+        <tag>accept</tag>
+        <tag>setsockopt</tag>
+      </tags>
+  </entry>
 </search>
