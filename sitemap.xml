@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://rebootcat.com/guestbook/index.html</loc>
+    
+    <lastmod>2020-11-10T16:11:22.775Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://rebootcat.com/about/index.html</loc>
     
     <lastmod>2020-11-10T16:08:51.684Z</lastmod>
@@ -397,13 +404,6 @@
     <loc>https://rebootcat.com/categories/index.html</loc>
     
     <lastmod>2020-04-18T16:29:28.917Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://rebootcat.com/guestbook/index.html</loc>
-    
-    <lastmod>2020-04-18T16:29:28.914Z</lastmod>
     
   </url>
   
