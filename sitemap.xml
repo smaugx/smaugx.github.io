@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://rebootcat.com/.github/workflows/deploy.json</loc>
+    
+    <lastmod>2020-11-10T15:30:54.416Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://rebootcat.com/2020/09/26/thundering_herd/</loc>
     
     <lastmod>2020-11-07T15:38:35.317Z</lastmod>
