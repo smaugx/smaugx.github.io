@@ -4950,11 +4950,12 @@ hfile.close()</code></pre><p>不过现在一般推荐另外一种写法：</p>
 
 <p>上面的 <code>time_appconnect</code> 减去 <code>time_connect</code> 的耗时就是 ssl 握手的耗时  0.2349s，比之前好了很多。</p>
 <h1 id="The-END"><a href="#The-END" class="headerlink" title="The END"></a>The END</h1><p>OK，到这里算是把博客正式的迁移到腾讯云香港服务器上了，以后就一直打算用自己的服务器托管博客了。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://frostming.com/2020/04-26/github-actions-deploy" target="_blank" rel="noopener">使用 GitHub Actions 实现博客自动化部署</a><br><a href="https://www.hawu.me/operation/2129" target="_blank" rel="noopener">提高https载入速度，记一次nginx升级优化</a></p>
 <p>Blog:</p>
 <ul>
 <li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
 </li>
-<li><p>email: <a href="mailto:&#108;&#x69;&#x6e;&#x75;&#x78;&#99;&#x6f;&#x64;&#x65;&#x32;&#x6e;&#x69;&#x6b;&#105;&#x40;&#103;&#109;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;">&#108;&#x69;&#x6e;&#x75;&#x78;&#99;&#x6f;&#x64;&#x65;&#x32;&#x6e;&#x69;&#x6b;&#105;&#x40;&#103;&#109;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
+<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#120;&#x63;&#111;&#100;&#x65;&#50;&#x6e;&#105;&#x6b;&#105;&#64;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;">&#x6c;&#105;&#x6e;&#x75;&#120;&#x63;&#111;&#100;&#x65;&#50;&#x6e;&#105;&#x6b;&#105;&#64;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
 </li>
 </ul>
 <p>2020-11-10 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
