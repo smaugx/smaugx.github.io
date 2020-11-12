@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+<meta name="google-site-verification" content="IpNgA5aPb7fAewOpvbq-eVkYwuCplcLKol7cG2itN5M" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="从何说起说起 tcp 的连接过程，想必 “3次握手4次挥手”是大家广为熟知的知识，那么关于更细节更底层的连接过程也许就很少人能讲清楚了。 所以本文会先简单回顾一下 tcp 的 3次握手过程，然后重点聊一下 tcp accept 的过程，涉及到 tcp 半连接队列、全连接队列等的内容。 回顾一下3 次握手要了解 3 次握手的过程，可能需要先熟悉一下 tcp 协议的格式：   tcp segment">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP全连接和半连接的问题探讨">
+<meta property="og:url" content="https://rebootcat.com/2020/11/14/tcp_accept/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="从何说起说起 tcp 的连接过程，想必 “3次握手4次挥手”是大家广为熟知的知识，那么关于更细节更底层的连接过程也许就很少人能讲清楚了。 所以本文会先简单回顾一下 tcp 的 3次握手过程，然后重点聊一下 tcp accept 的过程，涉及到 tcp 半连接队列、全连接队列等的内容。 回顾一下3 次握手要了解 3 次握手的过程，可能需要先熟悉一下 tcp 协议的格式：   tcp segment">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/tcp_accept/1.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/tcp_accept/2.png">
+<meta property="article:published_time" content="2020-11-14T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-11-12T15:15:17.676Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="epoll">
+<meta property="article:tag" content="socket">
+<meta property="article:tag" content="tcp">
+<meta property="article:tag" content="accept">
+<meta property="article:tag" content="backlog">
+<meta property="article:tag" content="listen_queue">
+<meta property="article:tag" content="mux">
+<meta property="article:tag" content="hping3">
+<meta property="article:tag" content="tcpdump">
+<meta property="article:tag" content="syn">
+<meta property="article:tag" content="flood">
+<meta property="article:tag" content="listen">
+<meta property="article:tag" content="syncookies">
+<meta property="article:tag" content="synretries">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/tcp_accept/1.png">
+
+<link rel="canonical" href="https://rebootcat.com/2020/11/14/tcp_accept/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>TCP全连接和半连接的问题探讨 | 林夕水共</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+        <li class="menu-item menu-item-wiki">
+
+    <a href="/wiki/" rel="section"><i class="fa fa-fw fa-wikipedia-w"></i>维基</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/11/14/tcp_accept/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TCP全连接和半连接的问题探讨
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11-14 11:23:58" itemprop="dateCreated datePublished" datetime="2020-11-14T11:23:58+08:00">2020-11-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-11-12 23:15:17" itemprop="dateModified" datetime="2020-11-12T23:15:17+08:00">2020-11-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/11/14/tcp_accept/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/11/14/tcp_accept/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="从何说起"><a href="#从何说起" class="headerlink" title="从何说起"></a>从何说起</h1><p>说起 tcp 的连接过程，想必 “<strong>3次握手4次挥手</strong>”是大家广为熟知的知识，那么关于更细节更底层的连接过程也许就很少人能讲清楚了。</p>
+<p>所以本文会先简单回顾一下 tcp 的 3次握手过程，然后重点聊一下 tcp accept 的过程，涉及到 tcp 半连接队列、全连接队列等的内容。</p>
+<h1 id="回顾一下"><a href="#回顾一下" class="headerlink" title="回顾一下"></a>回顾一下</h1><h2 id="3-次握手"><a href="#3-次握手" class="headerlink" title="3 次握手"></a>3 次握手</h2><p>要了解 3 次握手的过程，可能需要先熟悉一下 tcp 协议的格式：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/tcp_accept/1.png" alt=""></p>
+<ul>
+<li>tcp segment 的头部有两个 2字节的字段 <code>source port</code> 和 <code>dest port</code>，分别表示本机端口以及目标端口，在 tcp 传输层是没有 IP 的概念的，那是 IP 层 的概念，IP 层协议会在 IP 协议的头部加上 <code>src ip</code> 和 <code>dest ip</code>；</li>
+<li>4 个字节的 seq，表示序列号，tcp 是可靠连接，不会乱序；</li>
+<li>4 个字节的 ack，表示确认号，表示对接收到的上一个报文的确认，值为 seq + 1;</li>
+<li>几个标志位：ACK,RST,SYN,FIN 这些是我们常用的，比较熟悉的。其中 ACK 简写为 “.”; RST 简写为 “R”; SYN 简写为 “S”; FIN 简写为 “F”;</li>
+</ul>
+<blockquote>
+<p>注意： ack 和 ACK 是不一样的意思，一个是确认号，一个是标志位</p>
+</blockquote>
+<a id="more"></a>
+
+<p>了解了 tcp 协议的头部格式，那么再来讲一下 3 次握手的过程：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/tcp_accept/2.png" alt=""></p>
+<ol>
+<li>客户端对服务端发起建立连接的请求，发送一个 SYN 包（也就是 SYN 标志位设置为 1），同时随机生成一个 seq 值 x，然后客户端就处于 SYN_SENT 状态；</li>
+<li>服务端收到客户端的连接请求，回复一个 SYN+ACK包（也就是设置 SYN 和 ACK 标志位为 1），同时随机生成一个 seq 值 y，然后确认号 ack = x + 1，也就是 client 的 seq +1，服务端进入 SYN_RECV 阶段；</li>
+<li>客户端收到服务端的 SYN+ACK 包，会回复一个 ACK 包（也就是设置 ACK 标志位为 1），设置 seq = x + 1，ack 等于 服务端的 seq +1，也就是 ack = y+1，然后连接建立成功；</li>
+</ol>
+<h2 id="tcpdump-抓包"><a href="#tcpdump-抓包" class="headerlink" title="tcpdump 抓包"></a>tcpdump 抓包</h2><p>开一个终端执行以下命令作为服务端：</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 服务端</span></span><br><span class="line"><span class="variable">$ </span>nc -l <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+
+<p>然后打开新的终端用 tcpdump 抓包：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -i 表示监听所有网卡；</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -t 表示不打印 timestamp;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -S 表示打印绝对的 seq 而不是相对的 seq number;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># port 10000 表示对 10000 端口进行抓包</span></span><br><span class="line"></span><br><span class="line">$ tcpdump  -i any -t -S<span class="built_in"> port </span>10000</span><br></pre></td></tr></table></figure>
+
+<p>然后再打开一个终端模拟客户端:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nc <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+
+<p>观察 tcpdump 的输出如下：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">IP Jia<span class="number">.22921</span> &gt; <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>.ndmp: Flags [S], seq <span class="number">614247470</span>, win <span class="number">29200</span>, options [mss <span class="number">1460</span>,sackOK,TS val <span class="number">159627770</span> ecr <span class="number">0</span>], length <span class="number">0</span></span><br><span class="line">IP <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>.ndmp &gt; Jia<span class="number">.22921</span>: Flags [S.], seq <span class="number">1720434034</span>, ack <span class="number">614247471</span>, win <span class="number">65160</span>, options [mss <span class="number">1460</span>,sackOK,TS val <span class="number">3002840224</span> ecr <span class="number">159627770</span>], length <span class="number">0</span></span><br><span class="line">IP Jia<span class="number">.22921</span> &gt; <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>.ndmp: Flags [.], ack <span class="number">1720434035</span>, win <span class="number">29200</span>, options [nop,nop,TS val <span class="number">159627770</span> ecr <span class="number">3002840224</span>], length <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>分析以下上面的结果可以看到：</p>
+<ol>
+<li><p>第一个包 Flags [S] 表示 SYN 包，seq 为随机值 614247470；</p>
+</li>
+<li><p>然后服务端回复了一个 Falgs [S.]，也就是 SYN+ACK 包，同时设置 seq 为随机值 1720434034，设置 ack 为 614247470 + 1 = 614247471；</p>
+</li>
+<li><p>客户端收到之后，回复一个 Flags [.]，也就是 ACK 包，同时设置 ack 为 1720434034 + 1 = 1720434035；</p>
+</li>
+</ol>
+<h2 id="假如3次握手丢包了？"><a href="#假如3次握手丢包了？" class="headerlink" title="假如3次握手丢包了？"></a>假如3次握手丢包了？</h2><p>上面是正常情况的握手情况，假如握手过程中的任何一个包出现丢包呢会怎么样？比如受到了攻击，比如服务端宕机，服务端超时，客户端掉线，网络波动等。</p>
+<p>所以接下来我们分析下 3 次握手过程中涉及到的连接队列。</p>
+<h1 id="tcp-内核参数"><a href="#tcp-内核参数" class="headerlink" title="tcp 内核参数"></a>tcp 内核参数</h1><h2 id="backlog-参数"><a href="#backlog-参数" class="headerlink" title="backlog 参数"></a>backlog 参数</h2><blockquote>
+<p><a href="https://linux.die.net/man/3/listen" target="_blank" rel="noopener">https://linux.die.net/man/3/listen</a></p>
+<p>The backlog argument provides a hint to the implementation which the implementation shall use to limit the number of outstanding connections in the socket’s listen queue. Implementations may impose a limit on backlog and silently reduce the specified value. Normally, a larger backlog argument value shall result in a larger or equal length of the listen queue. Implementations shall support values of backlog up to SOMAXCONN, defined in &lt;sys/socket.h&gt;.</p>
+</blockquote>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> <span class="keyword">listen</span>(<span class="keyword">int</span> <span class="keyword">socket</span>, <span class="keyword">int</span> backlog);</span><br></pre></td></tr></table></figure>
+
+<p>backlog 参数是用来限制 tcp listen queue 的大小的，真实的 listen queue 大小其实也是跟内核参数 somaxconn 有关系，somaxconn 是内核用来限制同一个端口上的连接队列长度。</p>
+<h2 id="全连接队列"><a href="#全连接队列" class="headerlink" title="全连接队列"></a>全连接队列</h2><p>完成 3 次握手的连接，也就是服务端收到了客户端发送的最后一个 ACK 报文后，这个连接会被放到这个端口的全连接队列里，然后等待应用程序来处理，对于 epoll 来说就是内核触发 EPOLLIN 事件，然后应用层使用 <code>epoll_wait</code> 来处理 accept 事件，为连接分配创建 socket 结构，分配 file descriptor 等；</p>
+<p>那么假如应用层没有来处理这些就绪的连接呢？那么这个全连接队列有可能就满了，导致后续的连接被丢弃，发生<strong>全连接队列溢出</strong>，丢弃这个连接，对客户端来说就无法成功建立连接。</p>
+<p>所以为了性能的考虑，我们有必要尽可能的把这个队列的大小调大一点。</p>
+<h3 id="查看全连接队列大小"><a href="#查看全连接队列大小" class="headerlink" title="查看全连接队列大小"></a>查看全连接队列大小</h3><p>可以通过一下命令来查看当前端口的全连接队列大小：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ss -antl</span><br><span class="line">State   Recv-Q   Send-Q     Local Address:Port     <span class="built_in"> Peer </span>Address:Port  Process            </span><br><span class="line">LISTEN  0        5           192.168.1.7:10000          0.0.0.0:*</span><br></pre></td></tr></table></figure>
+
+<p>在 ss 输出中：</p>
+<p>LISTEN 状态：Recv-Q 表示当前 listen backlog 队列中的连接数目（等待用户调用 accept() 获取的、已完成 3 次握手的 socket 连接数量），而 Send-Q 表示了 listen socket 最大能容纳的 backlog。</p>
+<p>非 LISTEN 状态：Recv-Q 表示了 receive queue 中存在的字节数目；Send-Q 表示 send queue 中存在的字节数；</p>
+<h3 id="压测观察全连接队列溢出"><a href="#压测观察全连接队列溢出" class="headerlink" title="压测观察全连接队列溢出"></a>压测观察全连接队列溢出</h3><p>接下来我们实际测试一下，使用项目：<a href="https://github.com/smaugx/mux" target="_blank" rel="noopener">mux</a>。</p>
+<p>我们先修改一下 backlog 参数为 5：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 把backlog 调小一点</span></span><br><span class="line"></span><br><span class="line"><span class="attribute"><span class="nomarkup">listen</span></span>(listenfd, 5);</span><br></pre></td></tr></table></figure>
+
+<p>根据编译文档，编译后得到两个二进制：</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ls</span><br><span class="line"><span class="keyword">bench_server </span>  <span class="keyword">bench_client_accept</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>bench_server</code> 用来作为服务端，底层使用 epoll 实现</li>
+<li><code>bench_client_accept</code> 作为压测客户端，并发创建大量连接，这里只会与服务端建立连接，不会发送其他任何消息（当然可以用其他的压测工具）</li>
+</ul>
+<p>选择两台机器进行测试，192.168.1.7 作为服务端， 192.168.1.4 作为压测客户端，开始压测前，可能需要设置一下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">ulimit</span> -n 65535</span></span><br></pre></td></tr></table></figure>
+
+<p>1)  启动服务端</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span> 作为服务端，监听 <span class="number">10000</span> 端口</span><br><span class="line"></span><br><span class="line">$ ./bench_server <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意到上图执行 <code>ss -antl</code> 看到 10000 端口的 listen queue size 为 5，这里是故意调小一点，为了验证全连接队列溢出的场景</strong>。</p>
+<p>2) 先观察一下服务端全连接队列的情况以及溢出的情况</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">0</span>        <span class="number">5</span>            <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*              </span><br><span class="line">$ netstat  -s |grep -i overflowed</span><br><span class="line">    <span class="number">2283</span> times the listen queue of a socket overflowed</span><br></pre></td></tr></table></figure>
+
+<p>上述表明 10000 端口的 listen queue size 为 5，并且全连接队列中没有等待应用层处理的连接；</p>
+<p><strong>netstat  -s |grep -i overflowed</strong> 表示全连接队列溢出的情况，2683 是一个累加值。</p>
+<p>2) 启动 tcpdump 对客户端行为抓包，分析 3次握手连接情况</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 运行在 client: 192.168.1.4 上</span></span><br><span class="line"></span><br><span class="line">$ tcpdump  -i any<span class="built_in"> port </span>10000 <span class="keyword">and</span> tcp -nn &gt; tcpdump.log</span><br></pre></td></tr></table></figure>
+
+<p>3）启动压测客户端</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span> 作为压测客户端</span><br><span class="line"># <span class="number">30000</span> 表示连接数</span><br><span class="line"># <span class="number">100</span> 表示 <span class="number">100</span> 个并发线程</span><br><span class="line"># <span class="number">1</span> 表示执行 <span class="number">1</span> 轮</span><br><span class="line"></span><br><span class="line">$ ./bench_client_accept  <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span> <span class="number">10000</span> <span class="number">30000</span> <span class="number">100</span> <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>压测过程中，可以不断执行命令观察服务端全连接队列溢出的情况，压测完毕之后再观察一下全连接队列溢出的情况：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">0</span>        <span class="number">5</span>            <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*              </span><br><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">5</span>        <span class="number">5</span>            <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*              </span><br><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">0</span>        <span class="number">5</span>            <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*                          </span><br><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">1</span>        <span class="number">5</span>            <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*              </span><br><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">0</span>        <span class="number">5</span>            <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*              </span><br><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">0</span>        <span class="number">5</span>            <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*              </span><br><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">1</span>        <span class="number">5</span>            <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*              </span><br><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">0</span>        <span class="number">5</span>            <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*              </span><br><span class="line">$ netstat  -s |grep -i overflowed</span><br><span class="line">    <span class="number">2930</span> times the listen queue of a socket overflowed</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，<strong>压测过程中的 Recv-Q 出现了5，1 的值，表示全连接队列中等待被处理的连接，而且有 2930 - 2283 = 647 次连接由于全连接队列溢出而被丢弃</strong>。</p>
+<p>我们再来观察一下 <code>bench_client_accept</code> 的日志情况：</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ grep -a 'Start OK' <span class="built_in">log</span>/bench_client_accept.<span class="built_in">log</span>  <span class="string">|wc -l</span></span><br><span class="line"><span class="number">29736</span></span><br><span class="line">$ grep -a 'start failed' <span class="built_in">log</span>/bench_client_accept.<span class="built_in">log</span>  <span class="string">|wc -l</span></span><br><span class="line"><span class="number">264</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到<strong>最终有 264 个 client 由于服务端丢弃建立连接时 3 次握手的包而造成连接失败</strong>。</p>
+<p>如果你细心的话会发现，全连接队列溢出发生了 647 次，但是最终只有 264 个 client 建立失败，why?其实原因很简单，因为客户端有重试机制，具体参数是 <code>net.ipv4.tcp_syn_retries</code>，这个暂且不详说。</p>
+<p>那再来看一下 tcpdump 抓包的结果，这里要用到一个 python 脚本 <code>tcpdump_analyze.py</code> 来处理一下 tcpdump.log 这个日志：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">import os</span><br><span class="line"></span><br><span class="line"><span class="comment"># tcpdump  -i any port 10000 and tcp -nn &gt; tcpdump.log</span></span><br><span class="line"></span><br><span class="line">server_ip_port = <span class="string">"192.168.1.7.10000"</span></span><br><span class="line">client_map = &#123;&#125;</span><br><span class="line"></span><br><span class="line">with open(<span class="string">'./tcpdump.log'</span>, <span class="string">'r'</span>) as fin:</span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> fin:</span><br><span class="line">        sp = line.split()</span><br><span class="line">        <span class="keyword">if</span> len(sp) &lt; <span class="number">3</span>:</span><br><span class="line">            print(<span class="string">"invalid line:&#123;0&#125;"</span>.format(line))</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">        client_ip_port = sp[<span class="number">2</span>]</span><br><span class="line">        <span class="keyword">if</span> client_ip_port == server_ip_port:</span><br><span class="line">            client_ip_port = sp[<span class="number">4</span>].split(<span class="string">':'</span>)[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> client_ip_port not <span class="keyword">in</span> client_map:</span><br><span class="line">            client_map[<span class="type">client_ip_port</span>] = [<span class="type">line</span>]</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            client_map[<span class="type">client_ip_port</span>].append(line)</span><br><span class="line"></span><br><span class="line">connect_fail_client = []</span><br><span class="line">connect_succ_client = []</span><br><span class="line">connect_succ_client_normal = []</span><br><span class="line">connect_succ_client_try   = []</span><br><span class="line"></span><br><span class="line">total_size = len(client_map)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k,v <span class="keyword">in</span> client_map.items():</span><br><span class="line">    print(<span class="string">"&#123;0&#125;<span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$begin</span>"</span>.format(k))</span><br><span class="line">    <span class="keyword">for</span> ll <span class="keyword">in</span> v:</span><br><span class="line">        print(ll)</span><br><span class="line">    connect_fail = True</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> v:</span><br><span class="line">        <span class="comment"># ack 1 is the last packet of tcp handshake from server</span></span><br><span class="line">        <span class="keyword">if</span> i.find(<span class="string">'ack 1,'</span>) != <span class="literal">-1</span>:</span><br><span class="line">            connect_fail = False</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">if</span> connect_fail:</span><br><span class="line">        connect_fail_client.append(v)</span><br><span class="line">        print(<span class="string">"fail"</span>);</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        connect_succ_client.append(v)</span><br><span class="line">        <span class="keyword">if</span> len(v) == <span class="number">3</span>:</span><br><span class="line">            connect_succ_client_normal.append(v)</span><br><span class="line">            print(<span class="string">"succ no retry"</span>);</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            connect_succ_client_try.append(v)</span><br><span class="line">            print(<span class="string">"succ with retry"</span>)</span><br><span class="line">    print(<span class="string">"&#123;0&#125;<span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$</span><span class="variable">$end</span>\n\n"</span>.format(k))</span><br><span class="line"></span><br><span class="line">print(<span class="string">"\ntotal client:&#123;0&#125; connect success client size:&#123;1&#125;"</span>.format(total_size, len(connect_succ_client)))</span><br><span class="line">print(<span class="string">"\ntotal client:&#123;0&#125; connect success client normal handshake size:&#123;1&#125;"</span>.format(total_size, len(connect_succ_client_normal)))</span><br><span class="line">print(<span class="string">"\ntotal client:&#123;0&#125; connect success client after retry handshake size:&#123;1&#125;"</span>.format(total_size, len(connect_succ_client_try)))</span><br><span class="line">print(<span class="string">"\ntotal client:&#123;0&#125; connect fail client size:&#123;1&#125;"</span>.format(total_size, len(connect_fail_client)))</span><br></pre></td></tr></table></figure>
+
+<p>运行后得到结果：</p>
+<figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">$</span> python tcpdump_analyze.py</span><br><span class="line"></span><br><span class="line">(省略部分输出）</span><br><span class="line"></span><br><span class="line"><span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.20409</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span>begin</span><br><span class="line"><span class="number">15</span>:<span class="number">43</span>:<span class="number">12.030247</span> IP <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.20409</span> &gt; <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span><span class="number">.10000</span>: Flags [S], seq <span class="number">2040611302</span>, win <span class="number">29200</span>, <span class="keyword">options</span> [mss <span class="number">1460</span>,sackOK,TS val <span class="number">166083457</span> ecr <span class="number">0</span>], length <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="number">15</span>:<span class="number">43</span>:<span class="number">13.033419</span> IP <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.20409</span> &gt; <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span><span class="number">.10000</span>: Flags [S], seq <span class="number">2040611302</span>, win <span class="number">29200</span>, <span class="keyword">options</span> [mss <span class="number">1460</span>,sackOK,TS val <span class="number">166084460</span> ecr <span class="number">0</span>], length <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="number">15</span>:<span class="number">43</span>:<span class="number">13.033661</span> IP <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span><span class="number">.10000</span> &gt; <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.20409</span>: Flags [S.], seq <span class="number">3015149333</span>, ack <span class="number">2040611303</span>, win <span class="number">65160</span>, <span class="keyword">options</span> [mss <span class="number">1460</span>,sackOK,TS val <span class="number">3009296915</span> ecr <span class="number">166084460</span>], length <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="number">15</span>:<span class="number">43</span>:<span class="number">13.033667</span> IP <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.20409</span> &gt; <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span><span class="number">.10000</span>: Flags [.], ack <span class="number">1</span>, win <span class="number">29200</span>, <span class="keyword">options</span> [nop,nop,TS val <span class="number">166084460</span> ecr <span class="number">3009296915</span>], length <span class="number">0</span></span><br><span class="line"></span><br><span class="line">succ with retry</span><br><span class="line"><span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.20409</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span>end</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.54379</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span>begin</span><br><span class="line"><span class="number">15</span>:<span class="number">43</span>:<span class="number">21.047376</span> IP <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.54379</span> &gt; <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span><span class="number">.10000</span>: Flags [S], seq <span class="number">2685382859</span>, win <span class="number">29200</span>, <span class="keyword">options</span> [mss <span class="number">1460</span>,sackOK,TS val <span class="number">166092474</span> ecr <span class="number">0</span>], length <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="number">15</span>:<span class="number">43</span>:<span class="number">21.047514</span> IP <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span><span class="number">.10000</span> &gt; <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.54379</span>: Flags [S.], seq <span class="number">1736229374</span>, ack <span class="number">2685382860</span>, win <span class="number">65160</span>, <span class="keyword">options</span> [mss <span class="number">1460</span>,sackOK,TS val <span class="number">3009304929</span> ecr <span class="number">166092474</span>], length <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="number">15</span>:<span class="number">43</span>:<span class="number">21.047528</span> IP <span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.54379</span> &gt; <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span><span class="number">.10000</span>: Flags [.], ack <span class="number">1</span>, win <span class="number">29200</span>, <span class="keyword">options</span> [nop,nop,TS val <span class="number">166092474</span> ecr <span class="number">3009304929</span>], length <span class="number">0</span></span><br><span class="line"></span><br><span class="line">succ <span class="keyword">no</span> retry</span><br><span class="line"><span class="number">192.168</span><span class="number">.1</span><span class="number">.4</span><span class="number">.54379</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span><span class="symbol">$</span>end</span><br><span class="line"></span><br><span class="line">total client:<span class="number">30000</span> connect success client size:<span class="number">29736</span></span><br><span class="line"></span><br><span class="line">total client:<span class="number">30000</span> connect success client <span class="built-in">normal</span> handshake size:<span class="number">29195</span></span><br><span class="line"></span><br><span class="line">total client:<span class="number">30000</span> connect success client after retry handshake size:<span class="number">541</span></span><br><span class="line"></span><br><span class="line">total client:<span class="number">30000</span> connect fail client size:<span class="number">264</span></span><br></pre></td></tr></table></figure>
+
+<p>上面的意思是<strong>总共有 29736 个 client 成功建立连接，而有 264 个 client 建立失败；连接成功的 client 里有 29195 个是通过了正常的 3 次握手成功建立，没有发生重试；而有 541 个 client 是发生了重试的情况下才建立连接成功</strong>。</p>
+<p>可以看到上面的输出，发生重试 “succ with retry” 的部分，client 发送一个 SYN 之后，由于 server 全连接队列溢出导致连接被丢弃，client 超时后重新发送 SYN 包，然后建立连接；</p>
+<p>而上面连接失败的客户端，错误原因都是: errno = 110，也就是 “Connection timed out”。</p>
+<p>Ok，到现在应该明白全连接队列大小对于 tcp 3 次握手的影响，如果全连接队列过小，一旦发生溢出，就会影响后续的连接。</p>
+<h3 id="调整内核参数，避免全连接队列溢出"><a href="#调整内核参数，避免全连接队列溢出" class="headerlink" title="调整内核参数，避免全连接队列溢出"></a>调整内核参数，避免全连接队列溢出</h3><p>那我们修改一下 backlog 的大小，改大一些：</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">listen(<span class="name">listenfd</span>,  <span class="number">100000</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们修改内核参数：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">net.core.netdev_max_backlog</span> = <span class="number">400000</span></span><br><span class="line"><span class="attr">net.core.somaxconn</span> = <span class="number">100000</span></span><br></pre></td></tr></table></figure>
+
+<p>可以通过打开 <code>/etc/sysctl.conf</code> 直接修改，或是通过命令修改：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sysctl -w net.core.<span class="attribute">netdev_max_backlog</span>=400000</span><br></pre></td></tr></table></figure>
+
+<p>重新编译运行，执行上述的压测，观察结果。</p>
+<p>压测前：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ss -natl |grep <span class="number">10000</span></span><br><span class="line">LISTEN  <span class="number">0</span>        <span class="number">100000</span>       <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>          <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:*              </span><br><span class="line">$ netstat  -s |grep -i overflowed</span><br><span class="line">    <span class="number">3118</span> times the listen queue of a socket overflowed</span><br></pre></td></tr></table></figure>
+
+<p>压测后：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ netstat  -s |grep -i overflowed</span><br><span class="line">    3118 times the listen<span class="built_in"> queue </span>of a socket overflowed</span><br><span class="line">    </span><br><span class="line">$ python tcpdump_analyze.py</span><br><span class="line">(省略部分输出）</span><br><span class="line">total client:30000 connect success<span class="built_in"> client </span>size:30000</span><br><span class="line"></span><br><span class="line">total client:30000 connect success<span class="built_in"> client </span>normal handshake size:30000</span><br><span class="line"></span><br><span class="line">total client:30000 connect success<span class="built_in"> client </span>after retry handshake size:0</span><br><span class="line"></span><br><span class="line">total client:30000 connect fail<span class="built_in"> client </span>size:0</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，<strong>当我们把内核参数以及 backlog 调大之后，30000 个 client 全部建立连接成功且没有发生重试，服务端的 listen queue 没有发生溢出</strong>。</p>
+<h2 id="半连接队列"><a href="#半连接队列" class="headerlink" title="半连接队列"></a>半连接队列</h2><p>全连接队列存放的是已经完成 3次握手，等待应用层调用 <code>accept()</code> 处理这些连接；<strong>其实还有一个半连接队列，当服务端收到客户端的 SYN 包后，并且回复 SYN+ACK包后，服务端进入 SYN_RECV 状态，此时这种连接称为半连接，会被存放到半连接队列，当完成 3 次握手之后，tcp 会把这个连接从半连接队列中移到全连接队列，然后等待应用层处理</strong>。</p>
+<p>那么怎么查看半连接队列的大小呢？没有直接的 linux command 来查询半连接队列的长度，但是根据上面的定义，<strong>服务端处于 SYN_RECV 状态的数量就表示半连接的数量。所以采用一定的方式增大半连接的数量，看服务端 SYN_RECV 的数量最大值有多少，那就是半连接队列的大小</strong>。</p>
+<p>那问题就来了，如何增大半连接的数量呢？这里采用到的就是 <strong>SYN-FLOOD</strong> 攻击，通过发送大量的 SYN 包而不进行回应，造成服务端创建了大量的半连接，但是这些半连接不会被确认，最终把 tcp 半连接队列占满造成溢出，并影响正常的连接。</p>
+<h3 id="半连接队列溢出"><a href="#半连接队列溢出" class="headerlink" title="半连接队列溢出"></a>半连接队列溢出</h3><p>采用的工具是: <strong>hping3</strong>，一款很强大的工具。</p>
+<p>启动服务端：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span> 作为服务端，监听 <span class="number">10000</span> 端口</span><br><span class="line"></span><br><span class="line">$ ./bench_server <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+
+<p>开始攻击：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hping3 -S  --flood --rand-source -p <span class="number">10000</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span></span><br></pre></td></tr></table></figure>
+
+<p>观察半连接数量：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ netstat -ant |grep SYN</span><br><span class="line">(省略)</span><br><span class="line">tcp        <span class="number">0</span>      <span class="number">0</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>       <span class="number">152.66</span><span class="number">.128</span><span class="number">.1</span>:<span class="number">48581</span>      SYN_RECV   </span><br><span class="line">tcp        <span class="number">0</span>      <span class="number">0</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>       <span class="number">208.220</span><span class="number">.119</span><span class="number">.30</span>:<span class="number">57972</span>    SYN_RECV   </span><br><span class="line">tcp        <span class="number">0</span>      <span class="number">0</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.7</span>:<span class="number">10000</span>       <span class="number">3.104</span><span class="number">.166</span><span class="number">.109</span>:<span class="number">25975</span>     SYN_RECV </span><br><span class="line"></span><br><span class="line">$ netstat -ant |grep SYN |wc -l</span><br><span class="line"><span class="number">256</span></span><br></pre></td></tr></table></figure>
+
+<p>持续观察，可以看到处于 <code>SYN_RECV</code> 状态的连接基本保持在 256，说明半连接队列的大小是 256。而此时，10000 端口已经比较难连接上了。 </p>
+<p>查看一下半连接队列的丢弃情况：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ netstat  -s |grep dropped</span><br><span class="line">    <span class="number">26055883</span> SYNs <span class="keyword">to</span> <span class="keyword">LISTEN</span> sockets dropped</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意： 26055883 是一个累加值，可以持续观察</p>
+</blockquote>
+<p>那怎么增大半连接队列大小呢？</p>
+<h3 id="增大半连接队列，防止溢出"><a href="#增大半连接队列，防止溢出" class="headerlink" title="增大半连接队列，防止溢出"></a>增大半连接队列，防止溢出</h3><p>直接修改内核参数：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 直接修改文件 /etc/sysctl.conf</span></span><br><span class="line"></span><br><span class="line"><span class="attr">net.ipv4.tcp_max_syn_backlog</span> = <span class="number">100000</span></span><br></pre></td></tr></table></figure>
+
+<p>或者使用命令：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sysctl -w net.ipv4.<span class="attribute">tcp_max_syn_backlog</span>=100000</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>据说半连接队列并非只由这个参数决定，不同的系统的计算方式不一致，还会和全连接队列大小有关</p>
+</blockquote>
+<p>当然这个应对 SYN-Flood 攻击只是轻微降低影响而已。</p>
+<p>还可以设置 <code>net.ipv4.tcp_syncookies = 0</code> 来一定程度防范 SYN 攻击。</p>
+<p><strong>syncookies 的原理就是当服务端收到客户端 SYN 包后，不会放到半连接队列里，而是通过 {src_ip, src_port, timestamp} 等计算一个 cookie（也就是一个哈希值），通过 SYN+ACK包返回给客户端，客户端返回一个 ACK 包，携带上这个 cookie，服务端通过校验可以直接把这个连接放入全连接队列。整个过程不需要半连接队列的参与</strong>。</p>
+<h2 id="SYN-重试"><a href="#SYN-重试" class="headerlink" title="SYN 重试"></a>SYN 重试</h2><p>上面压测验证全连接队列溢出的场景下，通过 tcpdump 抓包分析到有些连接是经过了重试才建立成功的，具体表现在：</p>
+<p>客户端发送 SYN 包请求建立连接，但此时由于服务端全连接队列溢出或者半连接队列溢出，该 SYN 包就会被丢弃，当客户端迟迟无法收到服务端的 SYN+ACK 包后，客户端超时重发 SYN 包，如果再次超时，那么根据内核设置的 SYN 超时重试次数决定是否继续重发 SYN 包。</p>
+<p>假设重试次数为 6 次：</p>
+<ul>
+<li>第一次发送 SYN 后等待 1 s （2^0);</li>
+<li>第二次发送 SYN 后等待 2 s  (2^1);</li>
+<li>第三次发送 SYN 后等待 4 s  (2^1);</li>
+<li>…</li>
+</ul>
+<p>所以当我们发现服务端出现了问题的时候，可以适当提高 SYN 重试的次数；当然过大的值也会影响问题的快速发现；</p>
+<p>可以通过设置：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sysctl -w net.ipv4.<span class="attribute">tcp_syn_retries</span>=2</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="The-End"><a href="#The-End" class="headerlink" title="The End"></a>The End</h1><p>Ok, 到这里基本上把 tcp  3 次握手比较细节的地方讲到了。 tcp 真是一个巨复杂的协议，还有不少值得深挖的东西！</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#x75;&#x78;&#x63;&#x6f;&#100;&#x65;&#50;&#110;&#105;&#x6b;&#105;&#x40;&#103;&#x6d;&#x61;&#105;&#108;&#46;&#x63;&#x6f;&#x6d;">&#108;&#105;&#x6e;&#x75;&#x78;&#x63;&#x6f;&#100;&#x65;&#50;&#110;&#105;&#x6b;&#105;&#x40;&#103;&#x6d;&#x61;&#105;&#108;&#46;&#x63;&#x6f;&#x6d;</a></p>
+</li>
+</ul>
+<p>2020-11-14 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/26/epoll_examples/" rel="bookmark">epoll 入门例子 tcp server/client</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/26/epoll_cookbook/" rel="bookmark">Epoll原理深入分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/26/thundering_herd/" rel="bookmark">惊群效应</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/08/20/Elasticsearch_handle_with_python/" rel="bookmark">python操作ES(Elasticsearch)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/05/21/analyze_bandwidth/" rel="bookmark">python采集bandwidth信息</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rebootcat.com/2020/11/14/tcp_accept/" title="TCP全连接和半连接的问题探讨">https://rebootcat.com/2020/11/14/tcp_accept/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/epoll/" rel="tag"># epoll</a>
+              <a href="/tags/socket/" rel="tag"># socket</a>
+              <a href="/tags/tcp/" rel="tag"># tcp</a>
+              <a href="/tags/accept/" rel="tag"># accept</a>
+              <a href="/tags/backlog/" rel="tag"># backlog</a>
+              <a href="/tags/listen-queue/" rel="tag"># listen_queue</a>
+              <a href="/tags/mux/" rel="tag"># mux</a>
+              <a href="/tags/hping3/" rel="tag"># hping3</a>
+              <a href="/tags/tcpdump/" rel="tag"># tcpdump</a>
+              <a href="/tags/syn/" rel="tag"># syn</a>
+              <a href="/tags/flood/" rel="tag"># flood</a>
+              <a href="/tags/listen/" rel="tag"># listen</a>
+              <a href="/tags/syncookies/" rel="tag"># syncookies</a>
+              <a href="/tags/synretries/" rel="tag"># synretries</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/11/10/move_blog_hk/" rel="prev" title="博客大事记之迁移博客到香港主机">
+      <i class="fa fa-chevron-left"></i> 博客大事记之迁移博客到香港主机
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#从何说起"><span class="nav-number">1.</span> <span class="nav-text">从何说起</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#回顾一下"><span class="nav-number">2.</span> <span class="nav-text">回顾一下</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-次握手"><span class="nav-number">2.1.</span> <span class="nav-text">3 次握手</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tcpdump-抓包"><span class="nav-number">2.2.</span> <span class="nav-text">tcpdump 抓包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#假如3次握手丢包了？"><span class="nav-number">2.3.</span> <span class="nav-text">假如3次握手丢包了？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#tcp-内核参数"><span class="nav-number">3.</span> <span class="nav-text">tcp 内核参数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#backlog-参数"><span class="nav-number">3.1.</span> <span class="nav-text">backlog 参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全连接队列"><span class="nav-number">3.2.</span> <span class="nav-text">全连接队列</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#查看全连接队列大小"><span class="nav-number">3.2.1.</span> <span class="nav-text">查看全连接队列大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压测观察全连接队列溢出"><span class="nav-number">3.2.2.</span> <span class="nav-text">压测观察全连接队列溢出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#调整内核参数，避免全连接队列溢出"><span class="nav-number">3.2.3.</span> <span class="nav-text">调整内核参数，避免全连接队列溢出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#半连接队列"><span class="nav-number">3.3.</span> <span class="nav-text">半连接队列</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#半连接队列溢出"><span class="nav-number">3.3.1.</span> <span class="nav-text">半连接队列溢出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#增大半连接队列，防止溢出"><span class="nav-number">3.3.2.</span> <span class="nav-text">增大半连接队列，防止溢出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SYN-重试"><span class="nav-number">3.4.</span> <span class="nav-text">SYN 重试</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#The-End"><span class="nav-number">4.</span> <span class="nav-text">The End</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">133</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://loveyxq.online/" title="https:&#x2F;&#x2F;loveyxq.online&#x2F;" rel="noopener" target="_blank">子不语</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'd5vhXhrHKkiBVVpR1WJJLgQP-gzGzoHsz',
+      appKey     : 'BRzIFYxjcm34z68pyNalDPtw',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>
