@@ -2,9 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://rebootcat.com/wiki/index.html</loc>
+    
+    <lastmod>2020-11-18T16:16:13.420Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://rebootcat.com/2020/11/14/tcp_accept/</loc>
     
     <lastmod>2020-11-12T15:15:17.676Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://rebootcat.com/2020/09/02/cmake/</loc>
+    
+    <lastmod>2020-11-12T14:25:57.996Z</lastmod>
     
   </url>
   
@@ -348,13 +362,6 @@
     <loc>https://rebootcat.com/2020/08/30/scons/</loc>
     
     <lastmod>2020-09-03T22:24:38.083Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://rebootcat.com/2020/09/02/cmake/</loc>
-    
-    <lastmod>2020-09-03T22:10:54.149Z</lastmod>
     
   </url>
   
