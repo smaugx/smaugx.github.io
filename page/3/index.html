@@ -213,6 +213,223 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/14/network_attack_of_blockchain_ddos_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-14 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-14T11:23:58+08:00">2020-04-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-22 22:53:25" itemprop="dateModified" datetime="2020-04-22T22:53:25+08:00">2020-04-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/14/network_attack_of_blockchain_ddos_attack/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/14/network_attack_of_blockchain_ddos_attack/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
+</ul>
+<h1 id="拒绝服务攻击（Denial-of-Service-Attack"><a href="#拒绝服务攻击（Denial-of-Service-Attack" class="headerlink" title="拒绝服务攻击（Denial of Service Attack)"></a>拒绝服务攻击（Denial of Service Attack)</h1><h1 id="分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack"><a href="#分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack" class="headerlink" title="分布式拒绝服务攻击（Distributed Denial of Service Attack)"></a>分布式拒绝服务攻击（Distributed Denial of Service Attack)</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>信息安全的三要素——“保密性”、“完整性”和“可用性”中，拒绝服务攻击，针对的目标正是“可用性”。该攻击方式利用目标系统网络服务功能缺陷或者直接消耗其系统资源，使得该目标系统无法提供正常的服务。</p>
+<p>拒绝服务攻击（DoS) 问题一直得不到合理的解决，目前还是世界性难题，究其原因是因为这是由于网络协议本身的安全缺陷造成的，从而拒绝服务攻击也成为了攻击者的终极手法。攻击者进行拒绝服务攻击，实际上让服务器实现两种效果：一是迫使服务器的缓冲区满，不接收新的请求；二是使用IP欺骗，迫使服务器把合法用户的连接复位，影响合法用户的连接。</p>
+<p>而分布式拒绝服务攻击 (DDoS) 是指攻击者采用分布式攻击手法施行 DoS 攻击，通常是控制了多台机器向目标主机或者路由器发起 DoS 攻击。</p>
+<p>针对区块链来说，攻击者通过 DDoS 攻击试图减慢网络速度，或者迫使网络停止运作。也可用于针对矿池，使矿池脱机，或者针对特定的目标主机，使其从网络离线。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_ddos_attack/11.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/14/network_attack_of_blockchain_ddos_attack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/13/network_attack_of_blockchain_sybil_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-13 10:23:58" itemprop="dateCreated datePublished" datetime="2020-04-13T10:23:58+08:00">2020-04-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-22 22:53:10" itemprop="dateModified" datetime="2020-04-22T22:53:10+08:00">2020-04-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/13/network_attack_of_blockchain_sybil_attack/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/13/network_attack_of_blockchain_sybil_attack/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
+<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
+<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
+<p>同系列：</p>
+<ul>
+<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
+<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
+<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
+</ul>
+<h1 id="女巫攻击（Sybil-Attack）"><a href="#女巫攻击（Sybil-Attack）" class="headerlink" title="女巫攻击（Sybil Attack）"></a>女巫攻击（Sybil Attack）</h1><h2 id="什么是女巫攻击"><a href="#什么是女巫攻击" class="headerlink" title="什么是女巫攻击"></a>什么是女巫攻击</h2><p>“女巫”这个词我们应该不陌生，通常指邪恶的化身，并且拥有可怕的魔法。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_sybil_attack/1.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/13/network_attack_of_blockchain_sybil_attack/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1092,224 +1309,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2018/02/13/new_picture_bed_github/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/02/13/new_picture_bed_github/" class="post-title-link" itemprop="url">博客图床切换 Github + jsDelivr + PicGo</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-02-13 11:23:58" itemprop="dateCreated datePublished" datetime="2018-02-13T11:23:58+08:00">2018-02-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-20 09:27:34" itemprop="dateModified" datetime="2020-09-20T09:27:34+08:00">2020-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2018/02/13/new_picture_bed_github/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2018/02/13/new_picture_bed_github/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前头的话"><a href="#前头的话" class="headerlink" title="前头的话"></a>前头的话</h1><p>博客已经使用一两年了，最近去看以前的博客的时候发现有些博文里面的图片出现无法显示的情况，虽然问题不是很严重，不过少了图片，就少了很多连贯的东西。之前是采用七牛云存储作为博客图床，可能是因为七牛云存储做了一些限制吧，导致图片无法访问。<br>这次打算重新换一种图床方式吧，毕竟使用第三方的图床总有跑路的风险。谷歌搜索了一些解决方案，其中一个是使用 Github + jsDelivr + PicGo 的方式作为个人图床的。于是打算试试，本文作为一个试验。</p>
-<p><strong>使用 Github 存储图片有一个弊端就是由于 Github 仓库大小有限制，所以到了一定存量的时候，可能需要考虑其他方案或者新建新的仓库</strong>。</p>
-<ul>
-<li>Github： 图片仓库</li>
-<li>jsDelivr: 一种免费的 CDN 解决方案</li>
-<li>PicGo: 快速上传图片至 Github 并且自动拷贝图片地址（其实不用这个也行，手动把图片文件 Push 到 Github, 然后拼接图片地址就行）</li>
-</ul>
-<h1 id="图床测试"><a href="#图床测试" class="headerlink" title="图床测试"></a>图床测试</h1><blockquote>
-<p>图片1.狼</p>
-</blockquote>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wolf.jpg" alt=""></p>
-<blockquote>
-<p>图片2.SMAUG</p>
-</blockquote>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/smaug_huobiteren.jpg" alt=""></p>
-<blockquote>
-<p>图片3.AryaStark<br><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/AryaStark.jpg" alt=""></p>
-</blockquote>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://www.itrhx.com/2019/08/01/A27-image-hosting/" target="_blank" rel="noopener">Github+jsDelivr+PicGo 打造稳定快速、高效免费图床</a></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/02/13/new_picture_bed_github/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2018/01/16/using-iostat-dialectically/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/01/16/using-iostat-dialectically/" class="post-title-link" itemprop="url">辩证看待 iostat</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-01-16 11:23:58" itemprop="dateCreated datePublished" datetime="2018-01-16T11:23:58+08:00">2018-01-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-20 09:38:01" itemprop="dateModified" datetime="2020-09-20T09:38:01+08:00">2020-09-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2018/01/16/using-iostat-dialectically/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2018/01/16/using-iostat-dialectically/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>经常做系统分析会接触到很多有用的工具，比如 iostat,它是用来分析磁盘性能、系统 I/O 的利器。</p>
-<p>本文将重点<strong>介绍 iostat 命令的使用，并分析容易引起误解的几个指标</strong>。</p>
-<h1 id="iostat"><a href="#iostat" class="headerlink" title="iostat"></a>iostat</h1><blockquote>
-<p>iostat - Report Central Processing Unit (CPU) statistics and input/output statistics for devices and partitions.</p>
-</blockquote>
-<p>上面是 man 手册关于 iostat 命令的介绍，非常简单明了。iostat 是我们经常用来分析 cpu 负载和磁盘 I/O 情况的工具。</p>
-<h2 id="iostat-基本使用"><a href="#iostat-基本使用" class="headerlink" title="iostat 基本使用"></a>iostat 基本使用</h2><p>常用命令（个人习惯）：</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iostat -xk <span class="number">2</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
-<p>参数的解释可以查看 man 手册：</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">OPTIONS</span><br><span class="line">       -c     Display the CPU utilization report.</span><br><span class="line"></span><br><span class="line">       -d     Display the device utilization report.</span><br><span class="line"></span><br><span class="line">       -g group_name &#123; device [<span class="built_in">..</span>.] | ALL &#125;</span><br><span class="line">              Display statistics <span class="keyword">for</span> a<span class="built_in"> group </span>of devices.  The iostat command reports statistics <span class="keyword">for</span> each individual device <span class="keyword">in</span> the list then a line of global statistics <span class="keyword">for</span> the<span class="built_in"> group </span>displayed as group_name <span class="keyword">and</span> made  up  of  all  the</span><br><span class="line">              devices <span class="keyword">in</span> the list. The ALL keyword means that all the block devices defined by the<span class="built_in"> system </span>shall be included <span class="keyword">in</span> the group.</span><br><span class="line"></span><br><span class="line">       -h     Make the Device Utilization Report easier <span class="keyword">to</span> read by a human.</span><br><span class="line"></span><br><span class="line">       -j &#123; ID | LABEL | PATH | UUID | <span class="built_in">..</span>. &#125; [ device [<span class="built_in">..</span>.] | ALL ]</span><br><span class="line">              Display  persistent  device  names.  Options  ID,  LABEL,  etc.  specify  the<span class="built_in"> type </span>of the persistent name. These options are <span class="keyword">not</span> limited, only prerequisite is that directory with required persistent names is present <span class="keyword">in</span></span><br><span class="line">              /dev/disk.  Optionally, multiple devices can be specified <span class="keyword">in</span> the chosen persistent name type.  Because persistent device names are usually long, option -h is enabled implicitly with this option.</span><br><span class="line"></span><br><span class="line">       -k     Display statistics <span class="keyword">in</span> kilobytes per second.</span><br><span class="line"></span><br><span class="line">       -m     Display statistics <span class="keyword">in</span> megabytes per second.</span><br><span class="line"></span><br><span class="line">       -N     Display the registered device mapper names <span class="keyword">for</span> any device mapper devices.  Useful <span class="keyword">for</span> viewing LVM2 statistics.</span><br><span class="line"></span><br><span class="line">       -p [ &#123; device [,<span class="built_in">..</span>.] | ALL &#125; ]</span><br><span class="line">              The -p option displays statistics <span class="keyword">for</span> block devices <span class="keyword">and</span> all their partitions that are used by the system.  <span class="keyword">If</span> a device name is entered on the command line, then statistics <span class="keyword">for</span> it <span class="keyword">and</span> all its partitions  are  displayed.</span><br><span class="line">              Last,  the  ALL  keyword  indicates  that  statistics  have <span class="keyword">to</span> be displayed <span class="keyword">for</span> all the block devices <span class="keyword">and</span> partitions defined by the system, including those that have never been used. <span class="keyword">If</span> option -j is defined before this</span><br><span class="line">              option, devices entered on the command line can be specified with the chosen persistent name type.</span><br><span class="line"></span><br><span class="line">       -T     This option must be used with option -g <span class="keyword">and</span> indicates that only global statistics <span class="keyword">for</span> the<span class="built_in"> group </span>are <span class="keyword">to</span> be displayed, <span class="keyword">and</span> <span class="keyword">not</span> statistics <span class="keyword">for</span> individual devices <span class="keyword">in</span> the group.</span><br><span class="line"></span><br><span class="line">       -t     <span class="builtin-name">Print</span> the time <span class="keyword">for</span> each report displayed. The timestamp format may depend on the value of the S_TIME_FORMAT environment variable (see below).</span><br><span class="line"></span><br><span class="line">       -V     <span class="builtin-name">Print</span> version number then exit.</span><br><span class="line"></span><br><span class="line">       -x     Display extended statistics.</span><br><span class="line"></span><br><span class="line">       -y     Omit first report with statistics since<span class="built_in"> system </span>boot, <span class="keyword">if</span> displaying multiple records at given interval.</span><br><span class="line"></span><br><span class="line">       -z     Tell iostat <span class="keyword">to</span> omit output <span class="keyword">for</span> any devices <span class="keyword">for</span> which there was <span class="literal">no</span> activity during the sample period.</span><br></pre></td></tr></table></figure>
-<p>简单讲，-x 参数能比较详细的给出一些指标，2 代表间隔时间为 2s，统计输出 10 次。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/01/16/using-iostat-dialectically/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1381,7 +1380,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-count">60</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1394,7 +1393,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">133</span>
+        <span class="site-state-item-count">136</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

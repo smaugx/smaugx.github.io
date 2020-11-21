@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+<meta name="google-site-verification" content="IpNgA5aPb7fAewOpvbq-eVkYwuCplcLKol7cG2itN5M" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="诡异的死锁事情是这样的，观察到某台机器上出现了卡死的现象，即没有刷新日志，cpu 使用也较低，怀疑是不是出现了死锁。 由于程序采用的是 master + worker 的模式，首先 gdb attach 观察 master 情况，发现 master 执行正常，没有 lock wait 相关的堆栈；然后 gdb attach 观察 worker 情况，结果发现 worker 堆栈上有 lock wa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="fork会复制线程吗">
+<meta property="og:url" content="https://rebootcat.com/2020/11/21/fork_copy_thread/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="诡异的死锁事情是这样的，观察到某台机器上出现了卡死的现象，即没有刷新日志，cpu 使用也较低，怀疑是不是出现了死锁。 由于程序采用的是 master + worker 的模式，首先 gdb attach 观察 master 情况，发现 master 执行正常，没有 lock wait 相关的堆栈；然后 gdb attach 观察 worker 情况，结果发现 worker 堆栈上有 lock wa">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/free_memory/1.png">
+<meta property="article:published_time" content="2020-11-21T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-11-21T14:59:30.109Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="fork">
+<meta property="article:tag" content="memory">
+<meta property="article:tag" content="thread">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/free_memory/1.png">
+
+<link rel="canonical" href="https://rebootcat.com/2020/11/21/fork_copy_thread/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>fork会复制线程吗 | 林夕水共</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+        <li class="menu-item menu-item-wiki">
+
+    <a href="/wiki/" rel="section"><i class="fa fa-fw fa-wikipedia-w"></i>维基</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/11/21/fork_copy_thread/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          fork会复制线程吗
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-11-21 11:23:58 / 修改时间：22:59:30" itemprop="dateCreated datePublished" datetime="2020-11-21T11:23:58+08:00">2020-11-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/11/21/fork_copy_thread/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/11/21/fork_copy_thread/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="诡异的死锁"><a href="#诡异的死锁" class="headerlink" title="诡异的死锁"></a>诡异的死锁</h1><p>事情是这样的，观察到某台机器上出现了卡死的现象，即没有刷新日志，cpu 使用也较低，怀疑是不是出现了死锁。</p>
+<p>由于程序采用的是 <code>master + worker</code> 的模式，首先 gdb attach 观察 master 情况，发现 master 执行正常，没有 <strong>lock wait</strong> 相关的堆栈；然后 gdb attach 观察 worker 情况，结果发现 worker 堆栈上有 <strong>lock wait</strong> 的情况，果然是出现了死锁，但 worker 上的其他线程并没有发现在等待锁的情况。</p>
+<p>根据堆栈，找到 worker 的代码，重新梳理了一下代码，检查了 std::mutex 相关的函数调用，并没有出现嵌套调用的情况，也没有出现递归调用的情况，和上面发现 worker 其他线程没有等待锁的情况相吻合。</p>
+<p>说明 worker 的死锁，并非由于 worker 内部的多线程造成的。那么就很诡异了，不是 worker 内部死锁，难道是多进程死锁？</p>
+<h1 id="排查验证"><a href="#排查验证" class="headerlink" title="排查验证"></a>排查验证</h1><p>重新又检查了 worker 各个线程的堆栈情况，发现确实只有一个线程出现 <strong>lock wait</strong> 相关的堆栈； 并且又检查了一下 master 进程内部的各个线程，堆栈也都正常。</p>
+<p>那 worker 锁住的这个线程，到底是因为什么原因？梳理 worker 代码，找到 std::mutex 相关的函数调用，发现 master 调用的一个函数使用到了 std::mutex，但是该函数内部逻辑也较为简单，不会一直占用这把锁。</p>
+<p>没有头绪，谷歌搜索了一些类似的问题，找到了一点端倪。<strong>主进程 fork 之后，仅会复制发起调用的线程，不会复制其他线程，如果某个线程占用了某个锁，但是到了子进程，该线程是蒸发掉的，子进程会拷贝这把锁，但是不知道谁能释放，最终死锁</strong>。</p>
+<p>确实符合这个程序的行为，并且确实是多进程下子进程的死锁，而且找不到其他线程也在等待锁。</p>
+<p>接下来，写一个 demo 验证一下，是否 fork 不会复制子线程，并且有可能造成死锁。</p>
+<h2 id="fork-demo-验证"><a href="#fork-demo-验证" class="headerlink" title="fork demo 验证"></a>fork demo 验证</h2><p>简单写一个 demo:</p>
+<a id="more"></a>
+
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// file: fork_copy_thread.cc</span></span><br><span class="line"><span class="comment">// g++ fork_copy_thread.cc  -o fork_copy_thread -std=c++11 -lpthread -ggdb</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;memory&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;chrono&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;mutex&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Event</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    Event() = <span class="keyword">default</span>;</span><br><span class="line">    ~Event() = <span class="keyword">default</span>;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> str_;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TaskHandler</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    TaskHandler() = <span class="keyword">default</span>;</span><br><span class="line">    ~TaskHandler() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">auto</span> lam = [&amp;]() -&gt; <span class="keyword">void</span> &#123;</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; lock(ev_mutex_);</span><br><span class="line">                <span class="keyword">this</span>-&gt;ev_ = <span class="built_in">std</span>::make_shared&lt;Event&gt;();</span><br><span class="line">                <span class="keyword">this</span>-&gt;ev_-&gt;str_ = <span class="string">"hello fork"</span>;</span><br><span class="line">                <span class="comment">// hold this lock for 10 seconds</span></span><br><span class="line">                <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::seconds(<span class="number">10</span>));</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"father thread done, exit"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="built_in">std</span>::thread <span class="title">th</span><span class="params">(lam)</span></span>;</span><br><span class="line">        th.<span class="built_in">detach</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">print_str</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lock</span><span class="params">(ev_mutex_)</span></span>;</span><br><span class="line">        <span class="keyword">if</span> (!ev_) &#123;</span><br><span class="line">            <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"event  not ready"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"event:"</span> &lt;&lt; ev_-&gt;str_ &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;Event&gt; ev_ &#123; <span class="literal">nullptr</span> &#125;;</span><br><span class="line">    <span class="built_in">std</span>::mutex ev_mutex_;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;TaskHandler&gt; tsk = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    tsk = <span class="built_in">std</span>::make_shared&lt;TaskHandler&gt;();</span><br><span class="line">    tsk-&gt;start();</span><br><span class="line">    <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::seconds(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// for child process</span></span><br><span class="line">    <span class="keyword">pid_t</span> pid = fork();</span><br><span class="line">    <span class="keyword">switch</span> (pid) &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">-1</span>:</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"this is child process"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">                <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                    <span class="comment">// will core here, because tsk-&gt;ev_ is created in father-thread, not copyed,</span></span><br><span class="line">                    <span class="comment">// so in child process, tsk-&gt;ev_ is nullptr</span></span><br><span class="line">                    tsk-&gt;print_str();</span><br><span class="line">                    <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::seconds(<span class="number">1</span>));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">// this is father</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">    &#125; <span class="comment">// end switch</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::seconds(<span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>上面的代码简单解释一下：</p>
+<ul>
+<li>TaskHandler::start() 中会创建一个线程，线程会申请一把互斥锁，并且睡眠 10s，目的是为了在 fork 的时候依然占用这把互斥锁</li>
+<li>TaskHandler::print_str() 会申请这把互斥锁，然后打印字符串</li>
+<li>程序 main 开始，调用 start() 创建子线程</li>
+<li>然后 fork() 子进程</li>
+<li>子进程死循环执行 print_str() 函数打印字符串</li>
+</ul>
+<p>使用编译命令：</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">$</span> <span class="comment">g</span>++ <span class="comment">fork_copy_thread</span><span class="string">.</span><span class="comment">cc</span>  <span class="literal">-</span><span class="comment">o</span> <span class="comment">fork_copy_thread</span> <span class="literal">-</span><span class="comment">std=c</span>++<span class="comment">11</span> <span class="literal">-</span><span class="comment">lpthread</span> <span class="literal">-</span><span class="comment">ggdb</span></span><br></pre></td></tr></table></figure>
+
+<p>运行后与预期不符，子进程并没有死循环打印字符串，死锁了。</p>
+<p>然后使用 gdb attach 子进程：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(gdb) bt</span><br><span class="line">#<span class="number">0</span>  <span class="number">0x00007f4154e1a54d</span> <span class="keyword">in</span> __lll_lock_wait () <span class="keyword">from</span> /lib64/libpthread.so<span class="number">.0</span></span><br><span class="line">#<span class="number">1</span>  <span class="number">0x00007f4154e15e9b</span> <span class="keyword">in</span> _L_lock_883 () <span class="keyword">from</span> /lib64/libpthread.so<span class="number">.0</span></span><br><span class="line">#<span class="number">2</span>  <span class="number">0x00007f4154e15d68</span> <span class="keyword">in</span> pthread_mutex_lock () <span class="keyword">from</span> /lib64/libpthread.so<span class="number">.0</span></span><br><span class="line">#<span class="number">3</span>  <span class="number">0x000000000040128c</span> <span class="keyword">in</span> __gthread_mutex_lock (__mutex=<span class="number">0x1d2fc48</span>) at /usr/include/c++/<span class="number">4.8</span><span class="number">.5</span>/x86_64-unknown-linux-gnu/bits/gthr-<span class="keyword">default</span>.h:<span class="number">748</span></span><br><span class="line">#<span class="number">4</span>  <span class="number">0x0000000000401730</span> <span class="keyword">in</span> std::mutex::lock (<span class="keyword">this</span>=<span class="number">0x1d2fc48</span>) at /usr/include/c++/<span class="number">4.8</span><span class="number">.5</span>/mutex:<span class="number">134</span></span><br><span class="line">#<span class="number">5</span>  <span class="number">0x0000000000401f99</span> <span class="keyword">in</span> std::unique_lock&lt;std::mutex&gt;::lock (<span class="keyword">this</span>=<span class="number">0x7fff168c43a0</span>) at /usr/include/c++/<span class="number">4.8</span><span class="number">.5</span>/mutex:<span class="number">511</span></span><br><span class="line">#<span class="number">6</span>  <span class="number">0x0000000000401b13</span> <span class="keyword">in</span> std::unique_lock&lt;std::mutex&gt;::unique_lock (<span class="keyword">this</span>=<span class="number">0x7fff168c43a0</span>, __m=...) at /usr/include/c++/<span class="number">4.8</span><span class="number">.5</span>/mutex:<span class="number">443</span></span><br><span class="line">#<span class="number">7</span>  <span class="number">0x0000000000401988</span> <span class="keyword">in</span> TaskHandler::print_str (<span class="keyword">this</span>=<span class="number">0x1d2fc38</span>) at fork_copy_thread.cc:<span class="number">43</span></span><br><span class="line">#<span class="number">8</span>  <span class="number">0x00000000004013ff</span> <span class="keyword">in</span> main () at fork_copy_thread.cc:<span class="number">76</span></span><br><span class="line">(gdb)</span><br></pre></td></tr></table></figure>
+
+<p>果然可以看到子进程卡在了 print_str() 函数上。</p>
+<p>上面的代码，父进程创建线程后，占用了锁，此时 fork 了子进程，子进程拷贝了父进程空间的内存，包括锁，但是没有复制子线程，造成子进程无法获取锁，最终死锁。</p>
+<h2 id="fork-copy-thread"><a href="#fork-copy-thread" class="headerlink" title="fork copy thread?"></a>fork copy thread?</h2><p>上面已经验证了死锁的产生原因是由于 fork 时并没有把父进程里的线程复制到子进程，导致子进程无法获取锁。那么简单修改一下上面的代码，来验证一下子进程确实是没有复制父进程的子线程。</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// file: fork_copy_thread.cc</span></span><br><span class="line"><span class="comment">// g++ fork_copy_thread.cc  -o fork_copy_thread -std=c++11 -lpthread -ggdb</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;memory&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;chrono&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;mutex&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Event</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    Event() = <span class="keyword">default</span>;</span><br><span class="line">    ~Event() = <span class="keyword">default</span>;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> str_;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TaskHandler</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    TaskHandler() = <span class="keyword">default</span>;</span><br><span class="line">    ~TaskHandler() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">auto</span> lam = [&amp;]() -&gt; <span class="keyword">void</span> &#123;</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; lock(ev_mutex_);</span><br><span class="line">                <span class="keyword">this</span>-&gt;ev_ = <span class="built_in">std</span>::make_shared&lt;Event&gt;();</span><br><span class="line">                <span class="keyword">this</span>-&gt;ev_-&gt;str_ = <span class="string">"hello fork"</span>;</span><br><span class="line">                <span class="comment">// hold this lock for 10 seconds</span></span><br><span class="line">                <span class="comment">//std::this_thread::sleep_for(std::chrono::seconds(10));</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"this threadid:"</span> &lt;&lt; <span class="built_in">std</span>::this_thread::get_id() &lt;&lt; <span class="string">" run"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">                <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::seconds(<span class="number">1</span>));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="built_in">std</span>::thread <span class="title">th</span><span class="params">(lam)</span></span>;</span><br><span class="line">        th.<span class="built_in">detach</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">print_str</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lock</span><span class="params">(ev_mutex_)</span></span>;</span><br><span class="line">        <span class="keyword">if</span> (!ev_) &#123;</span><br><span class="line">            <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"event  not ready"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"event:"</span> &lt;&lt; ev_-&gt;str_ &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;Event&gt; ev_ &#123; <span class="literal">nullptr</span> &#125;;</span><br><span class="line">    <span class="built_in">std</span>::mutex ev_mutex_;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;TaskHandler&gt; tsk = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    tsk = <span class="built_in">std</span>::make_shared&lt;TaskHandler&gt;();</span><br><span class="line">    tsk-&gt;start();</span><br><span class="line">    <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::seconds(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// for child process</span></span><br><span class="line">    <span class="keyword">pid_t</span> pid = fork();</span><br><span class="line">    <span class="keyword">switch</span> (pid) &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">-1</span>:</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"this is child process"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">                <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                    <span class="comment">// will core here, because tsk-&gt;ev_ is created in father-thread, not copyed,</span></span><br><span class="line">                    <span class="comment">// so in child process, tsk-&gt;ev_ is nullptr</span></span><br><span class="line">                    <span class="comment">//tsk-&gt;print_str();</span></span><br><span class="line">                    <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::seconds(<span class="number">1</span>));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">// this is father</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">    &#125; <span class="comment">// end switch</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::seconds(<span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>简单解释一下修改了啥：</p>
+<ul>
+<li>父进程启动一个线程，循环打印字符串</li>
+<li>父进程 fork，子进程保持睡眠</li>
+<li>验证子进程是否有线程打印字符串(如果复制了的话，理应会打印）</li>
+</ul>
+<p>执行结果：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ ./fork_copy_thread</span><br><span class="line"><span class="keyword">this</span> threadid:<span class="number">139674369169152</span> run</span><br><span class="line"><span class="keyword">this</span> threadid:<span class="number">139674369169152</span> run</span><br><span class="line"><span class="keyword">this</span> <span class="keyword">is</span> child process</span><br><span class="line"><span class="keyword">this</span> threadid:<span class="number">139674369169152</span> run</span><br><span class="line"><span class="keyword">this</span> threadid:<span class="number">139674369169152</span> run</span><br><span class="line"><span class="keyword">this</span> threadid:<span class="number">139674369169152</span> run</span><br></pre></td></tr></table></figure>
+
+<p>可以看到只有一个线程在打印，也就是父进程创建的那个线程；fork 之后父进程的线程在子进程蒸发了。</p>
+<p><strong>多线程程序使用 fork 一定要谨慎，再谨慎，并且也不推荐这样的做法。</strong></p>
+<h1 id="fork-到底复制了什么"><a href="#fork-到底复制了什么" class="headerlink" title="fork 到底复制了什么"></a>fork 到底复制了什么</h1><blockquote>
+<p><a href="https://linux.die.net/man/3/fork" target="_blank" rel="noopener">https://linux.die.net/man/3/fork</a></p>
+</blockquote>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">fork</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Copy-On-Write"><a href="#Copy-On-Write" class="headerlink" title="Copy On Write"></a>Copy On Write</h2><blockquote>
+<p>Copy On Write(写时复制）技术大大提高了 fork 的性能。fork 之后，内核会把父进程中的所有内存页都设置为 read-only，然后子进程的地址空间指向父进程。如果父进程和子进程都没有涉及到内存的写操作，那么父子进程保持这样的状态，也就是子进程并不会复制父进程的内存空间；如果父进程或者子进程产生了写操作，那么由于内存页被设置为 read-only，所以会触发页异常中断，然后中断程序会把该内存页复制一份，至此父子进程就拥有不同的内存页；而其他没有操作的内存页依然共享。</p>
+</blockquote>
+<p>上面这段话不太好理解，涉及到的东西其实比较深也比较多。我们把它拆开来说。</p>
+<p><strong>虚拟内存空间</strong>，进程是看不见物理内存地址的，进程的内存空间称为虚拟内存，默认从 0 到 max，虚拟内存空间也就是逻辑内存地址，进程操作的都是逻辑内存地址。</p>
+<p>虚拟内存地址到真实的物理内存地址的转换或者映射称为<strong>地址重定向</strong>，有专门的中断程序来负责处理，作为进程本身不需要关心。</p>
+<p><strong>物理内存的单位是页，也就是内核使用页为单位来管理物理内存</strong>，数据结构上页其实是一个 struct，大小好像是 4KB。虚拟内存地址映射到物理内存以页的方式进行，并且<strong>内核管理一个页映射表</strong>。</p>
+<p><strong>malloc 分配内存，其实操作的是虚拟内存</strong>，也即使用 malloc 分配了一段内存后，在未赋值之前，其实是没有物理内存占用的，当真正向 malloc 分配的内存写数据的时候，内核才会分配真实的物理内存页，并让这段虚拟内存指向实际的物理内存页。并且进程管理一个页表。</p>
+<p>进程的虚拟内存空间，由地地址到高地址空间大致分为代码段、数据段、BSS 段、堆、栈，详情如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/free_memory/1.png" alt=""></p>
+<p>fork 之后，子进程复制了父进程的虚拟内存空间，即复制了代码段、堆栈等，所以变量的地址也是一样的。并且父子进程各自有一份页映射表，它们都指向父进程的物理内存地址。</p>
+<p>当父子进程只读时，不会发生真实的物理内存拷贝；但是当父子进程写入时，由于物理页 read-only，会触发页异常中断，中断程序会把该页面复制一份，其他的页保持不动。至此父进程和子进程的页映射表就出现了一点不一致了，但其他部分还是一致的。</p>
+<h2 id="简单总结下-fork"><a href="#简单总结下-fork" class="headerlink" title="简单总结下 fork"></a>简单总结下 fork</h2><p>要理解 fork 的原理，Copy On Write 的原理，重点是理解虚拟内存和物理内存的关系。</p>
+<p>fork 之后，<strong>子进程会复制父进程的虚拟内存空间，也就是代码段、数据段、堆栈等，虚拟内存空间里表达的就是程序里各个变量的地址，所以子进程里各个变量的地址和父进程里各个变量的地址是一样的</strong>。</p>
+<p><strong>父子进程只读时，不会发生真实的物理内存拷贝，他们的页映射表内容一致，即同样的虚拟内存地址指向同样的物理内存地址；但当有一方写入数据时，内核会复制要写入的页，此时修改数据的一方的页映射表就发生了变化，即同样的虚拟内存地址指向了不同的物理内存地址，但其他部分还是一样的</strong>；</p>
+<p>另外，<strong>fork 仅会将发起调用的线程复制到子进程中，所以子进程中的线程 ID 与主进程线程 ID 有一致的情况。其他线程不会被复制</strong>。</p>
+<h1 id="The-End"><a href="#The-End" class="headerlink" title="The End"></a>The End</h1><p>关于 fork 的细节，还有很多值得深入研究的东西。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#105;&#x6e;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#x6e;&#105;&#107;&#x69;&#x40;&#103;&#x6d;&#x61;&#105;&#x6c;&#46;&#99;&#x6f;&#109;">&#108;&#105;&#x6e;&#117;&#x78;&#x63;&#111;&#x64;&#x65;&#x32;&#x6e;&#105;&#107;&#x69;&#x40;&#103;&#x6d;&#x61;&#105;&#x6c;&#46;&#99;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2020-11-21 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2019/10/02/daemon/" rel="bookmark">linux守护进程c++实现</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/10/25/hiddenproc/" rel="bookmark">Linux上隐藏进程名（初级版）</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/02/cmake/" rel="bookmark">cmake教程|cmake入门实战</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/26/epoll_cookbook/" rel="bookmark">Epoll原理深入分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/26/epoll_examples/" rel="bookmark">epoll 入门例子 tcp server/client</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rebootcat.com/2020/11/21/fork_copy_thread/" title="fork会复制线程吗">https://rebootcat.com/2020/11/21/fork_copy_thread/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/fork/" rel="tag"># fork</a>
+              <a href="/tags/memory/" rel="tag"># memory</a>
+              <a href="/tags/thread/" rel="tag"># thread</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/11/14/tcp_accept/" rel="prev" title="TCP全连接和半连接的问题探讨">
+      <i class="fa fa-chevron-left"></i> TCP全连接和半连接的问题探讨
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#诡异的死锁"><span class="nav-number">1.</span> <span class="nav-text">诡异的死锁</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#排查验证"><span class="nav-number">2.</span> <span class="nav-text">排查验证</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#fork-demo-验证"><span class="nav-number">2.1.</span> <span class="nav-text">fork demo 验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fork-copy-thread"><span class="nav-number">2.2.</span> <span class="nav-text">fork copy thread?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#fork-到底复制了什么"><span class="nav-number">3.</span> <span class="nav-text">fork 到底复制了什么</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Copy-On-Write"><span class="nav-number">3.1.</span> <span class="nav-text">Copy On Write</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#简单总结下-fork"><span class="nav-number">3.2.</span> <span class="nav-text">简单总结下 fork</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#The-End"><span class="nav-number">4.</span> <span class="nav-text">The End</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">60</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">136</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://loveyxq.online/" title="https:&#x2F;&#x2F;loveyxq.online&#x2F;" rel="noopener" target="_blank">子不语</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'd5vhXhrHKkiBVVpR1WJJLgQP-gzGzoHsz',
+      appKey     : 'BRzIFYxjcm34z68pyNalDPtw',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>

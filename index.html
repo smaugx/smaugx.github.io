@@ -213,6 +213,104 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/11/21/fork_copy_thread/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/11/21/fork_copy_thread/" class="post-title-link" itemprop="url">fork会复制线程吗</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-11-21 11:23:58 / 修改时间：22:59:30" itemprop="dateCreated datePublished" datetime="2020-11-21T11:23:58+08:00">2020-11-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/11/21/fork_copy_thread/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/11/21/fork_copy_thread/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="诡异的死锁"><a href="#诡异的死锁" class="headerlink" title="诡异的死锁"></a>诡异的死锁</h1><p>事情是这样的，观察到某台机器上出现了卡死的现象，即没有刷新日志，cpu 使用也较低，怀疑是不是出现了死锁。</p>
+<p>由于程序采用的是 <code>master + worker</code> 的模式，首先 gdb attach 观察 master 情况，发现 master 执行正常，没有 <strong>lock wait</strong> 相关的堆栈；然后 gdb attach 观察 worker 情况，结果发现 worker 堆栈上有 <strong>lock wait</strong> 的情况，果然是出现了死锁，但 worker 上的其他线程并没有发现在等待锁的情况。</p>
+<p>根据堆栈，找到 worker 的代码，重新梳理了一下代码，检查了 std::mutex 相关的函数调用，并没有出现嵌套调用的情况，也没有出现递归调用的情况，和上面发现 worker 其他线程没有等待锁的情况相吻合。</p>
+<p>说明 worker 的死锁，并非由于 worker 内部的多线程造成的。那么就很诡异了，不是 worker 内部死锁，难道是多进程死锁？</p>
+<h1 id="排查验证"><a href="#排查验证" class="headerlink" title="排查验证"></a>排查验证</h1><p>重新又检查了 worker 各个线程的堆栈情况，发现确实只有一个线程出现 <strong>lock wait</strong> 相关的堆栈； 并且又检查了一下 master 进程内部的各个线程，堆栈也都正常。</p>
+<p>那 worker 锁住的这个线程，到底是因为什么原因？梳理 worker 代码，找到 std::mutex 相关的函数调用，发现 master 调用的一个函数使用到了 std::mutex，但是该函数内部逻辑也较为简单，不会一直占用这把锁。</p>
+<p>没有头绪，谷歌搜索了一些类似的问题，找到了一点端倪。<strong>主进程 fork 之后，仅会复制发起调用的线程，不会复制其他线程，如果某个线程占用了某个锁，但是到了子进程，该线程是蒸发掉的，子进程会拷贝这把锁，但是不知道谁能释放，最终死锁</strong>。</p>
+<p>确实符合这个程序的行为，并且确实是多进程下子进程的死锁，而且找不到其他线程也在等待锁。</p>
+<p>接下来，写一个 demo 验证一下，是否 fork 不会复制子线程，并且有可能造成死锁。</p>
+<h2 id="fork-demo-验证"><a href="#fork-demo-验证" class="headerlink" title="fork demo 验证"></a>fork demo 验证</h2><p>简单写一个 demo:</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/11/21/fork_copy_thread/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/11/14/tcp_accept/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1189,104 +1287,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/09/20/cloudflare/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/20/cloudflare/" class="post-title-link" itemprop="url">Hexo 配置 Cloudflare 免费 CDN</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2020-09-20 13:23:58 / 修改时间：13:25:54" itemprop="dateCreated datePublished" datetime="2020-09-20T13:23:58+08:00">2020-09-20</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/09/20/cloudflare/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/20/cloudflare/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="CDN"><a href="#CDN" class="headerlink" title="CDN"></a>CDN</h1><p>关于 CDN 是什么，我想应该不用做过多的介绍，毕竟现在是一个 “云” 的时代，你至少也听说过 阿里云 或者 腾讯云 吧，当然其中就包括 CDN 业务。</p>
-<p>CDN 的作用有很多，比如可以用来加速网站的访问，可以用来防护网站等。本篇文章讨论的就是使用 cloudflare 作为 CDN 来加速博客网站，并让博客开启 https，提升博客安全等级。 </p>
-<ul>
-<li>加速网站访问</li>
-<li>开启https</li>
-</ul>
-<p>选择什么 CDN 呢？</p>
-<p>选择 CDN，对于个人博客来说，主要考虑的还是访问速度以及价格，当然也有免费的 CDN。<a href="https://cloudflare.com" target="_blank" rel="noopener">Cloudflare</a> 就是一家提供免费 CDN 的公司，也是在 CDN 领域比较知名的公司。</p>
-<p>话不多说，关于 cloudflare 的配置网上可以搜到很多文章，这里我就简单记录一下。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/0.png" alt=""></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/20/cloudflare/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1358,7 +1358,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-count">60</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1371,7 +1371,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">133</span>
+        <span class="site-state-item-count">136</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

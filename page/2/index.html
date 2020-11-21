@@ -213,6 +213,104 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/09/20/cloudflare/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/20/cloudflare/" class="post-title-link" itemprop="url">Hexo 配置 Cloudflare 免费 CDN</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-09-20 13:23:58 / 修改时间：13:25:54" itemprop="dateCreated datePublished" datetime="2020-09-20T13:23:58+08:00">2020-09-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/blog/" itemprop="url" rel="index"><span itemprop="name">blog</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/20/cloudflare/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/20/cloudflare/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="CDN"><a href="#CDN" class="headerlink" title="CDN"></a>CDN</h1><p>关于 CDN 是什么，我想应该不用做过多的介绍，毕竟现在是一个 “云” 的时代，你至少也听说过 阿里云 或者 腾讯云 吧，当然其中就包括 CDN 业务。</p>
+<p>CDN 的作用有很多，比如可以用来加速网站的访问，可以用来防护网站等。本篇文章讨论的就是使用 cloudflare 作为 CDN 来加速博客网站，并让博客开启 https，提升博客安全等级。 </p>
+<ul>
+<li>加速网站访问</li>
+<li>开启https</li>
+</ul>
+<p>选择什么 CDN 呢？</p>
+<p>选择 CDN，对于个人博客来说，主要考虑的还是访问速度以及价格，当然也有免费的 CDN。<a href="https://cloudflare.com" target="_blank" rel="noopener">Cloudflare</a> 就是一家提供免费 CDN 的公司，也是在 CDN 领域比较知名的公司。</p>
+<p>话不多说，关于 cloudflare 的配置网上可以搜到很多文章，这里我就简单记录一下。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/cloudflare/0.png" alt=""></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/20/cloudflare/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/09/20/virtual_space_blog/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -949,6 +1047,123 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/05/25/malloc_deadlock/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/05/25/malloc_deadlock/" class="post-title-link" itemprop="url">malloc 死锁</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-25 11:23:58" itemprop="dateCreated datePublished" datetime="2020-05-25T11:23:58+08:00">2020-05-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-11-21 22:58:56" itemprop="dateModified" datetime="2020-11-21T22:58:56+08:00">2020-11-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/05/25/malloc_deadlock/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/05/25/malloc_deadlock/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="缘由"><a href="#缘由" class="headerlink" title="缘由"></a>缘由</h1><p>xxnode 是一个程序，执行 <code>xxnode -v</code> 出现卡住不动的情况。</p>
+<p>正常情况下，<code>xxnode -v</code> 会打印出程序版本号等信息，而且只是简单的打印版本号就会推出，不涉及到复杂的业务逻辑，但本次碰到的情况是卡住不动了，马上怀疑肯定是出现死锁了。</p>
+<h1 id="排查死锁"><a href="#排查死锁" class="headerlink" title="排查死锁"></a>排查死锁</h1><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="keyword">ps</span> -ef |<span class="keyword">grep</span> xxnode</span><br><span class="line"><span class="number">8987</span></span><br></pre></td></tr></table></figure>
+<p>上面先找到卡住的 xxnode 的进程号，然后使用 gdb attach 上去：</p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gdb <span class="section">attach</span> <span class="number">8987</span></span><br></pre></td></tr></table></figure>
+
+<p>然后使用 <code>bt</code> 查看堆栈情况，发现堆栈如下：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">(gdb) <span class="keyword">bt</span></span><br><span class="line">#<span class="number">0</span>  <span class="number">0x00007f9d320df5cc</span> <span class="keyword">in</span> __lll_lock_wait_private () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">1</span>  <span class="number">0x00007f9d3205bb12</span> <span class="keyword">in</span> _L_lock_16654 () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">2</span>  <span class="number">0x00007f9d32058753</span> <span class="keyword">in</span> malloc () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">3</span>  <span class="number">0x00007f9d32917ecd</span> <span class="keyword">in</span> operator new(unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">4</span>  <span class="number">0x00007f9d32976a19</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_S_create(unsigned long, unsigned long, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">5</span>  <span class="number">0x00007f9d3297762b</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_M_clone(<span class="keyword">std</span>::allocator&lt;char&gt; const&amp;, unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">6</span>  <span class="number">0x00007f9d329776d4</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::reserve(unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">7</span>  <span class="number">0x00007f9d3297793f</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::append(char const*, unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">8</span>  <span class="number">0x0000000001431d8d</span> <span class="keyword">in</span> xwrite_log2 (module=<span class="number">0x14d4c14</span> <span class="string">"xnetwork"</span>, file=<span class="number">0x14d7a0b</span> <span class="string">"xmain.cpp"</span>, function=<span class="number">0x14db0c0</span> &lt;get_child_status()::__FUNCTION__&gt; <span class="string">"get_child_status"</span>, line=<span class="number">1865</span>, </span><br><span class="line">    level=enum_xlog_level_warn, msg=<span class="number">0x14d8a4e</span> <span class="string">"waitpid() failed: ECHILD"</span>) <span class="meta">at</span> ../../src/xlog<span class="number">.</span>cpp:<span class="number">717</span></span><br><span class="line">#<span class="number">9</span>  <span class="number">0x0000000000dc4fd5</span> <span class="keyword">in</span> get_child_status () <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1865</span></span><br><span class="line">#<span class="number">10</span> <span class="number">0x0000000000dc490f</span> <span class="keyword">in</span> signal_handler (signo=<span class="number">17</span>) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1763</span></span><br><span class="line">#<span class="number">11</span> <span class="number">0x0000000000dc4cc8</span> <span class="keyword">in</span> xnode_signal_handler (signo=<span class="number">17</span>, siginfo=<span class="number">0x7fffdc448f70</span>, ucontext=<span class="number">0x7fffdc448e40</span>) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1798</span></span><br><span class="line">#<span class="number">12</span> &lt;signal handler called&gt;</span><br><span class="line">#<span class="number">13</span> <span class="number">0x00007f9d32054f41</span> <span class="keyword">in</span> _int_malloc () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">14</span> <span class="number">0x00007f9d320586fc</span> <span class="keyword">in</span> malloc () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">15</span> <span class="number">0x00007f9d32917ecd</span> <span class="keyword">in</span> operator new(unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">16</span> <span class="number">0x00007f9d32976a19</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_S_create(unsigned long, unsigned long, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">17</span> <span class="number">0x00000000013e9df1</span> <span class="keyword">in</span> char* <span class="keyword">std</span>::string::_S_construct&lt;char const*&gt;(char const*, char const*, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;, <span class="keyword">std</span>::forward_iterator_tag) ()</span><br><span class="line">#<span class="number">18</span> <span class="number">0x00007f9d329786d8</span> <span class="keyword">in</span> <span class="keyword">std</span>::basic_string&lt;char, <span class="keyword">std</span>::char_traits&lt;char&gt;, <span class="keyword">std</span>::allocator&lt;char&gt; &gt;::basic_string(char const*, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">19</span> <span class="number">0x00007f9d2fe2d5fa</span> <span class="keyword">in</span> top::get_md5 () <span class="meta">at</span> /home/xchano/src/programs/xtopchano/src/version<span class="number">.</span>cpp:<span class="number">31</span></span><br><span class="line">#<span class="number">20</span> <span class="number">0x00007f9d2fe2dc23</span> <span class="keyword">in</span> top::print_version () <span class="meta">at</span> /home/xchano/src/programs/xtopchano/src/version<span class="number">.</span>cpp:<span class="number">62</span></span><br><span class="line">#<span class="number">21</span> <span class="number">0x00007f9d2fe2d24e</span> <span class="keyword">in</span> init_noparams_component (component_name=<span class="number">0x7f9d32bbf338</span> &lt;<span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_S_empty_rep_storage+<span class="number">24</span>&gt; <span class="string">""</span>, </span><br><span class="line">    pub_key=<span class="number">0x26532c8</span> <span class="string">"BEANYyQhGD0urjcRfsmqJLctMA5Hpe6DHW4pb6Asm50o/FgY2iU82bamk0WM0GtQXhNQykvy60DMmCHVWGhFR2c="</span>, pub_len=<span class="number">88</span>, </span><br><span class="line">    pri_key=<span class="number">0x2656858</span> <span class="string">"Lv1qWftE/8rQfMxufh+5ywy0maCdWl2ikdNun4wVjAM="</span>, pri_len=<span class="number">44</span>, node_id=<span class="number">0x2653378</span> <span class="string">"T-0-LWT5UjpGiSPzWs7Gt3Fc8ZmNFFwwA7Gpmt"</span>, datadir=<span class="number">0x26517a8</span> <span class="string">"/chano"</span>, </span><br><span class="line">    config_file_extra=<span class="number">0x26519e8</span> <span class="string">"/chano/extra_conf.json"</span>) <span class="meta">at</span> /home/xchano/src/programs/xtopchano/so<span class="number">.</span>cpp:<span class="number">18</span></span><br><span class="line">#<span class="number">22</span> <span class="number">0x0000000000dba3b5</span> <span class="keyword">in</span> lib_load (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">176</span></span><br><span class="line">#<span class="number">23</span> <span class="number">0x0000000000dc45c0</span> <span class="keyword">in</span> child_load_so (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1666</span></span><br><span class="line">#<span class="number">24</span> <span class="number">0x0000000000dc4349</span> <span class="keyword">in</span> spawn_child (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1611</span></span><br><span class="line">#<span class="number">25</span> <span class="number">0x0000000000dc8897</span> <span class="keyword">in</span> xnode_master_process_cycle (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">2244</span></span><br><span class="line">#<span class="number">26</span> <span class="number">0x0000000000dc092c</span> <span class="keyword">in</span> main (argc=<span class="number">7</span>, argv=<span class="number">0x7fffdc44bce8</span>) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1155</span></span><br><span class="line">(gdb) b version<span class="number">.</span>cpp:<span class="number">31</span></span><br><span class="line">Breakpoint <span class="number">1</span> <span class="meta">at</span> <span class="number">0x7f9d2fe2d5d4</span>: file /home/xchano/src/programs/xtopchano/src/version<span class="number">.</span>cpp, line <span class="number">31</span>.</span><br></pre></td></tr></table></figure>
+
+<p>注意看上面的第 2 帧和第 14 帧，都出现了 malloc 函数的调用，而 glibc malloc 内部的实现是有锁的，所以果然是出现了死锁。</p>
+<p>上面的执行流程是这样的：</p>
+<ol>
+<li>主进程启动</li>
+<li>fork 子进程，子进程会 load 一个 libxxxnode.so</li>
+<li>子进程调用 so 里提供的 <code>print_version()</code> 函数，打印版本信息</li>
+<li><code>print_version()</code> 函数内部有 string 的操作，也就是说会产生  malloc 的调用，正当在 malloc 内部的时候，不知道什么原因触发了某个信号（上面 signo=17）</li>
+<li>程序执行转移到 <code>signal_handler()</code>，处理信号</li>
+<li>但是不巧， <code>signal_handler()</code> 内部操作了日志，也就是也会调用到 malloc 函数</li>
+<li>然后陷入死锁</li>
+</ol>
+<p>所以，<strong>问题出现在了 <code>signal_handler()</code> 上，该信号处理函数调用了 malloc，而 malloc 是不可重入函数，造成最终的死锁</strong>。</p>
+<h1 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h1><p>要解决该死锁问题当然也简单，就是确保信号处理函数 <code>signal_handler()</code> 是可重入函数即可，这样即便在发生上面的场景，也就不会陷入死锁当中。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#x69;&#x6e;&#117;&#120;&#x63;&#x6f;&#x64;&#101;&#x32;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#111;&#x6d;">&#108;&#x69;&#x6e;&#117;&#120;&#x63;&#x6f;&#x64;&#101;&#x32;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#111;&#x6d;</a></p>
+</li>
+</ul>
+<p>2020-05-25 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1057,223 +1272,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/14/network_attack_of_blockchain_ddos_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-04-14 11:23:58" itemprop="dateCreated datePublished" datetime="2020-04-14T11:23:58+08:00">2020-04-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-22 22:53:25" itemprop="dateModified" datetime="2020-04-22T22:53:25+08:00">2020-04-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/14/network_attack_of_blockchain_ddos_attack/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/14/network_attack_of_blockchain_ddos_attack/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
-<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
-<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
-<p>同系列：</p>
-<ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
-</ul>
-<h1 id="拒绝服务攻击（Denial-of-Service-Attack"><a href="#拒绝服务攻击（Denial-of-Service-Attack" class="headerlink" title="拒绝服务攻击（Denial of Service Attack)"></a>拒绝服务攻击（Denial of Service Attack)</h1><h1 id="分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack"><a href="#分布式拒绝服务攻击（Distributed-Denial-of-Service-Attack" class="headerlink" title="分布式拒绝服务攻击（Distributed Denial of Service Attack)"></a>分布式拒绝服务攻击（Distributed Denial of Service Attack)</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>信息安全的三要素——“保密性”、“完整性”和“可用性”中，拒绝服务攻击，针对的目标正是“可用性”。该攻击方式利用目标系统网络服务功能缺陷或者直接消耗其系统资源，使得该目标系统无法提供正常的服务。</p>
-<p>拒绝服务攻击（DoS) 问题一直得不到合理的解决，目前还是世界性难题，究其原因是因为这是由于网络协议本身的安全缺陷造成的，从而拒绝服务攻击也成为了攻击者的终极手法。攻击者进行拒绝服务攻击，实际上让服务器实现两种效果：一是迫使服务器的缓冲区满，不接收新的请求；二是使用IP欺骗，迫使服务器把合法用户的连接复位，影响合法用户的连接。</p>
-<p>而分布式拒绝服务攻击 (DDoS) 是指攻击者采用分布式攻击手法施行 DoS 攻击，通常是控制了多台机器向目标主机或者路由器发起 DoS 攻击。</p>
-<p>针对区块链来说，攻击者通过 DDoS 攻击试图减慢网络速度，或者迫使网络停止运作。也可用于针对矿池，使矿池脱机，或者针对特定的目标主机，使其从网络离线。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_ddos_attack/11.png" alt=""></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/04/14/network_attack_of_blockchain_ddos_attack/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/13/network_attack_of_blockchain_sybil_attack/" class="post-title-link" itemprop="url">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-04-13 10:23:58" itemprop="dateCreated datePublished" datetime="2020-04-13T10:23:58+08:00">2020-04-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-22 22:53:10" itemprop="dateModified" datetime="2020-04-22T22:53:10+08:00">2020-04-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/blockchain/" itemprop="url" rel="index"><span itemprop="name">blockchain</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/13/network_attack_of_blockchain_sybil_attack/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/13/network_attack_of_blockchain_sybil_attack/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="写在前面的话"><a href="#写在前面的话" class="headerlink" title="写在前面的话"></a>写在前面的话</h1><p>自比特币诞生到现在，比特币（网络）经历过大大小小非常多次的攻击，尤其在比特币诞生之初的几年，并且随着比特币价格的一路飙涨，黑客针对比特币网络的攻击就一直没有停止过。据估算，目前大约有 350 ~ 400 万比特币永久丢失，价值大约 240 ~ 280 亿美元。当然其中不只有由于黑客的攻击导致的丢失，毕竟比特币最初的几年很多人都没有意识到比特币的价值，很多的私钥都遗失了。</p>
-<p>本文就谈一下目前几种区块链网络攻击，以及其防御方案。</p>
-<p><strong>本文尽量用简单易懂的白话来描述，也仅代表我个人的看法，欢迎探讨</strong>。</p>
-<p>同系列：</p>
-<ul>
-<li><a href="http://rebootcat.com/2020/04/11/network_attack_of_blockchain_51_attack/">浅谈几种区块链网络攻击以及防御方案之51%攻击</a></li>
-<li><a href="http://rebootcat.com/2020/04/12/network_attack_of_blockchain_eclipse_attack/">浅谈几种区块链网络攻击以及防御方案之日蚀攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/13/network_attack_of_blockchain_sybil_attack/">浅谈几种区块链网络攻击以及防御方案之女巫攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/14/network_attack_of_blockchain_ddos_attack/">浅谈几种区块链网络攻击以及防御方案之拒绝服务攻击</a> </li>
-<li><a href="http://rebootcat.com/2020/04/16/network_attack_of_blockchain_other_attack/">浅谈几种区块链网络攻击以及防御方案之其它网络攻击</a></li>
-</ul>
-<h1 id="女巫攻击（Sybil-Attack）"><a href="#女巫攻击（Sybil-Attack）" class="headerlink" title="女巫攻击（Sybil Attack）"></a>女巫攻击（Sybil Attack）</h1><h2 id="什么是女巫攻击"><a href="#什么是女巫攻击" class="headerlink" title="什么是女巫攻击"></a>什么是女巫攻击</h2><p>“女巫”这个词我们应该不陌生，通常指邪恶的化身，并且拥有可怕的魔法。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/network_attack_of_blockchain_sybil_attack/1.png" alt=""></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/04/13/network_attack_of_blockchain_sybil_attack/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1345,7 +1343,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-count">60</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1358,7 +1356,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">133</span>
+        <span class="site-state-item-count">136</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

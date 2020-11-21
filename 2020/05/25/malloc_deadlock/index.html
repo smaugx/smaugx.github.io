@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+<meta name="google-site-verification" content="IpNgA5aPb7fAewOpvbq-eVkYwuCplcLKol7cG2itN5M" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="缘由xxnode 是一个程序，执行 xxnode -v 出现卡住不动的情况。 正常情况下，xxnode -v 会打印出程序版本号等信息，而且只是简单的打印版本号就会推出，不涉及到复杂的业务逻辑，但本次碰到的情况是卡住不动了，马上怀疑肯定是出现死锁了。 排查死锁12$ ps -ef |grep xxnode8987 上面先找到卡住的 xxnode 的进程号，然后使用 gdb attach 上去： 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="malloc 死锁">
+<meta property="og:url" content="https://rebootcat.com/2020/05/25/malloc_deadlock/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="缘由xxnode 是一个程序，执行 xxnode -v 出现卡住不动的情况。 正常情况下，xxnode -v 会打印出程序版本号等信息，而且只是简单的打印版本号就会推出，不涉及到复杂的业务逻辑，但本次碰到的情况是卡住不动了，马上怀疑肯定是出现死锁了。 排查死锁12$ ps -ef |grep xxnode8987 上面先找到卡住的 xxnode 的进程号，然后使用 gdb attach 上去： 1">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-25T03:23:58.000Z">
+<meta property="article:modified_time" content="2020-11-21T14:58:56.378Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="malloc">
+<meta property="article:tag" content="signal">
+<meta property="article:tag" content="deadlock">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://rebootcat.com/2020/05/25/malloc_deadlock/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>malloc 死锁 | 林夕水共</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+        <li class="menu-item menu-item-wiki">
+
+    <a href="/wiki/" rel="section"><i class="fa fa-fw fa-wikipedia-w"></i>维基</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/05/25/malloc_deadlock/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          malloc 死锁
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-25 11:23:58" itemprop="dateCreated datePublished" datetime="2020-05-25T11:23:58+08:00">2020-05-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-11-21 22:58:56" itemprop="dateModified" datetime="2020-11-21T22:58:56+08:00">2020-11-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/05/25/malloc_deadlock/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/05/25/malloc_deadlock/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="缘由"><a href="#缘由" class="headerlink" title="缘由"></a>缘由</h1><p>xxnode 是一个程序，执行 <code>xxnode -v</code> 出现卡住不动的情况。</p>
+<p>正常情况下，<code>xxnode -v</code> 会打印出程序版本号等信息，而且只是简单的打印版本号就会推出，不涉及到复杂的业务逻辑，但本次碰到的情况是卡住不动了，马上怀疑肯定是出现死锁了。</p>
+<h1 id="排查死锁"><a href="#排查死锁" class="headerlink" title="排查死锁"></a>排查死锁</h1><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="keyword">ps</span> -ef |<span class="keyword">grep</span> xxnode</span><br><span class="line"><span class="number">8987</span></span><br></pre></td></tr></table></figure>
+<p>上面先找到卡住的 xxnode 的进程号，然后使用 gdb attach 上去：</p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gdb <span class="section">attach</span> <span class="number">8987</span></span><br></pre></td></tr></table></figure>
+
+<p>然后使用 <code>bt</code> 查看堆栈情况，发现堆栈如下：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">(gdb) <span class="keyword">bt</span></span><br><span class="line">#<span class="number">0</span>  <span class="number">0x00007f9d320df5cc</span> <span class="keyword">in</span> __lll_lock_wait_private () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">1</span>  <span class="number">0x00007f9d3205bb12</span> <span class="keyword">in</span> _L_lock_16654 () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">2</span>  <span class="number">0x00007f9d32058753</span> <span class="keyword">in</span> malloc () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">3</span>  <span class="number">0x00007f9d32917ecd</span> <span class="keyword">in</span> operator new(unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">4</span>  <span class="number">0x00007f9d32976a19</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_S_create(unsigned long, unsigned long, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">5</span>  <span class="number">0x00007f9d3297762b</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_M_clone(<span class="keyword">std</span>::allocator&lt;char&gt; const&amp;, unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">6</span>  <span class="number">0x00007f9d329776d4</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::reserve(unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">7</span>  <span class="number">0x00007f9d3297793f</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::append(char const*, unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">8</span>  <span class="number">0x0000000001431d8d</span> <span class="keyword">in</span> xwrite_log2 (module=<span class="number">0x14d4c14</span> <span class="string">"xnetwork"</span>, file=<span class="number">0x14d7a0b</span> <span class="string">"xmain.cpp"</span>, function=<span class="number">0x14db0c0</span> &lt;get_child_status()::__FUNCTION__&gt; <span class="string">"get_child_status"</span>, line=<span class="number">1865</span>, </span><br><span class="line">    level=enum_xlog_level_warn, msg=<span class="number">0x14d8a4e</span> <span class="string">"waitpid() failed: ECHILD"</span>) <span class="meta">at</span> ../../src/xlog<span class="number">.</span>cpp:<span class="number">717</span></span><br><span class="line">#<span class="number">9</span>  <span class="number">0x0000000000dc4fd5</span> <span class="keyword">in</span> get_child_status () <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1865</span></span><br><span class="line">#<span class="number">10</span> <span class="number">0x0000000000dc490f</span> <span class="keyword">in</span> signal_handler (signo=<span class="number">17</span>) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1763</span></span><br><span class="line">#<span class="number">11</span> <span class="number">0x0000000000dc4cc8</span> <span class="keyword">in</span> xnode_signal_handler (signo=<span class="number">17</span>, siginfo=<span class="number">0x7fffdc448f70</span>, ucontext=<span class="number">0x7fffdc448e40</span>) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1798</span></span><br><span class="line">#<span class="number">12</span> &lt;signal handler called&gt;</span><br><span class="line">#<span class="number">13</span> <span class="number">0x00007f9d32054f41</span> <span class="keyword">in</span> _int_malloc () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">14</span> <span class="number">0x00007f9d320586fc</span> <span class="keyword">in</span> malloc () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">15</span> <span class="number">0x00007f9d32917ecd</span> <span class="keyword">in</span> operator new(unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">16</span> <span class="number">0x00007f9d32976a19</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_S_create(unsigned long, unsigned long, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">17</span> <span class="number">0x00000000013e9df1</span> <span class="keyword">in</span> char* <span class="keyword">std</span>::string::_S_construct&lt;char const*&gt;(char const*, char const*, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;, <span class="keyword">std</span>::forward_iterator_tag) ()</span><br><span class="line">#<span class="number">18</span> <span class="number">0x00007f9d329786d8</span> <span class="keyword">in</span> <span class="keyword">std</span>::basic_string&lt;char, <span class="keyword">std</span>::char_traits&lt;char&gt;, <span class="keyword">std</span>::allocator&lt;char&gt; &gt;::basic_string(char const*, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">19</span> <span class="number">0x00007f9d2fe2d5fa</span> <span class="keyword">in</span> top::get_md5 () <span class="meta">at</span> /home/xchano/src/programs/xtopchano/src/version<span class="number">.</span>cpp:<span class="number">31</span></span><br><span class="line">#<span class="number">20</span> <span class="number">0x00007f9d2fe2dc23</span> <span class="keyword">in</span> top::print_version () <span class="meta">at</span> /home/xchano/src/programs/xtopchano/src/version<span class="number">.</span>cpp:<span class="number">62</span></span><br><span class="line">#<span class="number">21</span> <span class="number">0x00007f9d2fe2d24e</span> <span class="keyword">in</span> init_noparams_component (component_name=<span class="number">0x7f9d32bbf338</span> &lt;<span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_S_empty_rep_storage+<span class="number">24</span>&gt; <span class="string">""</span>, </span><br><span class="line">    pub_key=<span class="number">0x26532c8</span> <span class="string">"BEANYyQhGD0urjcRfsmqJLctMA5Hpe6DHW4pb6Asm50o/FgY2iU82bamk0WM0GtQXhNQykvy60DMmCHVWGhFR2c="</span>, pub_len=<span class="number">88</span>, </span><br><span class="line">    pri_key=<span class="number">0x2656858</span> <span class="string">"Lv1qWftE/8rQfMxufh+5ywy0maCdWl2ikdNun4wVjAM="</span>, pri_len=<span class="number">44</span>, node_id=<span class="number">0x2653378</span> <span class="string">"T-0-LWT5UjpGiSPzWs7Gt3Fc8ZmNFFwwA7Gpmt"</span>, datadir=<span class="number">0x26517a8</span> <span class="string">"/chano"</span>, </span><br><span class="line">    config_file_extra=<span class="number">0x26519e8</span> <span class="string">"/chano/extra_conf.json"</span>) <span class="meta">at</span> /home/xchano/src/programs/xtopchano/so<span class="number">.</span>cpp:<span class="number">18</span></span><br><span class="line">#<span class="number">22</span> <span class="number">0x0000000000dba3b5</span> <span class="keyword">in</span> lib_load (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">176</span></span><br><span class="line">#<span class="number">23</span> <span class="number">0x0000000000dc45c0</span> <span class="keyword">in</span> child_load_so (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1666</span></span><br><span class="line">#<span class="number">24</span> <span class="number">0x0000000000dc4349</span> <span class="keyword">in</span> spawn_child (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1611</span></span><br><span class="line">#<span class="number">25</span> <span class="number">0x0000000000dc8897</span> <span class="keyword">in</span> xnode_master_process_cycle (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">2244</span></span><br><span class="line">#<span class="number">26</span> <span class="number">0x0000000000dc092c</span> <span class="keyword">in</span> main (argc=<span class="number">7</span>, argv=<span class="number">0x7fffdc44bce8</span>) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1155</span></span><br><span class="line">(gdb) b version<span class="number">.</span>cpp:<span class="number">31</span></span><br><span class="line">Breakpoint <span class="number">1</span> <span class="meta">at</span> <span class="number">0x7f9d2fe2d5d4</span>: file /home/xchano/src/programs/xtopchano/src/version<span class="number">.</span>cpp, line <span class="number">31</span>.</span><br></pre></td></tr></table></figure>
+
+<p>注意看上面的第 2 帧和第 14 帧，都出现了 malloc 函数的调用，而 glibc malloc 内部的实现是有锁的，所以果然是出现了死锁。</p>
+<p>上面的执行流程是这样的：</p>
+<ol>
+<li>主进程启动</li>
+<li>fork 子进程，子进程会 load 一个 libxxxnode.so</li>
+<li>子进程调用 so 里提供的 <code>print_version()</code> 函数，打印版本信息</li>
+<li><code>print_version()</code> 函数内部有 string 的操作，也就是说会产生  malloc 的调用，正当在 malloc 内部的时候，不知道什么原因触发了某个信号（上面 signo=17）</li>
+<li>程序执行转移到 <code>signal_handler()</code>，处理信号</li>
+<li>但是不巧， <code>signal_handler()</code> 内部操作了日志，也就是也会调用到 malloc 函数</li>
+<li>然后陷入死锁</li>
+</ol>
+<p>所以，<strong>问题出现在了 <code>signal_handler()</code> 上，该信号处理函数调用了 malloc，而 malloc 是不可重入函数，造成最终的死锁</strong>。</p>
+<h1 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h1><p>要解决该死锁问题当然也简单，就是确保信号处理函数 <code>signal_handler()</code> 是可重入函数即可，这样即便在发生上面的场景，也就不会陷入死锁当中。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#108;&#x69;&#x6e;&#117;&#120;&#x63;&#x6f;&#x64;&#101;&#x32;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#111;&#x6d;">&#108;&#x69;&#x6e;&#117;&#120;&#x63;&#x6f;&#x64;&#101;&#x32;&#x6e;&#x69;&#x6b;&#x69;&#64;&#x67;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#111;&#x6d;</a></p>
+</li>
+</ul>
+<p>2020-05-25 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/02/cmake/" rel="bookmark">cmake教程|cmake入门实战</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2019/10/02/daemon/" rel="bookmark">linux守护进程c++实现</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/26/epoll_cookbook/" rel="bookmark">Epoll原理深入分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2016/11/22/hessiancpp编译和使用——C++版/" rel="bookmark">hessiancpp编译和使用(C++版)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/26/epoll_examples/" rel="bookmark">epoll 入门例子 tcp server/client</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rebootcat.com/2020/05/25/malloc_deadlock/" title="malloc 死锁">https://rebootcat.com/2020/05/25/malloc_deadlock/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/malloc/" rel="tag"># malloc</a>
+              <a href="/tags/signal/" rel="tag"># signal</a>
+              <a href="/tags/deadlock/" rel="tag"># deadlock</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/16/network_attack_of_blockchain_other_attack/" rel="prev" title="浅谈几种区块链网络攻击以及防御方案之其它网络攻击">
+      <i class="fa fa-chevron-left"></i> 浅谈几种区块链网络攻击以及防御方案之其它网络攻击
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/16/valgrind_massif_memory_analysing/" rel="next" title="valgrind massif 分析内存问题">
+      valgrind massif 分析内存问题 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#缘由"><span class="nav-number">1.</span> <span class="nav-text">缘由</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#排查死锁"><span class="nav-number">2.</span> <span class="nav-text">排查死锁</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#解决"><span class="nav-number">3.</span> <span class="nav-text">解决</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">60</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">136</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://loveyxq.online/" title="https:&#x2F;&#x2F;loveyxq.online&#x2F;" rel="noopener" target="_blank">子不语</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'd5vhXhrHKkiBVVpR1WJJLgQP-gzGzoHsz',
+      appKey     : 'BRzIFYxjcm34z68pyNalDPtw',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>
