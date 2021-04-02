@@ -213,6 +213,119 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2021/03/28/p2p_nat_traversal/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/03/28/p2p_nat_traversal/" class="post-title-link" itemprop="url">P2P 打洞技术详解</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-28 23:50:58" itemprop="dateCreated datePublished" datetime="2021-03-28T23:50:58+08:00">2021-03-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-02 23:26:54" itemprop="dateModified" datetime="2021-04-02T23:26:54+08:00">2021-04-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/03/28/p2p_nat_traversal/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/03/28/p2p_nat_traversal/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="何为打洞？-what"><a href="#何为打洞？-what" class="headerlink" title="何为打洞？(what)"></a>何为打洞？(what)</h1><h2 id="英文翻译"><a href="#英文翻译" class="headerlink" title="英文翻译"></a>英文翻译</h2><ul>
+<li>NAT traversal : NAT 穿越</li>
+<li>NAT Hole Punching : NAT 打孔</li>
+</ul>
+<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>(UDP) 打洞技术是通过<strong>中间公网服务器</strong>的协助在通信双方的 <strong>NAT 网关</strong>上建立相关的<strong>映射表项</strong>，使得双方发送的报文能直接<strong>穿透</strong>对方的 NAT 网关（防火墙），实现 P2P 直连。</p>
+<blockquote>
+<p>洞：所谓的洞就是映射规则，外部能够主动与之通信的规则</p>
+</blockquote>
+<h1 id="为何要打洞？-why"><a href="#为何要打洞？-why" class="headerlink" title="为何要打洞？(why)"></a>为何要打洞？(why)</h1><h2 id="直接连不行吗？"><a href="#直接连不行吗？" class="headerlink" title="直接连不行吗？"></a>直接连不行吗？</h2><ul>
+<li><strong>NAT</strong> 技术的存在，一方面减缓了 IPV4 的需求，使得私网 IP 地址通过映射成公网 IP 地址的方式与外界通信</li>
+<li>但另外一方面， <strong>NAT</strong> 也对安全性做了限制（防火墙），<strong>外界不能主动与私网 IP 进行通信</strong></li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324201346047.png" alt="image-20210324201346047"></p>
+<h2 id="打洞有什么好处？"><a href="#打洞有什么好处？" class="headerlink" title="打洞有什么好处？"></a>打洞有什么好处？</h2><ul>
+<li>节省流量</li>
+<li>降低中心服务器压力</li>
+<li>下载速度快（比如迅雷、直播等）</li>
+<li>安全性和私密性</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/03/28/p2p_nat_traversal/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/12/05/paxos/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1189,116 +1302,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/09/26/epoll_cookbook/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/26/epoll_cookbook/" class="post-title-link" itemprop="url">Epoll原理深入分析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-26 10:50:58" itemprop="dateCreated datePublished" datetime="2020-09-26T10:50:58+08:00">2020-09-26</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-25 20:28:48" itemprop="dateModified" datetime="2020-09-25T20:28:48+08:00">2020-09-25</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/09/26/epoll_cookbook/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/26/epoll_cookbook/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Epoll-的出现"><a href="#Epoll-的出现" class="headerlink" title="Epoll 的出现"></a>Epoll 的出现</h1><p>想必能搜到这篇文章的，应该对 select/poll 有一些了解和认识，一般说 epoll 都会与 select/poll 进行一些对比，select、poll 和 epoll 都是一种 IO 多路复用机制。</p>
-<h2 id="select-的问题"><a href="#select-的问题" class="headerlink" title="select 的问题"></a>select 的问题</h2><p>select 的问题在于描述符的限制，能监控的文件描述符最大为 FD_SETSIZE，对于连接数很多的场景就无法满足；</p>
-<p>另外select 还有一个问题是，每次调用 select 都需要从用户空间把描述符集合拷贝到内核空间，当描述符集合变大之后，用户空间和内核空间的内存拷贝会导致效率低下；</p>
-<p>另外每次调用 select 都需要在内核线性遍历文件描述符的集合，当描述符增多，效率低下。</p>
-<h2 id="poll-的问题"><a href="#poll-的问题" class="headerlink" title="poll 的问题"></a>poll 的问题</h2><p>由于 select 存在上面的问题，于是 poll 被提了出来，它能解决 select 对文件描述符数量有限制的问题，但是依然不能解决线性遍历以及用户空间和内核空间的低效数据拷贝问题。</p>
-<h2 id="epoll-是什么"><a href="#epoll-是什么" class="headerlink" title="epoll 是什么"></a>epoll 是什么</h2><p>select/poll 在互联网早期应该是没什么问题的，因为没有很多的互联网服务，也没有很多的客户端，但是随着互联网的发展，<a href="http://www.kegel.com/c10k.html#related" target="_blank" rel="noopener">C10K</a> 等问题的出现，select/poll 已经不能满足要求了，这个时候 epoll 上场了。</p>
-<p>epoll 是 linux 内核 2.6 之后支持的，epoll 同 select/poll 一样，也是 IO 多路复用的一种机制，不过它避免了 select/poll 的缺点。下面详细讲解一下 epoll 反应堆的原理。</p>
-<h1 id="Epoll-反应堆"><a href="#Epoll-反应堆" class="headerlink" title="Epoll 反应堆"></a>Epoll 反应堆</h1><h2 id="epoll-原理"><a href="#epoll-原理" class="headerlink" title="epoll 原理"></a>epoll 原理</h2><blockquote>
-<p><strong>要完整描述 epoll 的原理，需要涉及到内核、网卡、中断、软中断、协议栈、套接字等知识，本文尽量从比较全面的角度来分析 epoll 的原理</strong>。</p>
-</blockquote>
-<p>上面其实讨论了 select/poll 几个缺点，针对这几个缺点，就需要解决以下几件事：</p>
-<ul>
-<li>如何突破文件描述符数量的限制</li>
-<li>如何避免用户态和内核态对文件描述符集合的拷贝</li>
-<li>socket 就绪后，如何避免线性遍历文件描述符集合</li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/26/epoll_cookbook/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1370,7 +1373,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1383,7 +1386,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">149</span>
+        <span class="site-state-item-count">154</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

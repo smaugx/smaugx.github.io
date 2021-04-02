@@ -213,6 +213,116 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/09/26/epoll_cookbook/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/26/epoll_cookbook/" class="post-title-link" itemprop="url">Epoll原理深入分析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-26 10:50:58" itemprop="dateCreated datePublished" datetime="2020-09-26T10:50:58+08:00">2020-09-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-25 20:28:48" itemprop="dateModified" datetime="2020-09-25T20:28:48+08:00">2020-09-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/26/epoll_cookbook/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/26/epoll_cookbook/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Epoll-的出现"><a href="#Epoll-的出现" class="headerlink" title="Epoll 的出现"></a>Epoll 的出现</h1><p>想必能搜到这篇文章的，应该对 select/poll 有一些了解和认识，一般说 epoll 都会与 select/poll 进行一些对比，select、poll 和 epoll 都是一种 IO 多路复用机制。</p>
+<h2 id="select-的问题"><a href="#select-的问题" class="headerlink" title="select 的问题"></a>select 的问题</h2><p>select 的问题在于描述符的限制，能监控的文件描述符最大为 FD_SETSIZE，对于连接数很多的场景就无法满足；</p>
+<p>另外select 还有一个问题是，每次调用 select 都需要从用户空间把描述符集合拷贝到内核空间，当描述符集合变大之后，用户空间和内核空间的内存拷贝会导致效率低下；</p>
+<p>另外每次调用 select 都需要在内核线性遍历文件描述符的集合，当描述符增多，效率低下。</p>
+<h2 id="poll-的问题"><a href="#poll-的问题" class="headerlink" title="poll 的问题"></a>poll 的问题</h2><p>由于 select 存在上面的问题，于是 poll 被提了出来，它能解决 select 对文件描述符数量有限制的问题，但是依然不能解决线性遍历以及用户空间和内核空间的低效数据拷贝问题。</p>
+<h2 id="epoll-是什么"><a href="#epoll-是什么" class="headerlink" title="epoll 是什么"></a>epoll 是什么</h2><p>select/poll 在互联网早期应该是没什么问题的，因为没有很多的互联网服务，也没有很多的客户端，但是随着互联网的发展，<a href="http://www.kegel.com/c10k.html#related" target="_blank" rel="noopener">C10K</a> 等问题的出现，select/poll 已经不能满足要求了，这个时候 epoll 上场了。</p>
+<p>epoll 是 linux 内核 2.6 之后支持的，epoll 同 select/poll 一样，也是 IO 多路复用的一种机制，不过它避免了 select/poll 的缺点。下面详细讲解一下 epoll 反应堆的原理。</p>
+<h1 id="Epoll-反应堆"><a href="#Epoll-反应堆" class="headerlink" title="Epoll 反应堆"></a>Epoll 反应堆</h1><h2 id="epoll-原理"><a href="#epoll-原理" class="headerlink" title="epoll 原理"></a>epoll 原理</h2><blockquote>
+<p><strong>要完整描述 epoll 的原理，需要涉及到内核、网卡、中断、软中断、协议栈、套接字等知识，本文尽量从比较全面的角度来分析 epoll 的原理</strong>。</p>
+</blockquote>
+<p>上面其实讨论了 select/poll 几个缺点，针对这几个缺点，就需要解决以下几件事：</p>
+<ul>
+<li>如何突破文件描述符数量的限制</li>
+<li>如何避免用户态和内核态对文件描述符集合的拷贝</li>
+<li>socket 就绪后，如何避免线性遍历文件描述符集合</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/26/epoll_cookbook/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/09/20/wiki/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1154,123 +1264,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2020/05/25/malloc_deadlock/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
-      <meta itemprop="name" content="Smaug">
-      <meta itemprop="description" content="人至贱则无敌">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林夕水共">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/25/malloc_deadlock/" class="post-title-link" itemprop="url">malloc 死锁</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-25 11:23:58" itemprop="dateCreated datePublished" datetime="2020-05-25T11:23:58+08:00">2020-05-25</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-21 22:58:56" itemprop="dateModified" datetime="2020-11-21T22:58:56+08:00">2020-11-21</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c++</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/05/25/malloc_deadlock/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/05/25/malloc_deadlock/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="缘由"><a href="#缘由" class="headerlink" title="缘由"></a>缘由</h1><p>xxnode 是一个程序，执行 <code>xxnode -v</code> 出现卡住不动的情况。</p>
-<p>正常情况下，<code>xxnode -v</code> 会打印出程序版本号等信息，而且只是简单的打印版本号就会推出，不涉及到复杂的业务逻辑，但本次碰到的情况是卡住不动了，马上怀疑肯定是出现死锁了。</p>
-<h1 id="排查死锁"><a href="#排查死锁" class="headerlink" title="排查死锁"></a>排查死锁</h1><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="keyword">ps</span> -ef |<span class="keyword">grep</span> xxnode</span><br><span class="line"><span class="number">8987</span></span><br></pre></td></tr></table></figure>
-<p>上面先找到卡住的 xxnode 的进程号，然后使用 gdb attach 上去：</p>
-<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gdb <span class="section">attach</span> <span class="number">8987</span></span><br></pre></td></tr></table></figure>
-
-<p>然后使用 <code>bt</code> 查看堆栈情况，发现堆栈如下：</p>
-<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">(gdb) <span class="keyword">bt</span></span><br><span class="line">#<span class="number">0</span>  <span class="number">0x00007f9d320df5cc</span> <span class="keyword">in</span> __lll_lock_wait_private () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">1</span>  <span class="number">0x00007f9d3205bb12</span> <span class="keyword">in</span> _L_lock_16654 () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">2</span>  <span class="number">0x00007f9d32058753</span> <span class="keyword">in</span> malloc () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">3</span>  <span class="number">0x00007f9d32917ecd</span> <span class="keyword">in</span> operator new(unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">4</span>  <span class="number">0x00007f9d32976a19</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_S_create(unsigned long, unsigned long, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">5</span>  <span class="number">0x00007f9d3297762b</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_M_clone(<span class="keyword">std</span>::allocator&lt;char&gt; const&amp;, unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">6</span>  <span class="number">0x00007f9d329776d4</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::reserve(unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">7</span>  <span class="number">0x00007f9d3297793f</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::append(char const*, unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">8</span>  <span class="number">0x0000000001431d8d</span> <span class="keyword">in</span> xwrite_log2 (module=<span class="number">0x14d4c14</span> <span class="string">"xnetwork"</span>, file=<span class="number">0x14d7a0b</span> <span class="string">"xmain.cpp"</span>, function=<span class="number">0x14db0c0</span> &lt;get_child_status()::__FUNCTION__&gt; <span class="string">"get_child_status"</span>, line=<span class="number">1865</span>, </span><br><span class="line">    level=enum_xlog_level_warn, msg=<span class="number">0x14d8a4e</span> <span class="string">"waitpid() failed: ECHILD"</span>) <span class="meta">at</span> ../../src/xlog<span class="number">.</span>cpp:<span class="number">717</span></span><br><span class="line">#<span class="number">9</span>  <span class="number">0x0000000000dc4fd5</span> <span class="keyword">in</span> get_child_status () <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1865</span></span><br><span class="line">#<span class="number">10</span> <span class="number">0x0000000000dc490f</span> <span class="keyword">in</span> signal_handler (signo=<span class="number">17</span>) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1763</span></span><br><span class="line">#<span class="number">11</span> <span class="number">0x0000000000dc4cc8</span> <span class="keyword">in</span> xnode_signal_handler (signo=<span class="number">17</span>, siginfo=<span class="number">0x7fffdc448f70</span>, ucontext=<span class="number">0x7fffdc448e40</span>) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1798</span></span><br><span class="line">#<span class="number">12</span> &lt;signal handler called&gt;</span><br><span class="line">#<span class="number">13</span> <span class="number">0x00007f9d32054f41</span> <span class="keyword">in</span> _int_malloc () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">14</span> <span class="number">0x00007f9d320586fc</span> <span class="keyword">in</span> malloc () from /lib64/libc<span class="number">.</span>so<span class="number">.6</span></span><br><span class="line">#<span class="number">15</span> <span class="number">0x00007f9d32917ecd</span> <span class="keyword">in</span> operator new(unsigned long) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">16</span> <span class="number">0x00007f9d32976a19</span> <span class="keyword">in</span> <span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_S_create(unsigned long, unsigned long, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">17</span> <span class="number">0x00000000013e9df1</span> <span class="keyword">in</span> char* <span class="keyword">std</span>::string::_S_construct&lt;char const*&gt;(char const*, char const*, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;, <span class="keyword">std</span>::forward_iterator_tag) ()</span><br><span class="line">#<span class="number">18</span> <span class="number">0x00007f9d329786d8</span> <span class="keyword">in</span> <span class="keyword">std</span>::basic_string&lt;char, <span class="keyword">std</span>::char_traits&lt;char&gt;, <span class="keyword">std</span>::allocator&lt;char&gt; &gt;::basic_string(char const*, <span class="keyword">std</span>::allocator&lt;char&gt; const&amp;) () from /lib64/libstdc++.so<span class="number">.6</span></span><br><span class="line">#<span class="number">19</span> <span class="number">0x00007f9d2fe2d5fa</span> <span class="keyword">in</span> top::get_md5 () <span class="meta">at</span> /home/xchano/src/programs/xtopchano/src/version<span class="number">.</span>cpp:<span class="number">31</span></span><br><span class="line">#<span class="number">20</span> <span class="number">0x00007f9d2fe2dc23</span> <span class="keyword">in</span> top::print_version () <span class="meta">at</span> /home/xchano/src/programs/xtopchano/src/version<span class="number">.</span>cpp:<span class="number">62</span></span><br><span class="line">#<span class="number">21</span> <span class="number">0x00007f9d2fe2d24e</span> <span class="keyword">in</span> init_noparams_component (component_name=<span class="number">0x7f9d32bbf338</span> &lt;<span class="keyword">std</span>::string::_<span class="keyword">Rep</span>::_S_empty_rep_storage+<span class="number">24</span>&gt; <span class="string">""</span>, </span><br><span class="line">    pub_key=<span class="number">0x26532c8</span> <span class="string">"BEANYyQhGD0urjcRfsmqJLctMA5Hpe6DHW4pb6Asm50o/FgY2iU82bamk0WM0GtQXhNQykvy60DMmCHVWGhFR2c="</span>, pub_len=<span class="number">88</span>, </span><br><span class="line">    pri_key=<span class="number">0x2656858</span> <span class="string">"Lv1qWftE/8rQfMxufh+5ywy0maCdWl2ikdNun4wVjAM="</span>, pri_len=<span class="number">44</span>, node_id=<span class="number">0x2653378</span> <span class="string">"T-0-LWT5UjpGiSPzWs7Gt3Fc8ZmNFFwwA7Gpmt"</span>, datadir=<span class="number">0x26517a8</span> <span class="string">"/chano"</span>, </span><br><span class="line">    config_file_extra=<span class="number">0x26519e8</span> <span class="string">"/chano/extra_conf.json"</span>) <span class="meta">at</span> /home/xchano/src/programs/xtopchano/so<span class="number">.</span>cpp:<span class="number">18</span></span><br><span class="line">#<span class="number">22</span> <span class="number">0x0000000000dba3b5</span> <span class="keyword">in</span> lib_load (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">176</span></span><br><span class="line">#<span class="number">23</span> <span class="number">0x0000000000dc45c0</span> <span class="keyword">in</span> child_load_so (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1666</span></span><br><span class="line">#<span class="number">24</span> <span class="number">0x0000000000dc4349</span> <span class="keyword">in</span> spawn_child (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1611</span></span><br><span class="line">#<span class="number">25</span> <span class="number">0x0000000000dc8897</span> <span class="keyword">in</span> xnode_master_process_cycle (cmd_type=<span class="number">0</span>, config=...) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">2244</span></span><br><span class="line">#<span class="number">26</span> <span class="number">0x0000000000dc092c</span> <span class="keyword">in</span> main (argc=<span class="number">7</span>, argv=<span class="number">0x7fffdc44bce8</span>) <span class="meta">at</span> /home/xchano/src/xtopcom/xnode/src/xmain<span class="number">.</span>cpp:<span class="number">1155</span></span><br><span class="line">(gdb) b version<span class="number">.</span>cpp:<span class="number">31</span></span><br><span class="line">Breakpoint <span class="number">1</span> <span class="meta">at</span> <span class="number">0x7f9d2fe2d5d4</span>: file /home/xchano/src/programs/xtopchano/src/version<span class="number">.</span>cpp, line <span class="number">31</span>.</span><br></pre></td></tr></table></figure>
-
-<p>注意看上面的第 2 帧和第 14 帧，都出现了 malloc 函数的调用，而 glibc malloc 内部的实现是有锁的，所以果然是出现了死锁。</p>
-<p>上面的执行流程是这样的：</p>
-<ol>
-<li>主进程启动</li>
-<li>fork 子进程，子进程会 load 一个 libxxxnode.so</li>
-<li>子进程调用 so 里提供的 <code>print_version()</code> 函数，打印版本信息</li>
-<li><code>print_version()</code> 函数内部有 string 的操作，也就是说会产生  malloc 的调用，正当在 malloc 内部的时候，不知道什么原因触发了某个信号（上面 signo=17）</li>
-<li>程序执行转移到 <code>signal_handler()</code>，处理信号</li>
-<li>但是不巧， <code>signal_handler()</code> 内部操作了日志，也就是也会调用到 malloc 函数</li>
-<li>然后陷入死锁</li>
-</ol>
-<p>所以，<strong>问题出现在了 <code>signal_handler()</code> 上，该信号处理函数调用了 malloc，而 malloc 是不可重入函数，造成最终的死锁</strong>。</p>
-<h1 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h1><p>要解决该死锁问题当然也简单，就是确保信号处理函数 <code>signal_handler()</code> 是可重入函数即可，这样即便在发生上面的场景，也就不会陷入死锁当中。</p>
-<p>Blog:</p>
-<ul>
-<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
-</li>
-<li><p>email: <a href="mailto:&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#100;&#x65;&#x32;&#110;&#105;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#99;&#111;&#x6d;">&#108;&#105;&#110;&#117;&#x78;&#x63;&#111;&#100;&#x65;&#x32;&#110;&#105;&#107;&#105;&#x40;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#99;&#111;&#x6d;</a></p>
-</li>
-</ul>
-<p>2020-05-25 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1342,7 +1335,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1355,7 +1348,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">149</span>
+        <span class="site-state-item-count">154</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

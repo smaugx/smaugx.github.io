@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+<meta name="google-site-verification" content="IpNgA5aPb7fAewOpvbq-eVkYwuCplcLKol7cG2itN5M" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+  <meta name="google-site-verification" content="google6993574491856c8e.html">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rebootcat.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":250,"display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"livere","storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="何为打洞？(what)英文翻译 NAT traversal : NAT 穿越 NAT Hole Punching : NAT 打孔  定义(UDP) 打洞技术是通过中间公网服务器的协助在通信双方的 NAT 网关上建立相关的映射表项，使得双方发送的报文能直接穿透对方的 NAT 网关（防火墙），实现 P2P 直连。  洞：所谓的洞就是映射规则，外部能够主动与之通信的规则  为何要打洞？(why)直接连">
+<meta property="og:type" content="article">
+<meta property="og:title" content="P2P 打洞技术详解">
+<meta property="og:url" content="https://rebootcat.com/2021/03/28/p2p_nat_traversal/index.html">
+<meta property="og:site_name" content="林夕水共">
+<meta property="og:description" content="何为打洞？(what)英文翻译 NAT traversal : NAT 穿越 NAT Hole Punching : NAT 打孔  定义(UDP) 打洞技术是通过中间公网服务器的协助在通信双方的 NAT 网关上建立相关的映射表项，使得双方发送的报文能直接穿透对方的 NAT 网关（防火墙），实现 P2P 直连。  洞：所谓的洞就是映射规则，外部能够主动与之通信的规则  为何要打洞？(why)直接连">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324201346047.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324201449678.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324212632428.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324213025505.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324222800953.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210325095314524.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210325102706630.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210325113426160.png">
+<meta property="article:published_time" content="2021-03-28T15:50:58.000Z">
+<meta property="article:modified_time" content="2021-04-02T15:26:54.797Z">
+<meta property="article:author" content="Smaug">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="tcp">
+<meta property="article:tag" content="p2p">
+<meta property="article:tag" content="nat">
+<meta property="article:tag" content="stun">
+<meta property="article:tag" content="udp">
+<meta property="article:tag" content="upnp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324201346047.png">
+
+<link rel="canonical" href="https://rebootcat.com/2021/03/28/p2p_nat_traversal/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>P2P 打洞技术详解 | 林夕水共</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="林夕水共" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">林夕水共</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">关于技术,关于生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-guestbook">
+
+    <a href="/guestbook" rel="section"><i class="fa fa-fw fa-fas fa-comments"></i>留言</a>
+
+  </li>
+        <li class="menu-item menu-item-photos">
+
+    <a href="/photos" rel="section"><i class="fa fa-fw fa-fas fa-camera-retro"></i>摄影</a>
+
+  </li>
+        <li class="menu-item menu-item-wiki">
+
+    <a href="/wiki/" rel="section"><i class="fa fa-fw fa-wikipedia-w"></i>维基</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/smaugx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rebootcat.com/2021/03/28/p2p_nat_traversal/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+      <meta itemprop="name" content="Smaug">
+      <meta itemprop="description" content="人至贱则无敌">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林夕水共">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          P2P 打洞技术详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-28 23:50:58" itemprop="dateCreated datePublished" datetime="2021-03-28T23:50:58+08:00">2021-03-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-02 23:26:54" itemprop="dateModified" datetime="2021-04-02T23:26:54+08:00">2021-04-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/03/28/p2p_nat_traversal/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/03/28/p2p_nat_traversal/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="何为打洞？-what"><a href="#何为打洞？-what" class="headerlink" title="何为打洞？(what)"></a>何为打洞？(what)</h1><h2 id="英文翻译"><a href="#英文翻译" class="headerlink" title="英文翻译"></a>英文翻译</h2><ul>
+<li>NAT traversal : NAT 穿越</li>
+<li>NAT Hole Punching : NAT 打孔</li>
+</ul>
+<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>(UDP) 打洞技术是通过<strong>中间公网服务器</strong>的协助在通信双方的 <strong>NAT 网关</strong>上建立相关的<strong>映射表项</strong>，使得双方发送的报文能直接<strong>穿透</strong>对方的 NAT 网关（防火墙），实现 P2P 直连。</p>
+<blockquote>
+<p>洞：所谓的洞就是映射规则，外部能够主动与之通信的规则</p>
+</blockquote>
+<h1 id="为何要打洞？-why"><a href="#为何要打洞？-why" class="headerlink" title="为何要打洞？(why)"></a>为何要打洞？(why)</h1><h2 id="直接连不行吗？"><a href="#直接连不行吗？" class="headerlink" title="直接连不行吗？"></a>直接连不行吗？</h2><ul>
+<li><strong>NAT</strong> 技术的存在，一方面减缓了 IPV4 的需求，使得私网 IP 地址通过映射成公网 IP 地址的方式与外界通信</li>
+<li>但另外一方面， <strong>NAT</strong> 也对安全性做了限制（防火墙），<strong>外界不能主动与私网 IP 进行通信</strong></li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324201346047.png" alt="image-20210324201346047"></p>
+<h2 id="打洞有什么好处？"><a href="#打洞有什么好处？" class="headerlink" title="打洞有什么好处？"></a>打洞有什么好处？</h2><ul>
+<li>节省流量</li>
+<li>降低中心服务器压力</li>
+<li>下载速度快（比如迅雷、直播等）</li>
+<li>安全性和私密性</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="如何打洞？（how"><a href="#如何打洞？（how" class="headerlink" title="如何打洞？（how)"></a>如何打洞？（how)</h1><p>通常我们说的打洞技术基本上都是使用 UDP 来实现的，当然 TCP 也行，只不过会复杂一点（后面我们讨论一下 TCP 打洞）。</p>
+<h2 id="使用中继设备（proxy"><a href="#使用中继设备（proxy" class="headerlink" title="使用中继设备（proxy)"></a>使用中继设备（proxy)</h2><p>主要利⽤第三⽅的服务器作为中转服务器，⽐如Application Level Gateway (ALG),application server, application server with agent, <strong>TURN</strong>。</p>
+<p>有点是稳定可靠，缺点是延迟较⼤，不适合在p2p的⽹络中使⽤。</p>
+<blockquote>
+<p>本质上其实不算 P2P 打洞的范畴了。</p>
+</blockquote>
+<h2 id="直连"><a href="#直连" class="headerlink" title="直连"></a>直连</h2><p>基本思路是：<strong>A 和 B 互相知道对方的公网 IP:Port，使用对方公网 IP:Port 通信</strong>。</p>
+<p>通过修改通信协议，或者 NAT 设备来帮助节点之前的直接通信，⽐如： tunnel, NAT-PMP, <strong>UPnP</strong>, MidCom, <strong>STUN</strong> hole punching, ICE, Teredo等。 其中STUN hole punching⽅法在实践中应⽤最为 广泛。</p>
+<ul>
+<li>UPnP: 把内网 IP 直接映射为 NAT 外网 IP (纯转发模式)，类似公网 IP</li>
+<li>STUN: 比较出名的打洞协议，本质上就是利用一台或多台公网服务器协助位于不同私网的两个节点 A 和 B 进行打洞。</li>
+</ul>
+<h1 id="NAT-设备类型"><a href="#NAT-设备类型" class="headerlink" title="NAT 设备类型"></a>NAT 设备类型</h1><p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324201449678.png" alt="image-20210324201449678"></p>
+<ul>
+<li><p>Full Cone NAT： 允许任何外部 IP 任何端⼝连⼊ NAT，只要 NAT 内部 host 产⽣过 IP 端⼝映射。 (<strong>不限制任何 IP</strong>)</p>
+</li>
+<li><p>Restricted Cone NAT： 只允许外部指定 IP 连⼊当前 NAT，即 NAT 内 host 主动连 接过的 IP。（<strong>限制 IP</strong>)</p>
+</li>
+<li><p>Port-Restricted Cone NAT：只允许内⽹设备主动 连接过的外⽹ IP 和 Port 连⼊。（<strong>限制 IP + Port</strong>）</p>
+</li>
+<li><p>Symmetric NAT：这种类型的 NAT ⾏为跟端⼝限制型的 NAT 类型相似，不同的是，对于向外连接的不同的 IP 和 Port，NAT 随机分配⼀个 Port 来完成地址转换，完成对外连接。（<strong>只要向外的 IP:Port 不一致则映射到不同端口</strong>）</p>
+</li>
+</ul>
+<p>注意：<strong>对于前三种 NAT 设备，内网节点连接不同的 server {IP, Port} 对映射外网端口一致</strong>；</p>
+<blockquote>
+<p>主要有以上几种，市面上还有少量的其他类型</p>
+</blockquote>
+<h1 id="Full-Cone-NAT-全锥形"><a href="#Full-Cone-NAT-全锥形" class="headerlink" title="Full Cone NAT (全锥形)"></a>Full Cone NAT (全锥形)</h1><ul>
+<li>NAT 映射规则形成后，外部其他主机能够主动与之通信</li>
+</ul>
+<p>举例如下：</p>
+<ol>
+<li>A 位于私网内部</li>
+<li>A 访问 <a href="https://www.google.com/" target="_blank" rel="noopener">https://www.google.com/</a> </li>
+<li>NAT-A 记录了映射规则，比如 {local_host,local_port,public_port,dest_host} 等信息</li>
+<li>外部其他主机（比如 google.com) 能主动与 A 通信（通过 A  的 public_ip:public_port)</li>
+</ol>
+<h1 id="Restricted-Cone-NAT（限制型）"><a href="#Restricted-Cone-NAT（限制型）" class="headerlink" title="Restricted Cone NAT（限制型）"></a>Restricted Cone NAT（限制型）</h1><p>在 Full Cone NAT 的基础上多加了一条限制规则：</p>
+<ul>
+<li>只允许访问过的 server IP 与之通信</li>
+</ul>
+<p>举例如下：还是上面的例子，后续<strong>只允许</strong> <a href="https://www.google.com/" target="_blank" rel="noopener">https://www.google.com/</a>  (对应 IP 203.107.53.50) 与之通信，而<strong>不 care 203.107.53.50 的端口号</strong>（比如从 6666 端口过来的数据）。</p>
+<h1 id="Port-Restricted-Cone-NAT（端口限制型）"><a href="#Port-Restricted-Cone-NAT（端口限制型）" class="headerlink" title="Port-Restricted Cone NAT（端口限制型）"></a>Port-Restricted Cone NAT（端口限制型）</h1><p>在 Restricted Cone NAT 的基础上多加了一条限制规则：</p>
+<ul>
+<li>只允许访问过的 server {IP, Port} 与之通信</li>
+</ul>
+<p>举例如下：还是上面的例子，后续<strong>只允许</strong> <a href="https://www.google.com/" target="_blank" rel="noopener">https://www.google.com/</a>  (对应 IP 203.107.53.50) 的 80 端口与之通信，<strong>其他端口不行</strong>。</p>
+<h1 id="Symmetric-NAT（对称型）"><a href="#Symmetric-NAT（对称型）" class="headerlink" title="Symmetric NAT（对称型）"></a>Symmetric NAT（对称型）</h1><p>访问规则同 Port-Restricted Cone NAT：</p>
+<ul>
+<li>只允许访问过的 server {IP, Port} 与之通信</li>
+</ul>
+<p>区别是连接不同的 server {IP, Port}，映射到 NAT 上的公网 Port 不一致，且<strong>映射规则不确定</strong>。</p>
+<p>有些 NAT 设备会进行简单的 +1 操作实现端口映射，比如：{local_port: 6000, public_port: 6000, Server1}，{local_port: 6000, public_port: 6001, Server2}，{local_port: 6000, public_port: 6003, Server3}</p>
+<p>有些 NAT 设备为了安全性，可能会随机进行端口映射，提高端口猜测的难度。</p>
+<h1 id="场景分析"><a href="#场景分析" class="headerlink" title="场景分析"></a>场景分析</h1><p>(假设已经获取到⽬标邻居的IP Port 等信息)</p>
+<ol>
+<li>先向公⽹服务器发起请求，探测⾃⼰是不是在⼀个 NAT 下</li>
+<li>如果不在，说明自己是公网节点，可以与目标建立连接（让目标主动连接）</li>
+<li>如果在，则获取⾃⼰的 NAT 类型是什么，根据不同的类型采取相应不同的策略</li>
+</ol>
+<blockquote>
+<p>注意：A 和 B 均要与 server 一致保持连接心跳，确保 NAT 映射端口有效</p>
+</blockquote>
+<h2 id="节点-A-在-NAT-下面，节点-B-在公网环境中"><a href="#节点-A-在-NAT-下面，节点-B-在公网环境中" class="headerlink" title="节点 A 在 NAT 下面，节点 B 在公网环境中"></a>节点 A 在 NAT 下面，节点 B 在公网环境中</h2><p>打洞策略：</p>
+<ul>
+<li>只要保证节点 A 主动向节点 B 发起连接，两者就可以连接成功</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324212632428.png" alt="image-20210324212632428"></p>
+<h2 id="节点-A-和-B-在相同的-NAT-下"><a href="#节点-A-和-B-在相同的-NAT-下" class="headerlink" title="节点 A 和 B 在相同的 NAT 下"></a>节点 A 和 B 在相同的 NAT 下</h2><p>打洞策略：</p>
+<ol>
+<li>A 从 server 获取 B 的信息，server 同时发给 A 和 B 对方的信息（公网/私网信息）</li>
+<li>A 与 B 各自收到 server 的信息后，同时向对方发起连接，公网和私网都发（理论上私网会快一点），一旦收到回复，则停止</li>
+<li>建立连接成功</li>
+</ol>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324213025505.png" alt="image-20210324213025505"></p>
+<h2 id="节点-A-和-B-在不同的-NAT-下（这是我们要重点讨论的）"><a href="#节点-A-和-B-在不同的-NAT-下（这是我们要重点讨论的）" class="headerlink" title="节点 A 和 B 在不同的 NAT 下（这是我们要重点讨论的）"></a>节点 A 和 B 在不同的 NAT 下（这是我们要重点讨论的）</h2><p><strong>节点 A 和 B 的 NAT 可能是任意一种 NAT 类型</strong></p>
+<ul>
+<li>A 和 B 均是锥形 NAT</li>
+<li>A 和 B 分别是对称型和普通锥形(全锥形，限制型锥形)</li>
+<li>A 和 B 分别是对称型和 Port-Restricted Cone NAT （端口限制型）</li>
+<li>A  和 B 都是对称型</li>
+</ul>
+<h2 id="A-和-B-均是锥形-NAT"><a href="#A-和-B-均是锥形-NAT" class="headerlink" title="A 和 B 均是锥形 NAT"></a>A 和 B 均是锥形 NAT</h2><p>锥形 NAT 之间可以容易的打洞成功，具体流程如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210324222800953.png" alt="image-20210324222800953"></p>
+<p>以下流程假定已经完成了 NAT 类型探测，A/B 知道自己的 NAT 类型，以及通过 NAT 映射出去的端口 PA1/PB1。</p>
+<p>打洞策略：</p>
+<ol>
+<li>A 向 server 发起与 B 的打洞请求，server 向 B  转发打洞请求，同时A 向 PB1 直接发送探测包，那么 A 为 B 在 PA1 已经成功打洞，但是 A 的消息无法到达，因为 B 的 NAT 会将不明的地址(PA1) <strong>丢弃</strong>。（注意：<strong><em>这里有可能不是丢弃，而是拒绝</em></strong>）</li>
+<li>B 收到从 server  转发过来的打洞请求后，向 PA1 直接发送探测包，这时 B 的 NAT 可以放行  PA1 的消息了，也就是 B 为 A 在 PB1 上完成了打洞。</li>
+<li>至此，A 和 B 消息能够互通，打洞成功</li>
+</ol>
+<blockquote>
+<p>注意，上面斜体部分，NAT 对不明地址的行为可能是拒绝，待会会讨论。</p>
+</blockquote>
+<h2 id="A-和-B-分别是对称型和普通锥形-全锥形，限制型锥形"><a href="#A-和-B-分别是对称型和普通锥形-全锥形，限制型锥形" class="headerlink" title="A 和 B 分别是对称型和普通锥形(全锥形，限制型锥形)"></a>A 和 B 分别是对称型和普通锥形(全锥形，限制型锥形)</h2><p>假设 A 是对称 NAT，B  是普通锥形：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210325095314524.png" alt="image-20210325095314524"></p>
+<p>打洞策略：</p>
+<ol>
+<li>A 向 server 发起与 B 的打洞请求，server 向 B  转发打洞请求，同时发送探测包到 PB1，这个<strong>探测包是从 PA2 发出</strong>的，不是 PA1(因为对称型)。也就是 A 在端口 PA2 为 PB1 完成打洞，同时 B 的 NAT 会<strong>丢弃</strong>来自不明地址 PA2 的包。（注意：<strong><em>这里有可能不是丢弃，而是拒绝</em></strong>）</li>
+<li>B 收到从 server 转发过来的打洞请求，向 PA1 发送初始探测包（一开始不知道 PA2)，这个时候 <span style="color:red">B 已经为 A 在 PB1 打好洞</span>，至此 PA2 的消息能够通过 PB1 到达 B。（注意：<strong>因为是普通锥形，不对端口做限制，所以从不同端口 PA2 过来的包能被 B 接受</strong>）</li>
+<li>经过步骤2，B 可以收到 PA2 的消息，同时结合 A 的 NAT 类型，重新改发探测包到 PA2，于是 A 在 PA2 能收到 PB1 的探测包，至此 A 和 B 消息可以互通，打洞成功</li>
+</ol>
+<blockquote>
+<p>如果 A 和 B 正好角色相反，那么可以调整打洞的方向即可</p>
+</blockquote>
+<h2 id="A-和-B-分别是对称型和-Port-Restricted-Cone-NAT-（端口限制型）"><a href="#A-和-B-分别是对称型和-Port-Restricted-Cone-NAT-（端口限制型）" class="headerlink" title="A 和 B 分别是对称型和 Port-Restricted Cone NAT （端口限制型）"></a>A 和 B 分别是对称型和 Port-Restricted Cone NAT （端口限制型）</h2><p>原本大致过程是同上面一种场景，但是由于 B 是端口限制型 NAT，会导致 PB1 只允许 PA1 通过（上面红色字体部分<span style="color:red">B 已经为 A 在 PB1 打好洞</span>），从而 PA2 过来的包会被 B 的 NAT 拒绝，导致<strong>打洞失败</strong>。</p>
+<h2 id="A-和-B-都是对称型"><a href="#A-和-B-都是对称型" class="headerlink" title="A  和 B 都是对称型"></a>A  和 B 都是对称型</h2><p>由于 A  和 B 均是对称型 NAT，那么比上面一种场景更严格，A  和 B 探测得到的公网 Port 均会被修改，<strong>无法完成打洞</strong>。</p>
+<h1 id="对称型打洞真的没有办法了吗？"><a href="#对称型打洞真的没有办法了吗？" class="headerlink" title="对称型打洞真的没有办法了吗？"></a>对称型打洞真的没有办法了吗？</h1><p>我们再来考虑<strong>对称型和端口限制型</strong>的打洞，由于 B 收到 server 转发过来的打洞请求后，是向  PA1 发送探测包的，因为 B 只知道 PA1（PA1 是 A 与 server 连接是映射的端口号，server 也只知道 PA1)，但是 A 由于是对称型 NAT，会从一个新端口 PA2 向 B 发包，但是 B 由于是端口限制型，只允许 PA1 端口的包通过，所以 B 会拒绝 PA2。</p>
+<p>还是上面那张图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210325102706630.png" alt="image-20210325102706630"></p>
+<p>A 从 PA2 发向 B  的包一直会被 B  拒绝，也就是说 B 无法在 NAT-B  上为 A 打洞。</p>
+<p>那<strong><em>假如 B 探测包不是发往  PA1 而是 PA2 呢</em></strong>？那 A 和 B 就能打洞成功。</p>
+<p><span style="color:red">那么问题来了，B 如何知道 PA2 呢？</span></p>
+<p>通常来讲，有两种办法：</p>
+<ul>
+<li>端口探测</li>
+<li>端口预测</li>
+</ul>
+<h2 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h2><p>对于对称型的 NAT在映射内网端口的时候，有一些 NAT 设备会采取比较傻瓜的端口分配方法，比如进行<strong>简单的线性变化</strong>。</p>
+<ul>
+<li>比如每次分配的端口号递增  1</li>
+<li>PA2 = (PA1 + PB1 + IPA + IPB) % 65535</li>
+</ul>
+<p>对于这种 NAT，要探测这种特性需要用到两台及以上的公网 server，通过与不同的 server 连接映射的公网 Port，归纳总结自己的 NAT  映射规律，那么对于 B 来说，打洞的时候第一次向  A 发包，就直接往 PA2 发包就好了。</p>
+<h2 id="端口预测"><a href="#端口预测" class="headerlink" title="端口预测"></a>端口预测</h2><p>有一些对称型 NAT 为了安全考虑，分配端口的方法难以预测，比如随机分配端口，那么对于这种情况，如何预测端口号呢？</p>
+<ul>
+<li>基于一个理论：生日攻击理论</li>
+</ul>
+<blockquote>
+<p>生日攻击理论讲的是在一个班级里，每个人的生日可能是 365 天里的任何一天，每年有 365 天，如果要让 <strong>至少有两人的生日相同的概率超过 50%</strong>，问这个班级最少需要多少人？</p>
+</blockquote>
+<p>答案是：(xx)</p>
+<p>是不是出乎预料？</p>
+<p>生日攻击理论说的直白点就是，<span style="color:red">利用了远小于样本集的尝试次数，就能够很大概率获得两个相同的碰撞采样结果</span>。</p>
+<p>那么针对端口号的样本集 65535，实际是 (1025, 65535]，双方随机打洞需要尝试多少次（打多少洞）才能刚好碰撞成功呢？</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>cat nat_birth_attack.py                                                                                                                                                                                         </span><br><span class="line"></span><br><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment">#-*- coding:utf8 -*-</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> math</span><br><span class="line"><span class="keyword">from</span> decimal <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">getcontext().prec = <span class="number">6</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">birthday_attack</span><span class="params">(total, rate)</span>:</span></span><br><span class="line">    k = <span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        k += <span class="number">1</span></span><br><span class="line">        a,t = <span class="number">1</span>,<span class="number">1</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> range(k):</span><br><span class="line">            a = a * (total - i)</span><br><span class="line">            t = t *  total</span><br><span class="line"></span><br><span class="line">        np = Decimal(a) / Decimal(t)</span><br><span class="line">        p = <span class="number">1</span> - np</span><br><span class="line">        <span class="keyword">if</span> p &gt; rate:</span><br><span class="line">            print(<span class="string">'total:&#123;0&#125; trytimes:&#123;1&#125;  result:&#123;2&#125; &gt; target_rate:&#123;3&#125; success'</span>.format(total, k, p, rate))</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            print(<span class="string">'total:&#123;0&#125; trytimes:&#123;1&#125;  result:&#123;2&#125; &lt; target_rate:&#123;3&#125; failed, continue...'</span>.format(total, k, p, rate))</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> k</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    total_samples = <span class="number">365</span></span><br><span class="line">    rate = <span class="number">0.5</span></span><br><span class="line">    min_k =  birthday_attack(total_samples, rate)</span><br><span class="line">    print(<span class="string">"when total_samples is &#123;0&#125;, if request for rate greater than &#123;1&#125;, then try at least &#123;2&#125; times is ok\n"</span>.format(total_samples, rate, min_k))</span><br></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; python nat_birth_attack.py                                                                                                                                                                                      ‹git:master ✘› <span class="number">11</span>:<span class="number">00.53</span> 四  <span class="number">3</span> <span class="number">25</span> <span class="number">2021</span> &gt;&gt;&gt;</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">1</span>  result:<span class="number">0</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">2</span>  result:<span class="number">0.002740</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">3</span>  result:<span class="number">0.008204</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">4</span>  result:<span class="number">0.016356</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">5</span>  result:<span class="number">0.027136</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">6</span>  result:<span class="number">0.040462</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">7</span>  result:<span class="number">0.056236</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">8</span>  result:<span class="number">0.074335</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">9</span>  result:<span class="number">0.094624</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">10</span>  result:<span class="number">0.116948</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">11</span>  result:<span class="number">0.141141</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">12</span>  result:<span class="number">0.167025</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">13</span>  result:<span class="number">0.194410</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">14</span>  result:<span class="number">0.223103</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">15</span>  result:<span class="number">0.252901</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">16</span>  result:<span class="number">0.283604</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">17</span>  result:<span class="number">0.315008</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">18</span>  result:<span class="number">0.346911</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">19</span>  result:<span class="number">0.379119</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">20</span>  result:<span class="number">0.411438</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">21</span>  result:<span class="number">0.443688</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">22</span>  result:<span class="number">0.475695</span> &lt; target_rate:<span class="number">0.5</span> failed, <span class="keyword">continue</span>...</span><br><span class="line">total:<span class="number">365</span> trytimes:<span class="number">23</span>  result:<span class="number">0.507297</span> &gt; target_rate:<span class="number">0.5</span> success</span><br><span class="line">when total_samples <span class="keyword">is</span> <span class="number">365</span>, <span class="keyword">if</span> request <span class="keyword">for</span> rate greater than <span class="number">0.5</span>, then <span class="keyword">try</span> at least <span class="number">23</span> times <span class="keyword">is</span> ok</span><br></pre></td></tr></table></figure>
+
+
+
+<p>把 total 修改成 65535，概率 rate 修改成 80%，计算得到尝试次数为 460 次。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">total:<span class="number">65536</span> trytimes:<span class="number">460</span>  result:<span class="number">0.801039</span> &gt; target_rate:<span class="number">0.8</span> success</span><br><span class="line">when total_samples <span class="keyword">is</span> <span class="number">65536</span>, <span class="keyword">if</span> request <span class="keyword">for</span> rate greater than <span class="number">0.8</span>, then <span class="keyword">try</span> at least <span class="number">460</span> times <span class="keyword">is</span> ok</span><br></pre></td></tr></table></figure>
+
+
+
+<p>也就是说<span style="color:red">对于 B 来说，可以尝试随机往  A 的 460 个不同的端口发探测包，就有 80% 的概率能够正好预测到 NAT-A 随机分配的 PA2</span>。</p>
+<p>460 个探测包的代价基本可以忽略不计。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/p2p_nat_traversal/image-20210325113426160.png" alt="image-20210325113426160"></p>
+<p>至此，可以完美实现<strong>对称型和端口限制</strong>型的打洞。然而遗憾的是，对于<strong>对称型和对称型</strong>打洞，依然无法实现。</p>
+<h1 id="再来讨论下-NAT-对陌生地址包的行为"><a href="#再来讨论下-NAT-对陌生地址包的行为" class="headerlink" title="再来讨论下 NAT 对陌生地址包的行为"></a>再来讨论下 NAT 对陌生地址包的行为</h1><p>上面能够打洞成功的场景下，都是基于一个前提是 NAT 对陌生地址发来的包采用的是丢弃策略。这里的陌生地址指的是自己没有主动往外发包的 {dest_ip, dest_port} 对。</p>
+<p>如果不是丢弃，而是采用黑名单机制呢？为了安全考虑，有一些 NAT 在收到陌生地址的包后，会触发防火墙模块，并且在自己的 deny 列表中增加一项{PA2, PB1}，随后自己再往 A 发包的时候，本来打算使用 PB1 进行发包，但是发现 deny 列表里已经存在了 PB1，于是会重新选择一个端口号 PB2 发包。于是对于这种锥形 NAT 会退化成对称型的 NAT。</p>
+<p>知道了这个原理，要解决也很容易。</p>
+<ul>
+<li><strong>设置有限 TTL，避免惊动对方防火墙</strong></li>
+</ul>
+<ol>
+<li><p>一开始 A 往 B 发包，可以设置 TTL 为 3，这个数大到足够通过自己的外网 NAT(可能有多层)，又会被中间的某个运营商 router 丢弃，从而不会惊动  B 的防火墙模块，同时为 B 打好了洞。</p>
+</li>
+<li><p>同理，B 也做类似的操作，为 A 打好洞</p>
+</li>
+<li><p>A  和 B 两边都等待一段时间，比如 2 s</p>
+</li>
+<li><p>再互相发探测包，不用设置 TTL</p>
+</li>
+<li><p>打洞成功</p>
+</li>
+</ol>
+<blockquote>
+<p>关于 TTL 的值设置为多少，需要做一定的探测，不然可能设置过小，也许都没有走出自己的 NAT，设置过大，可能导致惊动了对方的防火墙</p>
+</blockquote>
+<h1 id="总结一下"><a href="#总结一下" class="headerlink" title="总结一下"></a>总结一下</h1><table>
+<thead>
+<tr>
+<th>NAT</th>
+<th>全锥形</th>
+<th>限制型锥形</th>
+<th>端口限制型锥形</th>
+<th>对称型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>全锥形</td>
+<td>Direct</td>
+<td>Direct</td>
+<td>Direct</td>
+<td>Direct</td>
+</tr>
+<tr>
+<td>限制型锥形</td>
+<td>Direct</td>
+<td>Hole Punch</td>
+<td>Hole Punch</td>
+<td>Hole Punch</td>
+</tr>
+<tr>
+<td>端口限制型锥形</td>
+<td>Direct</td>
+<td>Hole Punch</td>
+<td>Hole Punch</td>
+<td>Hole Punch</td>
+</tr>
+<tr>
+<td>对称型</td>
+<td>Direct</td>
+<td>Hole Punch</td>
+<td>Hole Punch</td>
+<td><span style="color:blue">Relay</span></td>
+</tr>
+</tbody></table>
+<h1 id="扩展：讨论一下-TCP-打洞的可行性"><a href="#扩展：讨论一下-TCP-打洞的可行性" class="headerlink" title="扩展：讨论一下 TCP 打洞的可行性"></a>扩展：讨论一下 TCP 打洞的可行性</h1><p>TCP 也能实现 NAT 打洞，只不过相比 UDP 会更复杂一点。原因是：</p>
+<ul>
+<li>一个UDP套接字由一个二元组来标识，该二元组包含一个目的地址和一个目的端口号；而一个TCP套接字是由一个四元组来标识，包括源IP地址、源端口号、目的IP地址、目的端口号</li>
+<li>TCP  套接字仅允许建立 1 对 1 的响应，即应用程序将一个套接字绑定到本地的端口后，试图将第二个套接字绑定到该端口的操作都会失败</li>
+</ul>
+<p>基本打洞策略如下：</p>
+<ol>
+<li>A 和 B 分别位于不同的 NAT 下面</li>
+<li>A 启动 tcp client，bind 一个  local_port  PA1’，执行 connect 连接公网 tcp server，server 获取 A 的映射公网端口 PA</li>
+<li>B 同上，B 启动 tcp client，bind 一个  local_port  PB1’，执行 connect 连接公网 tcp server，server 获取 B 的映射公网端口 PB</li>
+<li>A  和 B 保持和 server 的连接，不断开，避免各自的 NAT  上的映射规则过期 {PA1’ -&gt; PA} 和 {PB1’ -&gt; PB1}</li>
+<li>A 和 B 通过 server 互相获取对方的公网 Port PA1 和 PB1，准备开始打洞</li>
+<li>A 新启动一个 tcp 套接字，使用 SO_REUSEADDR/SO_REUSEPORT 绑定到之前与 server 连接的本地端口，也就是 PA1’，并且调用 listen 处于等待监听状态</li>
+<li>B  同上，bind PB1’ 并且调用 listen 处于监听状态</li>
+<li>A 再<strong>新建一个套接字 bind 到之前的端口</strong>，调用 connect 发起向 PB1 的连接，也就是 A 往 PB1 发送 syn 包，也就是为 B 打洞，NAT-B 会丢弃这个包</li>
+<li>同时 B也<strong>再新建一个套接字 bind 到之前的端口</strong>， 也调用 connect 发起向 PA1 的连接，也就是 B 往 PA1 发送 syn 包，也就是为 A 打洞</li>
+<li>假设 A 发送完 syn 之后，B 的 syn 包达到了 NAT-A，NAT-A 能通过，这个时候有的 linux 系统上 A 会认为自己的异步 connect 调用成功，同时利用相同的 seq 发送 SYN+ACK 包 到 PB1，NAT-B 也能顺利通过，再返回 ACK 包，连接建立成功；有的 linux 系统会走正常的 accept 操作，也能顺利建立连接</li>
+</ol>
+<h1 id="扩展：讨论一下打洞的有效时间"><a href="#扩展：讨论一下打洞的有效时间" class="headerlink" title="扩展：讨论一下打洞的有效时间"></a>扩展：讨论一下打洞的有效时间</h1><p>在 NAT  上的映射规则有失效时间，如果要保持洞口的有效性，需要保持打洞双方的心跳。比如在手机上，这个洞口可能会在 1 min 后失效</p>
+<h1 id="扩展：讨论一下多层-NAT-的打洞"><a href="#扩展：讨论一下多层-NAT-的打洞" class="headerlink" title="扩展：讨论一下多层 NAT 的打洞"></a>扩展：讨论一下多层 NAT 的打洞</h1><p>我感觉其实单层 NAT 应该是类似的。</p>
+<p>Blog:</p>
+<ul>
+<li><p><a href="http://rebootcat.com">rebootcat.com</a></p>
+</li>
+<li><p>email: <a href="mailto:&#x6c;&#105;&#x6e;&#x75;&#120;&#x63;&#x6f;&#100;&#101;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#x67;&#109;&#x61;&#105;&#108;&#46;&#99;&#x6f;&#109;">&#x6c;&#105;&#x6e;&#x75;&#120;&#x63;&#x6f;&#100;&#101;&#x32;&#x6e;&#105;&#x6b;&#x69;&#x40;&#x67;&#109;&#x61;&#105;&#108;&#46;&#99;&#x6f;&#109;</a></p>
+</li>
+</ul>
+<p>2021-03-28 于杭州<br><em>By  <a href="https://github.com/smaugx" target="_blank" rel="noopener">史矛革</a></em></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/09/26/epoll_examples/" rel="bookmark">epoll 入门例子 tcp server/client</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2020/11/14/tcp_accept/" rel="bookmark">TCP全连接和半连接的问题探讨</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2017/08/20/Elasticsearch_handle_with_python/" rel="bookmark">python操作ES(Elasticsearch)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/05/21/analyze_bandwidth/" rel="bookmark">python采集bandwidth信息</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/2018/05/20/analyze_cpu/" rel="bookmark">python采集cpu信息</a></div>
+    </li>
+  </ul>
+
+        <div class="reward-container">
+  <div>buy me a cola!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/wechat_pay.png" alt="Smaug 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Smaug
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rebootcat.com/2021/03/28/p2p_nat_traversal/" title="P2P 打洞技术详解">https://rebootcat.com/2021/03/28/p2p_nat_traversal/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://github.com/smaugx">
+            <span class="icon">
+              <i class="fa fa-github"></i>
+            </span>
+
+            <span class="label">Github</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/tcp/" rel="tag"># tcp</a>
+              <a href="/tags/p2p/" rel="tag"># p2p</a>
+              <a href="/tags/nat/" rel="tag"># nat</a>
+              <a href="/tags/stun/" rel="tag"># stun</a>
+              <a href="/tags/udp/" rel="tag"># udp</a>
+              <a href="/tags/upnp/" rel="tag"># upnp</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/12/05/paxos/" rel="prev" title="深入浅出paxos">
+      <i class="fa fa-chevron-left"></i> 深入浅出paxos
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#何为打洞？-what"><span class="nav-number">1.</span> <span class="nav-text">何为打洞？(what)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#英文翻译"><span class="nav-number">1.1.</span> <span class="nav-text">英文翻译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义"><span class="nav-number">1.2.</span> <span class="nav-text">定义</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#为何要打洞？-why"><span class="nav-number">2.</span> <span class="nav-text">为何要打洞？(why)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#直接连不行吗？"><span class="nav-number">2.1.</span> <span class="nav-text">直接连不行吗？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#打洞有什么好处？"><span class="nav-number">2.2.</span> <span class="nav-text">打洞有什么好处？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何打洞？（how"><span class="nav-number">3.</span> <span class="nav-text">如何打洞？（how)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用中继设备（proxy"><span class="nav-number">3.1.</span> <span class="nav-text">使用中继设备（proxy)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#直连"><span class="nav-number">3.2.</span> <span class="nav-text">直连</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NAT-设备类型"><span class="nav-number">4.</span> <span class="nav-text">NAT 设备类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Full-Cone-NAT-全锥形"><span class="nav-number">5.</span> <span class="nav-text">Full Cone NAT (全锥形)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Restricted-Cone-NAT（限制型）"><span class="nav-number">6.</span> <span class="nav-text">Restricted Cone NAT（限制型）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Port-Restricted-Cone-NAT（端口限制型）"><span class="nav-number">7.</span> <span class="nav-text">Port-Restricted Cone NAT（端口限制型）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Symmetric-NAT（对称型）"><span class="nav-number">8.</span> <span class="nav-text">Symmetric NAT（对称型）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#场景分析"><span class="nav-number">9.</span> <span class="nav-text">场景分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#节点-A-在-NAT-下面，节点-B-在公网环境中"><span class="nav-number">9.1.</span> <span class="nav-text">节点 A 在 NAT 下面，节点 B 在公网环境中</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点-A-和-B-在相同的-NAT-下"><span class="nav-number">9.2.</span> <span class="nav-text">节点 A 和 B 在相同的 NAT 下</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点-A-和-B-在不同的-NAT-下（这是我们要重点讨论的）"><span class="nav-number">9.3.</span> <span class="nav-text">节点 A 和 B 在不同的 NAT 下（这是我们要重点讨论的）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A-和-B-均是锥形-NAT"><span class="nav-number">9.4.</span> <span class="nav-text">A 和 B 均是锥形 NAT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A-和-B-分别是对称型和普通锥形-全锥形，限制型锥形"><span class="nav-number">9.5.</span> <span class="nav-text">A 和 B 分别是对称型和普通锥形(全锥形，限制型锥形)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A-和-B-分别是对称型和-Port-Restricted-Cone-NAT-（端口限制型）"><span class="nav-number">9.6.</span> <span class="nav-text">A 和 B 分别是对称型和 Port-Restricted Cone NAT （端口限制型）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A-和-B-都是对称型"><span class="nav-number">9.7.</span> <span class="nav-text">A  和 B 都是对称型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#对称型打洞真的没有办法了吗？"><span class="nav-number">10.</span> <span class="nav-text">对称型打洞真的没有办法了吗？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#端口探测"><span class="nav-number">10.1.</span> <span class="nav-text">端口探测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#端口预测"><span class="nav-number">10.2.</span> <span class="nav-text">端口预测</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#再来讨论下-NAT-对陌生地址包的行为"><span class="nav-number">11.</span> <span class="nav-text">再来讨论下 NAT 对陌生地址包的行为</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结一下"><span class="nav-number">12.</span> <span class="nav-text">总结一下</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#扩展：讨论一下-TCP-打洞的可行性"><span class="nav-number">13.</span> <span class="nav-text">扩展：讨论一下 TCP 打洞的可行性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#扩展：讨论一下打洞的有效时间"><span class="nav-number">14.</span> <span class="nav-text">扩展：讨论一下打洞的有效时间</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#扩展：讨论一下多层-NAT-的打洞"><span class="nav-number">15.</span> <span class="nav-text">扩展：讨论一下多层 NAT 的打洞</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Smaug"
+      src="https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting/rebootcat/sidebar_wolf.png">
+  <p class="site-author-name" itemprop="name">Smaug</p>
+  <div class="site-description" itemprop="description">人至贱则无敌</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">154</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/smaugx" title="Github → https:&#x2F;&#x2F;github.com&#x2F;smaugx" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://loveyxq.online/" title="https:&#x2F;&#x2F;loveyxq.online&#x2F;" rel="noopener" target="_blank">子不语</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smaug</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+
+  <span class="post-meta-divider">|</span>
+	<span class="smaug_cnzz">
+	<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279285424'%3E%3C/span%3E%3Cscript src='https://s9.cnzz.com/z_stat.php%3Fid%3D1279285424' type='text/javascript'%3E%3C/script%3E"));</script>
+	</span>
+
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'd5vhXhrHKkiBVVpR1WJJLgQP-gzGzoHsz',
+      appKey     : 'BRzIFYxjcm34z68pyNalDPtw',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+
+
+
+
+    <script type="text/javascript">
+        if(window.location.hash){
+            var checkExist = setInterval(function() {
+                if ($(window.location.hash).length) {
+                    $('html, body').animate({scrollTop: $(window.location.hash).offset().top-90}, 1000);
+                    clearInterval(checkExist);
+                }
+            }, 100);
+        }
+    </script>
+
+
+</body>
+</html>
